@@ -14,7 +14,7 @@ wandb:
   anonymous: null # enable anonymous logging
   # project: jointRegressor_ParametricPredictor_Gammatonegram
   # project: jointRegressor_ParametricPredictor_Melspectrogram
-  project: jointRegressor_ParametricPredictor_MFCC_Xpos
+  project: jointRegressor_ParametricPredictor_MFCC
   # project: jointRegressor_evaluation_Gammatone
   # project: jointRegressor_evaluation_Mel
   # project: jointRegressor_evaluation_MFCC
