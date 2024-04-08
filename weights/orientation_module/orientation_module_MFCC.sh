@@ -4,7 +4,7 @@
 url="https://jstorage.box.com/v/BERP-ori-module-mfcc"
 
 # Destination path
-dest="assets/sep_orientation_module/orientation_MFCC.ckpt"
+dest="weights/orientation_module/orientation_MFCC.ckpt"
 
 # Use wget to download the file
 wget "$url" -P "$dest"

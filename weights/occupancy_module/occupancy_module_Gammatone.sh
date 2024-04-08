@@ -4,7 +4,7 @@
 url="https://jstorage.box.com/v/BERP-occupancy-module-gamma"
 
 # Destination path
-dest="assets/occupancy_module/occupancy_gammatone.ckpt"
+dest="weights/occupancy_module/occupancy_gammatone.ckpt"
 
 # Use wget to download the file
 wget "$url" -P "$dest"

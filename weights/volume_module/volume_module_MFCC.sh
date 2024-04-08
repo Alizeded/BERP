@@ -4,7 +4,7 @@
 url="https://jstorage.box.com/v/BERP-volume-module-mfcc"
 
 # Destination path
-dest="assets/sep_volume_module/volume_MFCC.ckpt"
+dest="weights/volume_module/volume_MFCC.ckpt"
 
 # Use wget to download the file
 wget "$url" -P "$dest"

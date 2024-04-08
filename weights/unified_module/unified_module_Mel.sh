@@ -4,7 +4,7 @@
 url="https://jstorage.box.com/v/BERP-unified-module-mel"
 
 # Destination path
-dest="assets/unified_module/unified_mel.ckpt"
+dest="weights/unified_module/unified_mel.ckpt"
 
 # Use wget to download the file
 wget "$url" -P "$dest"

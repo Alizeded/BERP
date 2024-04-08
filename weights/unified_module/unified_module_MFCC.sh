@@ -4,7 +4,7 @@
 url="https://jstorage.box.com/v/BERP-unified-module-mfcc"
 
 # Destination path
-dest="assets/unified_module/unified_MFCC.ckpt"
+dest="weights/unified_module/unified_MFCC.ckpt"
 
 # Use wget to download the file
 wget "$url" -P "$dest"

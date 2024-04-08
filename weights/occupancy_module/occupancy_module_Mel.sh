@@ -4,7 +4,7 @@
 url="https://jstorage.box.com/v/BERP-occupancy-module-mel"
 
 # Destination path
-dest="assets/occupancy_module/occupancy_mel.ckpt"
+dest="weights/occupancy_module/occupancy_mel.ckpt"
 
 # Use wget to download the file
 wget "$url" -P "$dest"
