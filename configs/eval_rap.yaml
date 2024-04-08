@@ -1,0 +1,63 @@
+# @package _global_
+
+defaults:
+  - _self_
+  - data: null # choose datamodule with `test_dataloader()` for evaluation
+  - model: null
+  - logger: null
+  - trainer: null
+  - paths: default
+  - extras: default
+  - hydra: default
+
+task_name: "evaluation_rap_joint"
+# task_name: "evaluation_rap_sep"
+
+
+tags: ["dev"]
+
+# passing prediction path and ground truth path
+batch_size: 16
+rir_test_path: ${paths.data_dir}noiseReverbSpeech/test_manifest_RIR.csv
+rir_dataset_path: ${paths.data_dir}RIR_aggregated/RIR.data/
+
+multithreaded: false
+
+#! joint gammatone model for RAP
+joint_pred_path: ${paths.root_dir}/logs/prediction_joint/runs/${time_stamp}/predictions_joint_gammatone.pt
+rap_eval_path: ${paths.output_dir}/evaluation_rap_joint_gammatone.pt
+rap_eval_metric_path: ${paths.output_dir}/evaluation_rap_joint_gammatone_metric.csv
+
+#! joint melspectrogram model for RAP
+# joint_pred_path: ${paths.root_dir}/logs/prediction_joint/runs/${time_stamp}/predictions_joint_mel.pt
+# rap_eval_path: ${paths.output_dir}/evaluation_rap_joint_mel.pt
+# rap_eval_metric_path: ${paths.output_dir}/evaluation_rap_joint_mel_metric.csv
+
+#! joint mfcc model for RAP
+# joint_pred_path: ${paths.root_dir}/logs/prediction_joint/runs/${time_stamp}/predictions_joint_mfcc.pt
+# rap_eval_path: ${paths.output_dir}/evaluation_rap_joint_mfcc.pt
+# rap_eval_metric_path: ${paths.output_dir}/evaluation_rap_joint_mfcc_metric.csv
+
+#! joint cnnprenet model for RAP
+# joint_pred_path: ${paths.root_dir}/logs/prediction_joint/runs/${time_stamp}/predictions_joint_cnnprenet.pt
+# rap_eval_path: ${paths.output_dir}/evaluation_rap_joint_cnnprenet.pt
+# rap_eval_metric_path: ${paths.output_dir}/evaluation_rap_joint_cnnprenet_metric.csv
+
+
+#! gammatonegram model for RAP
+# TiTd_pred_path: ${paths.root_dir}/logs/prediction_rir/runs/${time_stamp}/predictions_rir_gammatone.pt
+# volume_pred_path: ${paths.root_dir}/logs/prediction_volume/runs/2024-03-05_17-44-03/predictions_volume_gammatone.pt
+# rap_eval_path: ${paths.output_dir}/evaluation_rap_gammatone.pt
+# rap_eval_metric_path: ${paths.output_dir}/evaluation_rap_gammatone_metric.csv
+
+# ! melspectrogram model for RAP
+# TiTd_pred_path: ${paths.root_dir}/logs/prediction_rir/runs/${time_stamp}/predictions_rir_mel.pt
+# volume_pred_path: ${paths.root_dir}/logs/prediction_volume/runs/${time_stamp}/predictions_volume_mel.pt
+# rap_eval_path: ${paths.output_dir}/evaluation_rap_mel.pt
+# rap_eval_metric_path: ${paths.output_dir}/evaluation_rap_mel_metric.csv
+
+# ! mfcc model for RAP
+# TiTd_pred_path: ${paths.root_dir}/logs/prediction_rir/runs/${time_stamp}/predictions_rir_mfcc.pt
+# volume_pred_path: ${paths.root_dir}/logs/prediction_volume/runs/${time_stamp}/predictions_volume_mfcc.pt
+# rap_eval_path: ${paths.output_dir}/evaluation_rap_mfcc.pt
+# rap_eval_metric_path: ${paths.output_dir}/evaluation_rap_mfcc_metric.csv

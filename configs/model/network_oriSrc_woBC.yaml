@@ -1,0 +1,38 @@
+
+oriSrcRegressorModule:
+  _target_: src.network.oriSrcRegressor_module_woBC.OriSrcRegressorModuleWOBC
+
+  net:
+    _target_: src.network.models.oriSrcEstimator.OriSrcEstimator
+    ch_in: 128
+    ch_out: 1
+    num_layers: 8
+    num_heads: 8
+    embed_dim: 512
+    ch_scale: 4
+    dropout_prob: 0.1
+    feat_type: "mfcc" # "gammatone", "mel", "mfcc"
+    decoder_type: "parametric_predictor"
+    num_channels_decoder: 384
+    kernel_size_decoder: 3
+    num_layers_decoder: 3
+    dropout_decoder: 0.5
+    bias_correction: False
+
+
+  optimizer:
+    _target_: torch.optim.RAdam
+    _partial_: true
+    lr: 1e-4
+    betas : [0.9, 0.98]
+    eps: 1e-8
+    weight_decay: 1e-6
+
+  scheduler: 
+    _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+    _partial_: true
+
+  optim_cfg:
+    T_max: 200
+
+

@@ -1,0 +1,23 @@
+_target_: lightning.pytorch.trainer.Trainer
+
+default_root_dir: ${paths.output_dir}
+
+min_epochs: 10 # prevents early stopping
+max_epochs: 300 # default 300                                                                                                
+
+accelerator: gpu
+devices: 1
+
+# mixed precision for extra speed-up
+precision: 32-true # "32-true", "bf16-mixed"
+
+# perform a validation loop every N training epochs                    
+check_val_every_n_epoch: 4 # 2 for baslineREnet, since its scheduler need val metrics
+# val_check_interval: 1.0 # 0.25: perform a validation loop every 25% of training steps
+
+# gradient_clip_val: 0.5 # 0.5: 0.5 is default used by fairseq, used for baselineREnet to prevent exploding gradients
+# gradient_clip_algorithm: 'norm' # 'norm' is default used by fairseq
+
+# set True to to ensure deterministic results
+# makes training slower but gives more reproducibility than just setting seeds
+deterministic: False

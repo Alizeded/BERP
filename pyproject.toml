@@ -1,0 +1,73 @@
+[project]
+name = "BERP"
+version = "0.1.1"
+description = "BERP:A Blind Estimator of Room Acoustic and Physical Parameters"
+authors = [
+    {name = "Lijun Wang & Yixian Lu", email = "lijun.wang@jaist.ac.jp"},
+    {name = "Yixian Lu", email = "mclouc@gmail.com"},
+]
+dependencies = [
+    "torch>=2.2.1",
+    "torchaudio>=2.2.1",
+    "torchvision>=0.17.1",
+    "lightning>=2.2.0,<3.0.0",
+    "torchmetrics>=1.3.1,<1.4.0",
+    "hydra-core==1.3.2",
+    "hydra-colorlog==1.2.0",
+    "hydra-optuna-sweeper==1.2.0",
+    "scipy>=1.12.0",
+    "numpy>=1.26.4",
+    "scikit-learn",
+    "nnAudio<=0.3.2",
+    "librosa",
+    "xformers>=0.0.25",
+    "einops==0.7.0",
+    "rich",
+    "tqdm",
+    "pandas>=2.2.1",
+    "rootutils>=1.0.7",
+    "evaluate>=0.4.1",
+]
+requires-python = ">=3.11,<3.12"
+readme = "README.md"
+license = {text = "GPL-V3"}
+
+
+[tool.pdm]
+distribution = true
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[project.optional-dependencies]
+integration = ["deepspeed", "rootutils", "autoroot", "sh"]
+toolbox = [
+    "pre-commit",
+    "transformers",
+    "pydmd",
+    "matplotlib>=3.8.3",
+    "seaborn",
+    "torch-dct",
+    "gammatone @ git+https://github.com/detly/gammatone.git",
+    "polars",
+]
+
+logging = ["wandb", "clearml"]
+
+[tool.pdm.dev-dependencies]
+lint = ["ruff"]
+test = ["pytest"]
+
+[[tool.pdm.sources]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[[tool.pdm.sources]]
+include_packages = ["torch", "torchaudio"]
+exclude_packages = ["*"]
+name = "torch"
+url = "https://download.pytorch.org/whl/cu121"
+verify_ssl = true
+

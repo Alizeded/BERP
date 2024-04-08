@@ -1,0 +1,111 @@
+FROM lucianiusw/multimodal_toolkit:standard-cuda12.1.1-pytorch2.1.0-python3.10.12
+LABEL maintainer="Lucianius L. Wang <lijun.wang@jaist.ac.jp>"
+
+ARG group_name
+ARG group_id
+ARG user_name=${user_name}
+ARG user_id
+ARG root_passwd=password
+
+COPY requirements.txt /tmp/
+RUN source activate ${CONDA_ENV_NAME} && \
+    pip install --no-cache-dir -r /tmp/requirements.txt && \
+    pip install --no-cache-dir jupyterlab && \
+    pip install --no-cache-dir notebook
+
+
+RUN echo root:${root_passwd} | chpasswd \
+    && groupadd --gid ${group_id} ${group_name} \
+    && useradd --create-home --no-log-init --shell /bin/bash --uid ${user_id} --gid ${group_id} -m ${user_name} \
+    && apt-get update \
+    && apt-get install neofetch -y --no-install-recommends \
+    && DEBIAN_FRONTEND=noninteractive $APT_INSTALL sudo \
+    && echo ${user_name} ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/${user_name} \
+    && chmod 0440 /etc/sudoers.d/${user_name} \
+    # ==================================================================
+    # clean up everything
+    # ------------------------------------------------------------------
+    && apt-get clean \
+    && apt-get -y autoremove \
+    && rm -rf /root/.cache \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /tmp/*
+
+ENV USER=${user_name}
+ENV HOME=/home/${user_name}
+
+# install oh-my-zsh
+RUN sh -c "$(wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)"
+
+# install starship
+RUN wget -P /tmp/ https://starship.rs/install.sh && sh /tmp/install.sh --yes && \
+    echo 'eval "$(starship init zsh)"' >> /home/${user_name}/.zshrc \
+    && conda init zsh && echo 'conda activate $CONDA_ENV_NAME' >> /home/${user_name}/.zshrc \
+    && echo 'export NCCL_SOCKET_IFNAME="enp179s0"' >> /home/${user_name}/.zshrc \
+    && chown -R ${user_name}:${group_name} /home/${user_name}
+
+RUN wget https://julialang-s3.julialang.org/bin/linux/x64/1.10/julia-1.10.0-linux-x86_64.tar.gz && \
+    tar zxvf julia-1.10.0-linux-x86_64.tar.gz
+
+RUN echo 'export PATH="$PATH:/home/${user_name}/julia-1.10.0/bin"' >> /home/${user_name}/.zshrc
+
+# install julia packages
+RUN echo 'using Pkg; Pkg.add("IJulia"); Pkg.add("JuMP"); Pkg.add("GLPK"); Pkg.add("Clp"); Pkg.add("Cbc"); Pkg.add("GLPKMathProgInterface")' | ./julia-1.10.0/bin/julia
+RUN echo 'using Pkg; Pkg.add("ApproxFun"); Pkg.add("DifferentialEquations"); Pkg.add("Plots"); Pkg.add("PyPlot"); Pkg.add("GR"); Pkg.add("DFTK"); Pkg.add("FourierFlows"); Pkg.add("ODE"); Pkg.add("EconPDEs"); Pkg.add("PtFEM")' | ./julia-1.10.0/bin/julia
+RUN echo 'using Pkg: Pkg.add("DSP"); Pkg.add("AbstractFFTs"); Pkg.add("FourierAnalysis"); Pkg.add("FourierTools"); Pkg.add("SortFilters"); Pkg.add("MDCT"); Pkg.add("Wavelets")' | ./julia-1.10.0/bin/julia
+
+# install go
+RUN wget https://golang.org/dl/go1.21.4.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go1.21.4.linux-amd64.tar.gz && \
+    echo 'export PATH="$PATH:/usr/local/go/bin"' >> /home/${user_name}/.zshrc
+
+# install neofetch
+RUN git clone https://github.com/dylanaraps/neofetch
+RUN cd neofetch && make install
+# RUN git clone --depth=1 https://github.com/romkatv/powerlevel10k.git /home/${user_name}/powerlevel10k \
+#     && echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >> /home/${user_name}/.zshrc \
+#     && conda init zsh && echo 'conda activate $CONDA_ENV_NAME' >> /home/${user_name}/.zshrc \
+#     && echo 'export NCCL_SOCKET_IFNAME="enp179s0"' >> /home/${user_name}/.zshrc \
+#     && chown -R ${user_name}:${group_name} /home/${user_name}
+
+RUN cd $HOME/.oh-my-zsh/plugins && git clone https://github.com/djui/alias-tips.git && \
+    git clone https://github.com/zsh-users/zsh-completions.git && \
+    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git && \
+    git clone https://github.com/zsh-users/zsh-autosuggestions.git && \
+    git clone https://github.com/zdharma-continuum/fast-syntax-highlighting.git && \
+    git clone https://github.com/MichaelAquilina/zsh-you-should-use.git
+
+RUN echo 'plugins=(git tig docker docker-compose golang pip dirhistory)' >> /home/${user_name}/.zshrc && \
+    echo 'plugins+=( history history-substring-search httpie sudo vagrant postgres )' >> /home/${user_name}/.zshrc && \
+    echo 'plugins+=( macos lein node npm jump gulp mosh )' >> /home/${user_name}/.zshrc && \
+    echo 'plugins+=( alias-tips zsh-completions zsh-autosuggestions )' >> /home/${user_name}/.zshrc && \
+    echo 'plugins+=( zsh-syntax-highlighting zsh-you-should-use )' >> /home/${user_name}/.zshrc
+
+# alias 
+RUN echo 'alias c="clear"'>> /home/${user_name}/.zshrc
+RUN echo 'alias l="ls -l"'>> /home/${user_name}/.zshrc 
+RUN echo 'alias ssh="ssh -X"'>> /home/${user_name}/.zshrc
+RUN echo 'alias a="conda activate"'>> /home/${user_name}/.zshrc 
+RUN echo 'alias d="conda deactivate"'>> /home/${user_name}/.zshrc
+RUN echo 'alias cc="conda create -n"'>> /home/${user_name}/.zshrc
+RUN echo 'alias cn="conda env list"'>> /home/${user_name}/.zshrc
+RUN echo 'alias cl="conda list"'>> /home/${user_name}/.zshrc
+RUN echo 'alias cr="conda remove -n"'>> /home/${user_name}/.zshrc
+RUN echo 'alias crr="conda remove --all -n"'>> /home/${user_name}/.zshrc
+RUN echo 'alias py="python"'>> /home/${user_name}/.zshrc
+RUN echo 'alias py3="python3"'>> /home/${user_name}/.zshrc
+RUN echo 'alias gc="git clone"'>> /home/${user_name}/.zshrc
+RUN echo 'alias gs="git status"'>> /home/${user_name}/.zshrc
+RUN echo 'alias ga="git add"'>> /home/${user_name}/.zshrc
+RUN echo 'alias gaa="git add ."'>> /home/${user_name}/.zshrc
+RUN echo 'alias gcmsg="git commit -m"'>> /home/${user_name}/.zshrc
+RUN echo 'alias gp="git push"'>> /home/${user_name}/.zshrc
+
+USER ${user_name}
+RUN cd $HOME && mkdir workspace && chmod -R 777 /home/${user_name}/workspace
+WORKDIR /home/${user_name}/workspace
+
+
+ENV SHELL=/bin/zsh
+ENTRYPOINT ["/bin/zsh"]
+CMD ["-l"]

@@ -1,0 +1,40 @@
+# @package _global_
+
+defaults:
+  - _self_
+  - data: null # choose datamodule with `test_dataloader()` for evaluation
+  - model: null
+  - logger: null
+  - trainer: null
+  - paths: default
+  - extras: default
+  - hydra: default
+
+task_name: "prediction_rap_joint"
+# task_name: "prediction_rap_sep"
+
+
+tags: ["dev"]
+
+# passing prediction path and ground truth path
+batch_size: 16
+fs: 16000
+
+multithreaded: false
+
+#! joint gammatone model for RAP
+joint_pred_path: ${paths.root_dir}/logs/prediction_joint/runs/${time_stamp}/predictions_joint_gammatone.pt
+rap_pred_path: ${paths.output_dir}/prediction_rap_joint_gammatone.csv
+
+#! joint melspectrogram model for RAP
+# joint_pred_path: ${paths.root_dir}/logs/prediction_joint/runs/${time_stamp}/predictions_joint_mel.pt
+# rap_pred_path: ${paths.output_dir}/prediction_rap_joint_mel.csv
+
+#! joint mfcc model for RAP
+# joint_pred_path: ${paths.root_dir}/logs/prediction_joint/runs/${time_stamp}/predictions_joint_mfcc.pt
+# rap_pred_path: ${paths.output_dir}/prediction_rap_joint_mfcc.csv
+
+# ! mfcc model for RAP
+# TiTd_pred_path: ${paths.root_dir}/logs/prediction_rir/runs/${time_stamp}/predictions_rir_mfcc.pt
+# volume_pred_path: ${paths.root_dir}/logs/prediction_volume/runs/${time_stamp}/predictions_volume_mfcc.pt
+# rap_pred_path: ${paths.output_dir}/prediction_rap_mfcc.csv

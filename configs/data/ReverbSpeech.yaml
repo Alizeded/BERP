@@ -1,0 +1,33 @@
+
+reverbSpeechModule:
+  _target_: src.data.reverb_speech_datamodule.ReverbSpeechDataModule
+
+  path_raw: speech.data
+  data_dir: ${paths.data_dir}noiseReverbSpeech
+  max_sample_len: 320000 # 20 seconds
+  sample_rate: 16000
+  batch_size: 16
+  shuffle: True
+  feat_type: "mfcc" # "gammatone", "mel", "mfcc"
+  n_fft: 1024
+  n_bins: 128
+  hop_length: 256
+  norm_amplitude: False # for dist_src, set to True
+  pin_memory: True
+
+mixedSpeechModule:
+  _target_: src.data.mixed_speech_datamodule.MixedSpeechDataModule
+
+  raw_path: mixed_speech.data/reverb_mixed
+  label_path: mixed_speech_label.data
+  data_dir: ${paths.data_dir}mixed_speech
+  max_sample_len: 360000 # 25 seconds
+  sample_rate: 16000
+  batch_size: 16
+  shuffle: True
+  feat_type: "mfcc" # "gammatone", "mel", "mfcc"
+  n_fft: 1024
+  n_bins: 128
+  hop_length: 256
+  pin_memory: True
+  num_workers: 48
