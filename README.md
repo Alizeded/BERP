@@ -57,8 +57,8 @@ pip install -r requirements.txt
 
 ```bash
 # clone project
-git clone https://github.com/Alizeded/BERP-implementation
-cd BERP-implementation
+git clone https://github.com/Alizeded/BERP
+cd BERP
 
 # create conda environment and install dependencies
 pdm config venv.backend conda # choose the backend as conda
@@ -69,8 +69,8 @@ pdm install # install dependencies with locking dependencies versions
 
 ```bash
 # clone project
-git clone https://github.com/Alizeded/BERP-implementation
-cd BERP-implementation
+git clone https://github.com/Alizeded/BERP
+cd BERP
 
 # create conda environment and install dependencies
 conda env create -f environment.yaml -n acoustic-toolkit
