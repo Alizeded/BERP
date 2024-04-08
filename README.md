@@ -57,8 +57,8 @@ pip install -r requirements.txt
 
 ```bash
 # clone project
-git clone https://github.com/Alizeded/BERP
-cd BERP
+git clone https://github.com/Alizeded/BERP-implementation
+cd BERP-implementation
 
 # create conda environment and install dependencies
 pdm config venv.backend conda # choose the backend as conda
@@ -69,8 +69,8 @@ pdm install # install dependencies with locking dependencies versions
 
 ```bash
 # clone project
-git clone https://github.com/Alizeded/BERP
-cd BERP
+git clone https://github.com/Alizeded/BERP-implementation
+cd BERP-implementation
 
 # create conda environment and install dependencies
 conda env create -f environment.yaml -n acoustic-toolkit
@@ -159,7 +159,7 @@ First configure the `inference_rap.yaml` in `configs` directory, then run the fo
 python src/inference_rap_joint.py
 ```
 
-Weights are also available, please check the `assets` directory for more information
+Weights are also available, please check the `weights` directory for more information
 
 Juypiter notebook `data_preprocessing.ipynb` details the data preprocessing pipeline.
 
