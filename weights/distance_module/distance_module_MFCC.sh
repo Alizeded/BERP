@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# URL of the checkpoint file (URE-Gammatone model)
-url="https://jstorage.box.com/v/URE-unified-module-mel"
+# URL of the checkpoint file (BERP distance module - MFCC)
+url="https://jstorage.box.com/v/BERP-distance-module-mfcc"
 
 # Destination path
-dest="assets/unified_module/unified_module_Mel.ckpt"
+dest="weights/distance_module/distance_MFCC.ckpt"
 
 # Use wget to download the file
 wget "$url" -P "$dest"

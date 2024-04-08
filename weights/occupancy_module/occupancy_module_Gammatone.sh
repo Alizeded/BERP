@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# URL of the checkpoint file (URE-Gammatone model)
-url="https://jstorage.box.com/v/URE-sep-distance-module-gamma"
+# URL of the checkpoint file (BERP occupancy module - Gammatone)
+url="https://jstorage.box.com/v/BERP-occupancy-module-gamma"
 
 # Destination path
-dest="assets/sep_distance_module/distance_module_Gammatone.ckpt"
+dest="assets/occupancy_module/occupancy_gammatone.ckpt"
 
 # Use wget to download the file
 wget "$url" -P "$dest"

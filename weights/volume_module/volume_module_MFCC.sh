@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# URL of the checkpoint file (URE-Gammatone model)
-url="https://jstorage.box.com/v/URE-sep-ori-module-mel"
+# URL of the checkpoint file (BERP volume module - MFCC)
+url="https://jstorage.box.com/v/BERP-volume-module-mfcc"
 
 # Destination path
-dest="assets/sep_orientation_module/orientation_module_Mel.ckpt"
+dest="assets/sep_volume_module/volume_MFCC.ckpt"
 
 # Use wget to download the file
 wget "$url" -P "$dest"
