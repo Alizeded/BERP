@@ -8,7 +8,7 @@
 <a3 href="https://hydra.cc/"><img alt="Config: Hydra" src="https://img.shields.io/badge/Config-Hydra-89b8cd"></a>
 <a4 href="https://github.com/ashleve/lightning-hydra-template"><img alt="Template" src="https://img.shields.io/badge/-Lightning--Hydra--Template-017F2F?style=flat&logo=github&labelColor=gray"></a4><br>
 [![Paper](http://img.shields.io/badge/paper-arxiv.1001.2234-B31B1B.svg)](https://www.nature.com/articles/nature14539)
-[![Journal](http://img.shields.io/badge/Journal-2024-4b44ce.svg)](https://papers.nips.cc/paper/2020)
+<!-- [![Journal](http://img.shields.io/badge/Journal-2024-4b44ce.svg)](https://papers.nips.cc/paper/2020) -->
 
 </div>
 
@@ -79,6 +79,24 @@ conda env create -f environment.yaml -n acoustic-toolkit
 conda activate acoustic-toolkit
 ```
 
+# Data download and preprocessing
+
+The data can be downloaded from the following link:
+
+```bash
+# download the data
+wget https://jstorage.box.com/v/berp-datasets -O noiseReverbSpeech.zip
+wget https://jstorage.box.com/v/berp-datasets -O mixed_speech.zip
+```
+
+Then, unzip the data and put it in the `data` directory.
+
+```bash
+# unzip the data
+unzip noiseReverbSpeech.zip -d data
+unzip mixed_speech.zip -d data
+```
+
 ## How to run
 
 Train model with the default configuration
@@ -102,7 +120,7 @@ python src/train.py trainer=ddp data=ReverbSpeechJointEst logger=wandb_numEstima
 ```
 
 ```bash
-# train on four GPUs
+# train on quad GPUs
 # for unified module
 python src/train.py trainer=ddp trainer.devices=4 data=ReverbSpeechJointEst logger=wandb_jointRegressor callbacks=default_jointRegressor
 
@@ -163,14 +181,10 @@ Weights are also available, please check the `weights` directory for more inform
 
 Juypiter notebook `data_preprocessing.ipynb` details the data preprocessing pipeline.
 
-## Data
-
-The data can obtain by contacting the author. It will open-source soon.
-
 ## License
 
 This project is licensed under the GPL-3.0 License - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
-This project obtained the great favours from Jianan Chen. Thanks for his great help.
+This project obtained the great favours from Jianan Chen, our good friend. Thanks for his great help.
