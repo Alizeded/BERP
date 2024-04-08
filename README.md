@@ -177,7 +177,34 @@ First configure the `inference_rap.yaml` in `configs` directory, then run the fo
 python src/inference_rap_joint.py
 ```
 
-Weights are also available, please check the `weights` directory for more information
+Weights are also available, please check the `weights` directory for more information.
+
+In the `weights` directory, you can download the corresponding weights of each module for the BERP framework,
+including the unified module and the occupancy module with three featurization methods and the separate module with MFCC featurization. 
+
+you can download the weights from the following link:
+
+```bash
+# download the weights for the unified module
+bash unified_module_Gammatone.sh
+bash unified_module_MFCC.sh
+bash unified_module_Mel.sh
+```
+
+```bash
+# download the weights for the occupancy module
+bash occupancy_module_Gammatone.sh
+bash occupancy_module_MFCC.sh
+bash occupancy_module_Mel.sh
+```
+
+```bash
+# download the weights for the separate module
+bash rir_module_MFCC.sh
+bash volume_module_MFCC.sh
+bash distance_module_MFCC.sh
+bash orientation_module_MFCC.sh
+```
 
 Juypiter notebook `data_preprocessing.ipynb` details the data preprocessing pipeline.
 
