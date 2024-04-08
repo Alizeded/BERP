@@ -177,7 +177,7 @@ First configure the `inference_rap.yaml` in `configs` directory, then run the fo
 python src/inference_rap_joint.py
 ```
 
-Weights are also available, please check the `weights` directory for more information.
+## Weights are also available, please check the `weights` directory for more information.
 
 In the `weights` directory, you can download the corresponding weights of each module for the BERP framework,
 including the unified module and the occupancy module with three featurization methods and the separate module with MFCC featurization. 
