@@ -38,12 +38,6 @@ rap_eval_metric_path: ${paths.output_dir}/evaluation_rap_joint_gammatone_metric.
 # rap_eval_path: ${paths.output_dir}/evaluation_rap_joint_mfcc.pt
 # rap_eval_metric_path: ${paths.output_dir}/evaluation_rap_joint_mfcc_metric.csv
 
-#! joint cnnprenet model for RAP
-# joint_pred_path: ${paths.root_dir}/logs/prediction_joint/runs/${time_stamp}/predictions_joint_cnnprenet.pt
-# rap_eval_path: ${paths.output_dir}/evaluation_rap_joint_cnnprenet.pt
-# rap_eval_metric_path: ${paths.output_dir}/evaluation_rap_joint_cnnprenet_metric.csv
-
-
 #! gammatonegram model for RAP
 # TiTd_pred_path: ${paths.root_dir}/logs/prediction_rir/runs/${time_stamp}/predictions_rir_gammatone.pt
 # volume_pred_path: ${paths.root_dir}/logs/prediction_volume/runs/2024-03-05_17-44-03/predictions_volume_gammatone.pt
