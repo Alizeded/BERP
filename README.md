@@ -1,7 +1,7 @@
 
 <div align="center"> <h1>BERP: A Blind Estimator of Room acoustic and physical Parameters</h1> </div>
 
-# The implementation of Blind Estimator of Room Acoustic and Physical Parameters
+# The implementation of BERP
 
 <a1 href="https://pytorch.org/get-started/locally/"><img alt="PyTorch" src="https://img.shields.io/badge/PyTorch-ee4c2c?logo=pytorch&logoColor=white"></a1>
 <a2 href="https://pytorchlightning.ai/"><img alt="Lightning" src="https://img.shields.io/badge/-Lightning-792ee5?logo=pytorchlightning&logoColor=white"></a2>
