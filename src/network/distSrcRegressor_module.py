@@ -50,6 +50,8 @@ class DistSrcRegressorModule(LightningModule):
         self.val_l1_best_dist_src = MinMetric()
         self.val_corrcoef_best_dist_src = MaxMetric()
 
+        self.predict_tools = HuberLoss(phase="infer", module="distance")
+
     def forward(
         self,
         source: torch.Tensor,
@@ -268,7 +270,9 @@ class DistSrcRegressorModule(LightningModule):
             input_lengths = (1 - padding_mask.long()).sum(-1)
 
             # apply conv formula to get real output_lengths
-            output_lengths = HuberLoss._get_param_pred_output_lengths(input_lengths)
+            output_lengths = self.predict_tools._get_param_pred_output_lengths(
+                input_lengths=input_lengths
+            )
 
             padding_mask = torch.zeros(
                 dist_src_hat.shape[:2],

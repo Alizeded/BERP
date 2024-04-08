@@ -92,6 +92,8 @@ class OriSrcRegressorModule(LightningModule):
         self.val_corrcoef_best_azimuth = MaxMetric()
         self.val_corrcoef_best_elevation = MaxMetric()
 
+        self.predict_tools = SeeSawLoss(phase="infer")
+
     def forward(
         self,
         source: torch.Tensor,
@@ -739,7 +741,9 @@ class OriSrcRegressorModule(LightningModule):
             input_lengths = (1 - padding_mask.long()).sum(-1)
 
             # apply conv formula to get real output_lengths
-            output_lengths = SeeSawLoss._get_param_pred_output_lengths(input_lengths)
+            output_lengths = self.predict_tools._get_param_pred_output_lengths(
+                input_lengths=input_lengths
+            )
 
             padding_mask = torch.zeros(
                 azimuth_hat.shape[:2],

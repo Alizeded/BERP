@@ -51,6 +51,8 @@ class VolumeRegressorModule(LightningModule):
         self.val_l1_best_volume = MinMetric()
         self.val_corrcoef_best_volume = MaxMetric()
 
+        self.predict_tools = HuberLoss(phase="infer", module="volume")
+
     def forward(
         self,
         source: torch.Tensor,
@@ -265,7 +267,9 @@ class VolumeRegressorModule(LightningModule):
             input_lengths = (1 - padding_mask.long()).sum(-1)
 
             # apply conv formula to get real output_lengths
-            output_lengths = HuberLoss._get_feat_extract_output_lengths(input_lengths)
+            output_lengths = self.predict_tools._get_feat_extract_output_lengths(
+                input_lengths=input_lengths
+            )
 
             # these two operations makes sure that all values
             # before the output lengths indices are attended to

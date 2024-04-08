@@ -63,6 +63,8 @@ class rirRegressorModule(LightningModule):
         self.val_corrcoef_best_Th = MaxMetric()
         self.val_corrcoef_best_Tt = MaxMetric()
 
+        self.predict_tools = HuberLoss(phase="infer", module="rir")
+
     def forward(
         self,
         source: torch.Tensor,
@@ -405,7 +407,9 @@ class rirRegressorModule(LightningModule):
             input_lengths = (1 - padding_mask.long()).sum(-1)
 
             # apply conv formula to get real output_lengths
-            output_lengths = HuberLoss._get_param_pred_output_lengths(input_lengths)
+            output_lengths = self.predict_tools._get_param_pred_output_lengths(
+                input_lengths=input_lengths
+            )
 
             padding_mask = torch.zeros(
                 Tt_hat.shape[:2], dtype=Tt_hat.dtype, device=Tt_hat.device

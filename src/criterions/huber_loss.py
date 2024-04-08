@@ -28,8 +28,11 @@ class HuberLoss(nn.Module):
         self.pearson_corr = PearsonCorrCoef()
 
         assert (
-            self.phase == "train" or self.phase == "val" or self.phase == "test"
-        ), "phase should be either train or val or test"
+            self.phase == "train"
+            or self.phase == "val"
+            or self.phase == "test"
+            or self.phase == "infer"
+        ), "phase should be either 'train' or 'val' or 'test' or 'infer'"
 
         assert (
             self.module == "rir"

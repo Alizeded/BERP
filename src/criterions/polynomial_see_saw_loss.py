@@ -24,8 +24,11 @@ class PolynomialSeeSawLoss(nn.Module):
         self.phase = phase
 
         assert (
-            self.phase == "train" or self.phase == "val" or self.phase == "test"
-        ), f"Invalid phase: {self.phase}, should be either 'train' or 'val' or 'test'"
+            self.phase == "train"
+            or self.phase == "val"
+            or self.phase == "test"
+            or self.phase == "infer"
+        ), f"Invalid phase: {self.phase}, should be either 'train' or 'val' or 'test' or 'infer'"
 
     def _get_param_pred_output_lengths(self, input_lengths: torch.LongTensor):
         """
