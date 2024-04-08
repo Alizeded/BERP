@@ -14,7 +14,7 @@
 
 ## Description
 
-The implementation of Blind Estimator of Room Acoustic and Physical Parameters (BERP) is Pytorch based for training and evaluating a model for room acoustic and physical parameters estimation all-in-one. The project is based on PyTorch Lightning and Hydra. This implementation includes the data preprocessing pipelines, model architectures, training and inference strategies, and experimental configurations.
+The implementation of Blind Estimator of Room Acoustic and Physical Parameters (BERP) is Pytorch-based framework for predicting room acoustic and physical parameters estimation all-in-one. The project is based on PyTorch Lightning and Hydra. This implementation includes the data preprocessing pipelines, model architectures, training and inference strategies, and experimental configurations.
 
 ## Installation
 
