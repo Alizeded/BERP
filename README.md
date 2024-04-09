@@ -81,21 +81,7 @@ conda activate acoustic-toolkit
 
 # Data download and preprocessing
 
-The data can be downloaded from the following link:
-
-```bash
-# download the data
-wget https://jstorage.box.com/v/berp-datasets -O noiseReverbSpeech.zip
-wget https://jstorage.box.com/v/berp-datasets -O mixed_speech.zip
-```
-
-Then, unzip the data and put it in the `data` directory.
-
-```bash
-# unzip the data
-unzip noiseReverbSpeech.zip -d data
-unzip mixed_speech.zip -d data
-```
+The data will be avaliable later, please contact the authors for more information.
 
 ## How to run
 
