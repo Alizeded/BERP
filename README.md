@@ -81,7 +81,7 @@ conda activate acoustic-toolkit
 
 # Data download and preprocessing
 
-The data is also avaliable, please contact the authors for more information.
+The data is also avaliable, if it is expired, please contact the authors for more information.
 
 ```bash
 # download the data
