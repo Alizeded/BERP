@@ -35,11 +35,6 @@ defaults:
 # task_name: "regression_ParametricPredictor_ori_src_woBC"
 task_name: "regression_ParametricPredictor_joint_est"
 # task_name: "classification_numOcc"
-# task_name: "regression_baseline_RIR"
-# task_name: "regression_baseline_volume"
-# task_name: "regression_baseline_dist_src"
-# task_name: "regression_baseline_ori_src"
-# task_name: "regression_baseline_joint"
 # task_name: "regression_roomEncoder"
 
 # tags to help you identify your experiments
