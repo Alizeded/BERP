@@ -206,7 +206,7 @@ bash distance_module_MFCC.sh
 bash orientation_module_MFCC.sh
 ```
 
-Juypiter notebook `data_preprocessing.ipynb` details the data preprocessing pipeline.
+Juypiter notebook `data_preprocessing.ipynb` in `notebook` folder details the data preprocessing pipeline.
 
 ## License
 
