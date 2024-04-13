@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # URL of the checkpoint file (BERP unified model - gammatonegram)
-url="https://jstorage.box.com/v/BERP-unified-module-gamma"
+url="https://jstorage.box.com/v/BERP-unified-module-gammatone"
 
 # Destination path
 dest="weights/unified_module/unified_gammatone.ckpt"
