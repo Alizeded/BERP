@@ -8,7 +8,7 @@ setup(
     description="BERP: A Blind Estimator of Room acoustic and physical Parameters.",
     author="Lucianius L. Wang",
     author_email="lijun.wang@jaist.ac.jp",
-    url="https://github.com/user/project",
+    url="https://github.com/Alizeded/BERP",
     install_requires=["lightning", "hydra-core"],
     packages=find_packages(),
     # use this to customize global commands available in the terminal after installing the package
