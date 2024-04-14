@@ -3,7 +3,7 @@ LABEL maintainer="Lucianius L. Wang <lijun.wang@jaist.ac.jp>"
 
 ARG group_name
 ARG group_id
-ARG user_name=${user_name}
+ARG user_name={your_user_name}
 ARG user_id
 ARG root_passwd=password
 
@@ -43,21 +43,6 @@ RUN wget -P /tmp/ https://starship.rs/install.sh && sh /tmp/install.sh --yes && 
     && conda init zsh && echo 'conda activate $CONDA_ENV_NAME' >> /home/${user_name}/.zshrc \
     && echo 'export NCCL_SOCKET_IFNAME="enp179s0"' >> /home/${user_name}/.zshrc \
     && chown -R ${user_name}:${group_name} /home/${user_name}
-
-RUN wget https://julialang-s3.julialang.org/bin/linux/x64/1.10/julia-1.10.0-linux-x86_64.tar.gz && \
-    tar zxvf julia-1.10.0-linux-x86_64.tar.gz
-
-RUN echo 'export PATH="$PATH:/home/${user_name}/julia-1.10.0/bin"' >> /home/${user_name}/.zshrc
-
-# install julia packages
-RUN echo 'using Pkg; Pkg.add("IJulia"); Pkg.add("JuMP"); Pkg.add("GLPK"); Pkg.add("Clp"); Pkg.add("Cbc"); Pkg.add("GLPKMathProgInterface")' | ./julia-1.10.0/bin/julia
-RUN echo 'using Pkg; Pkg.add("ApproxFun"); Pkg.add("DifferentialEquations"); Pkg.add("Plots"); Pkg.add("PyPlot"); Pkg.add("GR"); Pkg.add("DFTK"); Pkg.add("FourierFlows"); Pkg.add("ODE"); Pkg.add("EconPDEs"); Pkg.add("PtFEM")' | ./julia-1.10.0/bin/julia
-RUN echo 'using Pkg: Pkg.add("DSP"); Pkg.add("AbstractFFTs"); Pkg.add("FourierAnalysis"); Pkg.add("FourierTools"); Pkg.add("SortFilters"); Pkg.add("MDCT"); Pkg.add("Wavelets")' | ./julia-1.10.0/bin/julia
-
-# install go
-RUN wget https://golang.org/dl/go1.21.4.linux-amd64.tar.gz && \
-    tar -C /usr/local -xzf go1.21.4.linux-amd64.tar.gz && \
-    echo 'export PATH="$PATH:/usr/local/go/bin"' >> /home/${user_name}/.zshrc
 
 # install neofetch
 RUN git clone https://github.com/dylanaraps/neofetch
