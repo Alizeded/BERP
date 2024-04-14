@@ -40,7 +40,7 @@ rap_eval_metric_path: ${paths.output_dir}/evaluation_rap_joint_gammatone_metric.
 
 #! gammatonegram model for RAP
 # TiTd_pred_path: ${paths.root_dir}/logs/prediction_rir/runs/${time_stamp}/predictions_rir_gammatone.pt
-# volume_pred_path: ${paths.root_dir}/logs/prediction_volume/runs/2024-03-05_17-44-03/predictions_volume_gammatone.pt
+# volume_pred_path: ${paths.root_dir}/logs/prediction_volume/runs/${time_stamp}/predictions_volume_gammatone.pt
 # rap_eval_path: ${paths.output_dir}/evaluation_rap_gammatone.pt
 # rap_eval_metric_path: ${paths.output_dir}/evaluation_rap_gammatone_metric.csv
 

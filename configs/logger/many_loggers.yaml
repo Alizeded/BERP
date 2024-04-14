@@ -1,8 +1,8 @@
 # train with many loggers at once
 
 defaults:
-  # - comet
-  - csv
+  - comet
+  # - csv
   # - mlflow
   # - neptune
   - clearml
