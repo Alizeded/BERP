@@ -12,12 +12,12 @@ wandb:
   # id: acoustic-toolkit-rirRegressor-evaluation-Mel  # evaluate on Mel model
   # id: acoustic-toolkit-rirRegressor-evaluation-MFCC # evaluate on MFCC model
   anonymous: null # enable anonymous logging
-  # project: rirRegressor_ParametricPredictor_Gammatone_Xpos
-  # project: rirRegressor_ParametricPredictor_Mel_Xpos
-  project: rirRegressor_ParametricPredictor_MFCC_Xpos
-  # project: rirRegressor_evaluation_Gammatone_Xpos
-  # project: rirRegressor_evaluation_Mel_Xpos
-  # project: rirRegressor_evaluation_MFCC_Xpos
+  # project: rirRegressor_ParametricPredictor_Gammatone
+  # project: rirRegressor_ParametricPredictor_Mel
+  project: rirRegressor_ParametricPredictor_MFCC
+  # project: rirRegressor_evaluation_Gammatone
+  # project: rirRegressor_evaluation_Mel
+  # project: rirRegressor_evaluation_MFCC
   entity: lucx
   log_model: True # upload lightning ckpts
   prefix: "" # a string to put at the beginning of metric keys
