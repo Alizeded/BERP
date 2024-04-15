@@ -137,28 +137,26 @@ python src/train.py trainer=ddp trainer.nodes=2 trainer.devices=4 data=ReverbSpe
 python src/train.py trainer=ddp trainer.nodes=2 trainer.devices=4 data=ReverbSpeechJointEst logger=wandb_numEstimator callbacks=default_numEstimator
 ```
 
-```bash
-
 ## Configuration of training
 
 Please refer to `model`, `callback` and `logger` folder and `train.yaml` in `configs` directory for more details.
 
-Evaluate with the trained model
+Inference with the trained model
 
 ```bash
-python src/eval_jointRegressor.py data=ReverbSpeechJointEst logger=wandb_jointRegressor
+python src/inference_jointRegressor.py data=ReverbSpeechJointEst
 ```
 
 ```bash
-python src/eval_numEstimator.py data=ReverbSpeechJointEst logger=wandb_numEstimator
+python src/inference_numEstimator.py
 ```
 
-More details about the evaluation can be found in `eval.yaml` in `configs` directory.
+More details about the evaluation can be found in `inference.yaml` in `configs` directory.
 
-After evaluating the trained model, you can use the following command to evaluate the room acoustic parameters using SSIR model.
+After inferencing from the trained model, you can use the following command to inference the room acoustic parameters using SSIR model.
 
 ```bash
-python src/eval_rap_joint.py
+python src/inference_rap_joint.py
 ```
 
 More details about the evaluation of room acoustic parameters can be found in `eval_rap.yaml` in `configs` directory.
@@ -177,7 +175,7 @@ First configure the `inference_rap.yaml` in `configs` directory, then run the fo
 python src/inference_rap_joint.py
 ```
 
-## Weights are also available, please check the `weights` directory for more information.
+## Weights are also available, please check the `weights` directory for more information
 
 In the `weights` directory, you can download the corresponding weights of each module for the BERP framework,
 including the unified module and the occupancy module with three featurization methods and the separate module with MFCC featurization. 
@@ -186,24 +184,24 @@ you can download the weights from the following link:
 
 ```bash
 # download the weights for the unified module
-bash unified_module_Gammatone.sh
-bash unified_module_MFCC.sh
-bash unified_module_Mel.sh
+sh unified_module_Gammatone.sh
+sh unified_module_MFCC.sh
+sh unified_module_Mel.sh
 ```
 
 ```bash
 # download the weights for the occupancy module
-bash occupancy_module_Gammatone.sh
-bash occupancy_module_MFCC.sh
-bash occupancy_module_Mel.sh
+sh occupancy_module_Gammatone.sh
+sh occupancy_module_MFCC.sh
+sh occupancy_module_Mel.sh
 ```
 
 ```bash
 # download the weights for the separate module
-bash rir_module_MFCC.sh
-bash volume_module_MFCC.sh
-bash distance_module_MFCC.sh
-bash orientation_module_MFCC.sh
+sh rir_module_MFCC.sh
+sh volume_module_MFCC.sh
+sh distance_module_MFCC.sh
+sh orientation_module_MFCC.sh
 ```
 
 Juypiter notebook `data_preprocessing.ipynb` in `notebook` folder details the data preprocessing pipeline.
