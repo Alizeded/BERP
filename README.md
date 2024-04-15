@@ -151,7 +151,7 @@ python src/inference_jointRegressor.py data=ReverbSpeechJointEst
 python src/inference_numEstimator.py
 ```
 
-More details about the evaluation can be found in `inference.yaml` in `configs` directory.
+More details about the inference can be found in `inference.yaml` in `configs` directory.
 
 After inferencing from the trained model, you can use the following command to inference the room acoustic parameters using SSIR model.
 
@@ -159,7 +159,7 @@ After inferencing from the trained model, you can use the following command to i
 python src/inference_rap_joint.py
 ```
 
-More details about the evaluation of room acoustic parameters can be found in `eval_rap.yaml` in `configs` directory.
+More details about the inference of room acoustic parameters can be found in `inference_rap.yaml` in `configs` directory.
 
 ## Configuration of inference output from the trained model
 
