@@ -141,7 +141,7 @@ python src/train.py trainer=ddp trainer.nodes=2 trainer.devices=4 data=ReverbSpe
 
 Please refer to `model`, `callback` and `logger` folder and `train.yaml` in `configs` directory for more details.
 
-Inference with the trained model
+## Inference with the trained model
 
 ```bash
 python src/inference_jointRegressor.py data=ReverbSpeechJointEst
