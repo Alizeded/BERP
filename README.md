@@ -67,18 +67,6 @@ eval $(pdm venv activate acoustic-toolkit) # activate pdm virtual environment
 pdm install # install dependencies with locking dependencies versions
 ```
 
-```bash
-# clone project
-git clone https://github.com/Alizeded/BERP
-cd BERP
-
-# create conda environment and install dependencies
-conda env create -f environment.yaml -n acoustic-toolkit
-
-# activate conda environment
-conda activate acoustic-toolkit
-```
-
 # Data download and preprocessing
 
 The data is also avaliable, if it is expired, please contact the authors for more information.
@@ -113,28 +101,28 @@ python src/train_numEstimator.py trainer=gpu logger=wandb_numEstimator callbacks
 ```bash
 # train on dual GPUs
 # for unified module
-python src/train.py trainer=ddp data=ReverbSpeechJointEst logger=wandb_jointRegressor callbacks=default_jointRegressor
+python src/train_jointRegressor.py trainer=ddp data=ReverbSpeechJointEst logger=wandb_jointRegressor callbacks=default_jointRegressor
 
 # for occupancy module
-python src/train.py trainer=ddp data=ReverbSpeechJointEst logger=wandb_numEstimator callbacks=default_numEstimator
+python src/train_numEstimator.py trainer=ddp logger=wandb_numEstimator callbacks=default_numEstimator
 ```
 
 ```bash
 # train on quad GPUs
 # for unified module
-python src/train.py trainer=ddp trainer.devices=4 data=ReverbSpeechJointEst logger=wandb_jointRegressor callbacks=default_jointRegressor
+python src/train_jointRegressor.py trainer=ddp trainer.devices=4 data=ReverbSpeechJointEst logger=wandb_jointRegressor callbacks=default_jointRegressor
 
 # for occupancy module
-python src/train.py trainer=ddp trainer.devices=4 data=ReverbSpeechJointEst logger=wandb_numEstimator callbacks=default_numEstimator
+python src/train.py trainer=ddp trainer.devices=4 logger=wandb_numEstimator callbacks=default_numEstimator
 ```
 
 ```bash
 # train on multiple GPUs with multiple nodes (2 nodes, 4 GPUs as an example)
 # for unified module
-python src/train.py trainer=ddp trainer.nodes=2 trainer.devices=4 data=ReverbSpeechJointEst logger=wandb_jointRegressor callbacks=default_jointRegressor
+python src/train_jointRegressor.py trainer=ddp trainer.nodes=2 trainer.devices=4 data=ReverbSpeechJointEst logger=wandb_jointRegressor callbacks=default_jointRegressor
 
 # for occupancy module
-python src/train.py trainer=ddp trainer.nodes=2 trainer.devices=4 data=ReverbSpeechJointEst logger=wandb_numEstimator callbacks=default_numEstimator
+python src/train_numEstimator.py trainer=ddp trainer.nodes=2 trainer.devices=4 logger=wandb_numEstimator callbacks=default_numEstimator
 ```
 
 ## Configuration of training
@@ -164,16 +152,6 @@ More details about the inference of room acoustic parameters can be found in `in
 ## Configuration of inference output from the trained model
 
 Please refer to `inference.yaml` in `configs` directory for more details.
-
-## Inference the room acoustic parameters from the trained model
-
-After obtained the inference output from the trained model, you can use the following command to get the room acoustic parameters using SSIR model.
-
-First configure the `inference_rap.yaml` in `configs` directory, then run the following command
-
-```bash
-python src/inference_rap_joint.py
-```
 
 ## Weights are also available, please check the `weights` directory for more information
 
