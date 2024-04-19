@@ -3,13 +3,13 @@ defaults:
 
 # strategy: ddp # lightning native ddp with find_unused_parameters=False
 strategy: ddp_find_unused_parameters_true # default: lightning native ddp with find_unused_parameters=True
-# strategy: deepspeed_stage_2_offload # deepspeed stage 2 offload
+# strategy: deepspeed_stage_3 # deepspeed stage 3
+# precision: 32 # 32-bit precision
 # strategy: 
   # _target_: lightning.fabric.strategies.DeepSpeedStrategy # lightning deepspeed strategy
   # offload_optimizer: True
   # allgather_bucket_size: 5e8
   # reduce_bucket_size: 5e8
-# precision: 32 # 32-bit precision
 
 # strategy: fsdp # fsdp
 
