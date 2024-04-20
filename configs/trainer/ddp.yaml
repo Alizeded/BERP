@@ -3,7 +3,7 @@ defaults:
 
 # strategy: ddp # lightning native ddp with find_unused_parameters=False
 # strategy: ddp_find_unused_parameters_true # default: lightning native ddp with find_unused_parameters=True
-strategy: deepspeed_stage_2 # deepspeed stage 3
+strategy: deepspeed_stage_2 # deepspeed stage 2
 precision: 32 # 32-bit precision
 # strategy:
   # _target_: lightning.fabric.strategies.DeepSpeedStrategy # lightning deepspeed strategy

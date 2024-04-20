@@ -4,5 +4,5 @@ defaults:
 accelerator: gpu
 devices: 1
 
-strategy: deepspeed_stage_2
+strategy: deepspeed_stage_2 # deepspeed stage 2
 precision: 32
