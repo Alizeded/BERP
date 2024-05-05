@@ -180,7 +180,7 @@ class SeeSawLoss(nn.Module):
                     corr_coef_pred_val["corr_pred"].append(corr_pred_pp)
 
                 else:
-                    NotImplementedError(
+                    raise NotImplementedError(
                         "Correlation Coefficient is only calculated during validation phase"
                     )
 

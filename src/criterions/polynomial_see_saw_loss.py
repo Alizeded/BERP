@@ -238,7 +238,7 @@ class PolynomialSeeSawLoss(nn.Module):
                 if self.phase == "val":
                     corr_ori_src_val["corr_azimuth_pp_val"].append(corr_azimuth_pp)
                 else:
-                    NotImplementedError(
+                    raise NotImplementedError(
                         "Correlation is only computed in validation phase"
                     )
 
@@ -328,7 +328,7 @@ class PolynomialSeeSawLoss(nn.Module):
                 if self.phase == "val":
                     corr_ori_src_val["corr_elevation_pp_val"].append(corr_elevation_pp)
                 else:
-                    NotImplementedError(
+                    raise NotImplementedError(
                         "Correlation is only computed in validation phase"
                     )
 

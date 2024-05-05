@@ -161,7 +161,7 @@ class HuberLoss(nn.Module):
             return {"loss": loss, "corr_coef": corr_coef}
 
         else:
-            NotImplementedError(
+            raise NotImplementedError(
                 "Phase not implemented, please choose either 'train' or 'val' or 'test'"
             )
 
@@ -235,7 +235,7 @@ class HuberLoss(nn.Module):
                 }
 
             else:
-                NotImplementedError(
+                raise NotImplementedError(
                     "Phase not implemented, please choose either train or val or test"
                 )
 
@@ -293,7 +293,7 @@ class HuberLoss(nn.Module):
                 }
 
             else:
-                NotImplementedError(
+                raise NotImplementedError(
                     "Phase not implemented, please choose either train or val or test"
                 )
 
@@ -318,7 +318,7 @@ class HuberLoss(nn.Module):
                 }
 
             else:
-                NotImplementedError(
+                raise NotImplementedError(
                     "Phase not implemented, please choose either train or val or test"
                 )
 
