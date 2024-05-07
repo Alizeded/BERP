@@ -1,5 +1,5 @@
 
-<div align="center"> <h1>BERP: A Blind Estimator of Room acoustic and physical Parameters</h1> </div>
+<div align="center"> <h1>BERP: A Blind Estimator of Room acoustic and physical Parameters for Single-channel Noisy Speech Signals</h1> </div>
 
 # The implementation of BERP
 
