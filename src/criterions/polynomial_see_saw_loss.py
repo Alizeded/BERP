@@ -23,12 +23,12 @@ class PolynomialSeeSawLoss(nn.Module):
         self.pearson_corr_coef = PearsonCorrCoef()
         self.phase = phase
 
-        assert (
-            self.phase == "train"
-            or self.phase == "val"
-            or self.phase == "test"
-            or self.phase == "infer"
-        ), f"Invalid phase: {self.phase}, should be either 'train' or 'val' or 'test' or 'infer'"
+        assert self.phase in {
+            "train",
+            "val",
+            "test",
+            "infer",
+        }, f"Invalid phase: {self.phase}, should be either 'train' or 'val' or 'test' or 'infer'"
 
     def _get_param_pred_output_lengths(self, input_lengths: torch.LongTensor):
         """
@@ -62,6 +62,7 @@ class PolynomialSeeSawLoss(nn.Module):
         param_hat: Dict[str, torch.Tensor],
         param_groundtruth: Dict[str, torch.Tensor],
     ):
+        # sourcery skip: merge-comparisons, merge-duplicate-blocks, remove-redundant-if, split-or-ifs, switch
         # extract predicted parameters
         # force cast to float to avoid mismatch in data type
         Th_hat = param_hat["Th_hat"]

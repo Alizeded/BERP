@@ -1,3 +1,4 @@
+import itertools
 from typing import Optional, Any
 import random
 
@@ -128,6 +129,7 @@ class SparseStochasticIRModel(nn.Module):
 
 
 def octave_seven_band_filter(x: np.ndarray, fs0: int = 16000) -> np.ndarray:
+    # sourcery skip: hoist-similar-statement-from-if, hoist-statement-from-if, simplify-numeric-comparison
     """Octave band filter bank
 
     Parameters:
@@ -237,14 +239,13 @@ class RapidSpeechTransmissionIndex(nn.Module):
 
         # transmission index calculation
         ti = np.zeros((k, i))
-        for n in range(k):
-            for m in range(i):
-                if SNR_apparent[n, m] > 15:
-                    ti[n, m] = 1
-                elif SNR_apparent[n, m] < -15:
-                    ti[n, m] = 0
-                else:
-                    ti[n, m] = (SNR_apparent[n, m] + 15) / 30
+        for n, m in itertools.product(range(k), range(i)):
+            if SNR_apparent[n, m] > 15:
+                ti[n, m] = 1
+            elif SNR_apparent[n, m] < -15:
+                ti[n, m] = 0
+            else:
+                ti[n, m] = (SNR_apparent[n, m] + 15) / 30
 
         # modulation transmission index calculation
         mti = np.zeros(k)
@@ -276,8 +277,7 @@ class PercentageArticulationLoss(nn.Module):
         super(PercentageArticulationLoss, self).__init__()
 
     def forward(self, sti: Tensor) -> Tensor:
-        al_cons = 170.5045 * torch.exp(-5.419 * sti)
-        return al_cons
+        return 170.5045 * torch.exp(-5.419 * sti)
 
 
 class EarlyDecayTime(nn.Module):
@@ -455,11 +455,11 @@ class Clarity(nn.Module):
 
     def forward(self, rir: Tensor, fs: int = 16000) -> Tensor:
         t_correction = 2.5 / 1000 * fs  # bias correction, 2.5 ms
-        if self.clarity_mode == "C80":
-            t_duration = int(80 / 1000 * fs)
-        elif self.clarity_mode == "C50":
+        if self.clarity_mode == "C50":
             t_duration = int(50 / 1000 * fs)
 
+        elif self.clarity_mode == "C80":
+            t_duration = int(80 / 1000 * fs)
         # find the time index of direct sound
         rir = rir / torch.max(torch.abs(rir))  # normalize to 1
         peak = torch.where(rir**2 == torch.max(rir**2))[0]
@@ -472,9 +472,7 @@ class Clarity(nn.Module):
         # late reflection
         dens = torch.trapz(rir[t_peak + t_duration :] ** 2)
 
-        clarity = 10 * (nums / dens).log10()  # dB
-
-        return clarity
+        return 10 * (nums / dens).log10()
 
 
 class Definition(nn.Module):
@@ -484,6 +482,7 @@ class Definition(nn.Module):
         super(Definition, self).__init__()
 
     def forward(self, rir: Tensor, fs: int = 16000) -> Tensor:
+        # sourcery skip: inline-immediately-returned-variable
         t_correction = int(2.5 / 1000 * fs)  # bias correction, 2.5 ms
         t50 = int(50 / 1000 * fs)  # 50 ms
 
@@ -514,6 +513,4 @@ class CenterTime(nn.Module):
         nums = torch.trapz(t * rir**2)
         dens = torch.trapz(rir**2)
 
-        Ts = nums / dens
-
-        return Ts
+        return nums / dens

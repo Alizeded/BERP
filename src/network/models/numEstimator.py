@@ -13,7 +13,7 @@ from src.network.components.room_encoder import (
 )
 
 
-def init_bert_params(module):
+def init_bert_params(module):  # sourcery skip: merge-isinstance
     """
     Initialize the weights specific to the BERT Model.
     This overrides the default initializations depending on the specified arguments.
@@ -78,7 +78,7 @@ class NumOccEstimator(nn.Module):
             (512, 2, 2),
         ],
         feat_type: str = "gammatone",  # "gammatone", "mel", "MFCC", "cnn_prenet"
-    ):
+    ):  # sourcery skip: collection-into-set, merge-comparisons
         """Occupancy Module
 
         Args:
@@ -282,7 +282,7 @@ class RoomFeatureEncoder(nn.Module):
 
         x = F.dropout(x, p=self.dropout, training=self.training)
 
-        for i, layer in enumerate(self.layers):
+        for layer in self.layers:
             dropout_probability = np.random.random()
             if not self.training or (dropout_probability > self.layerdrop):
                 x = layer(

@@ -23,7 +23,7 @@ class RoomEncoder(nn.Module):
         feat_type: str = "mfcc",  # "gammatone", "mel", "mfcc"
         decoder_type: str = "rir",  # rir, volume, distSrc, oriSrc, joint
         dist_src_est: Optional[bool] = False,
-    ):
+    ):  # sourcery skip: collection-into-set, merge-comparisons
         super(RoomEncoder, self).__init__()
 
         # conformer encoder
@@ -67,6 +67,7 @@ class RoomEncoder(nn.Module):
     def decoder_forward(
         self, x: torch.Tensor, padding_mask: torch.Tensor
     ) -> Dict[str, torch.Tensor]:
+        # sourcery skip: extract-duplicate-method, extract-method
 
         if self.decoder_type == "rir":
             Th_hat = self.decoder(x)

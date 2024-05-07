@@ -92,7 +92,7 @@ class OriSrcEstimator(nn.Module):
         num_layers_decoder: int = 3,
         dropout_decoder: float = 0.5,
         bias_correction: bool = True,
-    ):
+    ):  # sourcery skip: collection-into-set, default-mutable-arg, merge-comparisons
         """Orientation module.
 
         Args:
@@ -163,12 +163,11 @@ class OriSrcEstimator(nn.Module):
         self.num_layers_decoder = num_layers_decoder
         self.dropout_decoder = dropout_decoder
 
-        if self.decoder_type == "parametric_predictor":
-            self.num_channels_decoder = num_channels_decoder
-            self.kernel_size_decoder = kernel_size_decoder
-        else:
+        if self.decoder_type != "parametric_predictor":
             raise NotImplementedError("Only parametric predictor is supported")
 
+        self.num_channels_decoder = num_channels_decoder
+        self.kernel_size_decoder = kernel_size_decoder
         # binary classifier for bias correction
         self.binary_classifier_azimuth = BinaryClassifier(
             in_dim=embed_dim,
@@ -180,26 +179,24 @@ class OriSrcEstimator(nn.Module):
             out_dim=1,
         )
 
-        # parametric predictor decoder
-        if self.decoder_type == "parametric_predictor":
-            # parametric predictor for ori_src
-            self.parametric_predictor_azimuth = ParametricPredictor(
-                in_dim=embed_dim,
-                num_layers=num_layers_decoder,
-                num_channels=num_channels_decoder,
-                kernel_size=kernel_size_decoder,
-                dropout_prob=dropout_decoder,
-            )
-
-            self.parametric_predictor_elevation = ParametricPredictor(
-                in_dim=embed_dim,
-                num_layers=num_layers_decoder,
-                num_channels=num_channels_decoder,
-                kernel_size=kernel_size_decoder,
-                dropout_prob=dropout_decoder,
-            )
-        else:
+        if self.decoder_type != "parametric_predictor":
             raise NotImplementedError("Only parametric predictor is supported")
+        # parametric predictor for ori_src
+        self.parametric_predictor_azimuth = ParametricPredictor(
+            in_dim=embed_dim,
+            num_layers=num_layers_decoder,
+            num_channels=num_channels_decoder,
+            kernel_size=kernel_size_decoder,
+            dropout_prob=dropout_decoder,
+        )
+
+        self.parametric_predictor_elevation = ParametricPredictor(
+            in_dim=embed_dim,
+            num_layers=num_layers_decoder,
+            num_channels=num_channels_decoder,
+            kernel_size=kernel_size_decoder,
+            dropout_prob=dropout_decoder,
+        )
 
     def binary_classifier_forward(self, x: torch.Tensor):
         """binary classifier forward pass"""

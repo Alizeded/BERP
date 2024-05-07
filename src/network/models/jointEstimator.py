@@ -136,7 +136,7 @@ class JointEstimator(nn.Module):
                 conv_bias=False,
             )
 
-        elif feat_type == "gammatone" or feat_type == "mel" or feat_type == "mfcc":
+        elif feat_type in {"gammatone", "mel", "mfcc"}:
             self.feat_proj = nn.Linear(ch_in, embed_dim)
 
         else:
@@ -159,73 +159,70 @@ class JointEstimator(nn.Module):
         self.num_layers_decoder = num_layers_decoder
         self.dropout_decoder = dropout_decoder
 
-        if self.decoder_type == "parametric_predictor":
-            self.num_channels_decoder = num_channels_decoder
-            self.kernel_size_decoder = kernel_size_decoder
-        else:
+        if self.decoder_type != "parametric_predictor":
             raise NotImplementedError("Only parameteric predictor is supported")
 
+        self.num_channels_decoder = num_channels_decoder
+        self.kernel_size_decoder = kernel_size_decoder
         # binary bias corrector for azimuth and elevation
         self.binary_classifier_azimuth = BinaryClassifier(in_dim=embed_dim, out_dim=1)
         self.binary_classifier_elevation = BinaryClassifier(in_dim=embed_dim, out_dim=1)
 
-        # parameteric predictor decoder
-        if self.decoder_type == "parametric_predictor":
-            # parameteric predictor for Th
-            self.parametric_predictor_Th = ParametricPredictor(
-                in_dim=embed_dim,
-                num_layers=num_layers_decoder,
-                num_channels=num_channels_decoder,
-                kernel_size=kernel_size_decoder,
-                dropout_prob=dropout_decoder,
-            )
-
-            # parameteric predictor for Tt
-            self.parametric_predictor_Tt = ParametricPredictor(
-                in_dim=embed_dim,
-                num_layers=num_layers_decoder,
-                num_channels=num_channels_decoder,
-                kernel_size=kernel_size_decoder,
-                dropout_prob=dropout_decoder,
-            )
-
-            # parameteric predictor for volume
-            self.parametric_predictor_volume = ParametricPredictor(
-                in_dim=embed_dim,
-                num_layers=num_layers_decoder,
-                num_channels=num_channels_decoder,
-                kernel_size=kernel_size_decoder,
-                dropout_prob=dropout_decoder,
-            )
-
-            # parameteric predictor for distSrc
-            self.parametric_predictor_distSrc = ParametricPredictor(
-                in_dim=embed_dim,
-                num_layers=num_layers_decoder,
-                num_channels=num_channels_decoder,
-                kernel_size=kernel_size_decoder,
-                dropout_prob=dropout_decoder,
-            )
-
-            # parameteric predictor for azimuthSrc
-            self.parametric_predictor_azimuth = ParametricPredictor(
-                in_dim=embed_dim,
-                num_layers=num_layers_decoder,
-                num_channels=num_channels_decoder,
-                kernel_size=kernel_size_decoder,
-                dropout_prob=dropout_decoder,
-            )
-
-            # parameteric predictor for elevationSrc
-            self.parametric_predictor_elevation = ParametricPredictor(
-                in_dim=embed_dim,
-                num_layers=num_layers_decoder,
-                num_channels=num_channels_decoder,
-                kernel_size=kernel_size_decoder,
-                dropout_prob=dropout_decoder,
-            )
-        else:
+        if self.decoder_type != "parametric_predictor":
             raise NotImplementedError("Only parameteric predictor is supported")
+        # parameteric predictor for Th
+        self.parametric_predictor_Th = ParametricPredictor(
+            in_dim=embed_dim,
+            num_layers=num_layers_decoder,
+            num_channels=num_channels_decoder,
+            kernel_size=kernel_size_decoder,
+            dropout_prob=dropout_decoder,
+        )
+
+        # parameteric predictor for Tt
+        self.parametric_predictor_Tt = ParametricPredictor(
+            in_dim=embed_dim,
+            num_layers=num_layers_decoder,
+            num_channels=num_channels_decoder,
+            kernel_size=kernel_size_decoder,
+            dropout_prob=dropout_decoder,
+        )
+
+        # parameteric predictor for volume
+        self.parametric_predictor_volume = ParametricPredictor(
+            in_dim=embed_dim,
+            num_layers=num_layers_decoder,
+            num_channels=num_channels_decoder,
+            kernel_size=kernel_size_decoder,
+            dropout_prob=dropout_decoder,
+        )
+
+        # parameteric predictor for distSrc
+        self.parametric_predictor_distSrc = ParametricPredictor(
+            in_dim=embed_dim,
+            num_layers=num_layers_decoder,
+            num_channels=num_channels_decoder,
+            kernel_size=kernel_size_decoder,
+            dropout_prob=dropout_decoder,
+        )
+
+        # parameteric predictor for azimuthSrc
+        self.parametric_predictor_azimuth = ParametricPredictor(
+            in_dim=embed_dim,
+            num_layers=num_layers_decoder,
+            num_channels=num_channels_decoder,
+            kernel_size=kernel_size_decoder,
+            dropout_prob=dropout_decoder,
+        )
+
+        # parameteric predictor for elevationSrc
+        self.parametric_predictor_elevation = ParametricPredictor(
+            in_dim=embed_dim,
+            num_layers=num_layers_decoder,
+            num_channels=num_channels_decoder,
+            kernel_size=kernel_size_decoder,
+            dropout_prob=dropout_decoder,
+        )
 
     def binary_classifier_corrector_forward(
         self, x: torch.Tensor, padding_mask: torch.Tensor

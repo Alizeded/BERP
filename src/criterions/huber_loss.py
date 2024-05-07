@@ -27,19 +27,19 @@ class HuberLoss(nn.Module):
         self.l1_loss = L1Loss()
         self.pearson_corr = PearsonCorrCoef()
 
-        assert (
-            self.phase == "train"
-            or self.phase == "val"
-            or self.phase == "test"
-            or self.phase == "infer"
-        ), "phase should be either 'train' or 'val' or 'test' or 'infer'"
+        assert self.phase in {
+            "train",
+            "val",
+            "test",
+            "infer",
+        }, "phase should be either 'train' or 'val' or 'test' or 'infer'"
 
-        assert (
-            self.module == "rir"
-            or self.module == "volume"
-            or self.module == "distance"
-            or self.module == "orientation"
-        ), "module should be either rir or volume or distance or orientation"
+        assert self.module in {
+            "rir",
+            "volume",
+            "distance",
+            "orientation",
+        }, "module should be either rir or volume or distance or orientation"
 
     def _get_param_pred_output_lengths(self, input_lengths: torch.LongTensor):
         """
@@ -98,7 +98,7 @@ class HuberLoss(nn.Module):
 
     def huber_loss_calculate(
         self, pred: torch.Tensor, target: torch.Tensor, padding_mask: torch.Tensor
-    ):
+    ):  # sourcery skip: merge-comparisons, merge-else-if-into-elif
 
         if self.ablation is False:  # repadding mask for no ablation
             if padding_mask is not None and padding_mask.any():
@@ -106,9 +106,8 @@ class HuberLoss(nn.Module):
                 padding_mask, reverse_padding_mask = self._re_padding_mask(
                     pred=pred, padding_mask=padding_mask
                 )
-        else:
-            if padding_mask is not None and padding_mask.any():
-                reverse_padding_mask = padding_mask.logical_not()
+        elif padding_mask is not None and padding_mask.any():
+            reverse_padding_mask = padding_mask.logical_not()
 
         if padding_mask is not None and padding_mask.any():
             # -------------------- padding mask handling --------------------
@@ -169,7 +168,7 @@ class HuberLoss(nn.Module):
         self,
         param_hat: Dict[str, torch.Tensor],
         param_groundtruth: Dict[str, torch.Tensor],
-    ):
+    ):  # sourcery skip: merge-comparisons
 
         if self.module == "rir":
             Th_hat, Tt_hat = param_hat["Th_hat"], param_hat["Tt_hat"]

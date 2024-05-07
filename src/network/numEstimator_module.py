@@ -101,9 +101,7 @@ class numEstimatorModule(LightningModule):
         :param x: A tensor of mixed audio.
         :return: A tensor of predicted logits.
         """
-        net_output = self.numEstimator(source, padding_mask)
-
-        return net_output
+        return self.numEstimator(source, padding_mask)
 
     def model_step(
         self,
@@ -367,6 +365,7 @@ class numEstimatorModule(LightningModule):
         batch: Dict[str, torch.Tensor],
         batch_idx: int,
     ) -> Dict[str, torch.Tensor]:
+        # sourcery skip: inline-immediately-returned-variable
         """Perform a single prediction step on a batch of data from the test set.
 
         :param batch: A batch of data (a Dict) containing

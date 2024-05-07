@@ -61,9 +61,7 @@ class VolumeRegressorModule(LightningModule):
         :return: A tensor of estimated volume.
         """
 
-        net_output = self.volumeRegressor(source, padding_mask)
-
-        return net_output
+        return self.volumeRegressor(source, padding_mask)
 
     def on_train_start(self) -> None:
         """Lightning hook that is called when training begins."""
@@ -78,7 +76,7 @@ class VolumeRegressorModule(LightningModule):
     def model_step(
         self,
         batch: Dict[str, torch.Tensor],
-    ) -> torch.Tensor:
+    ) -> torch.Tensor:  # sourcery skip: inline-immediately-returned-variable
         """Perform a single model step on a batch of data.
 
         :param batch: A batch of data (a dict) containing the input tensor

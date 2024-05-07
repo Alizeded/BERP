@@ -62,9 +62,7 @@ class DistSrcRegressorModule(LightningModule):
         :param x: A tensor of waveform
         :return: A tensor of estimated dist_src.
         """
-        net_output = self.dist_srcRegressor(source, padding_mask)
-
-        return net_output
+        return self.dist_srcRegressor(source, padding_mask)
 
     def on_train_start(self) -> None:
         """Lightning hook that is called when training begins."""
@@ -96,9 +94,7 @@ class DistSrcRegressorModule(LightningModule):
         # compute loss
         loss = self.criterion_train(net_output, batch["groundtruth"])
 
-        loss_dist_src = loss["loss_dist_src"]
-
-        return loss_dist_src
+        return loss["loss_dist_src"]
 
     def training_step(
         self,
@@ -305,9 +301,7 @@ class DistSrcRegressorModule(LightningModule):
             # ----------------- no padding mask handling -----------------
             dist_src_hat = dist_src_hat.mean(dim=1)
 
-        preds = {"dist_src_hat": dist_src_hat}
-
-        return preds
+        return {"dist_src_hat": dist_src_hat}
 
     def configure_optimizers(self) -> Dict[str, Any]:
         """Configures optimizers and learning-rate schedulers to be used for training.

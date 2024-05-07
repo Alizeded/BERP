@@ -41,6 +41,7 @@ class ThTtEstimator(nn.Module):
         num_layers_decoder: int = 3,
         dropout_decoder: float = 0.5,
     ):
+        # sourcery skip: collection-into-set, merge-comparisons, remove-redundant-if, remove-unnecessary-else, swap-if-else-branches
         """RIR module for Ti, Td of SSIR estimation
 
         Args:

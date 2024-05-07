@@ -72,9 +72,7 @@ class rirRegressorModule(LightningModule):
         :param x: A tensor of waveform
         :return: A tensor of estimated Th, Tt.
         """
-        net_output = self.rirRegressor(source, padding_mask)
-
-        return net_output
+        return self.rirRegressor(source, padding_mask)
 
     def on_train_start(self) -> None:
         """Lightning hook that is called when training begins."""

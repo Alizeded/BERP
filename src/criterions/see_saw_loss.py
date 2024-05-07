@@ -21,12 +21,12 @@ class SeeSawLoss(nn.Module):
         self.bce_loss = BCELoss()
         self.pearson_corr = PearsonCorrCoef()
 
-        assert (
-            self.phase == "train"
-            or self.phase == "val"
-            or self.phase == "test"
-            or self.phase == "infer"
-        ), "phase should be either 'train' or 'val' or 'test' or 'infer'"
+        assert self.phase in {
+            "train",
+            "val",
+            "test",
+            "infer",
+        }, "phase should be either 'train' or 'val' or 'test' or 'infer'"
 
     def _get_param_pred_output_lengths(self, input_lengths: torch.LongTensor):
         """
@@ -63,6 +63,7 @@ class SeeSawLoss(nn.Module):
         judge_label: torch.Tensor,
         padding_mask: torch.Tensor,
     ) -> Dict[str, torch.Tensor]:
+        # sourcery skip: assign-if-exp, merge-comparisons, merge-duplicate-blocks, merge-else-if-into-elif, remove-redundant-if, split-or-ifs, switch
         """
         Calculate the see-saw loss
         """
@@ -221,6 +222,7 @@ class SeeSawLoss(nn.Module):
         param_hat: Dict[str, torch.Tensor],
         param_groundtruth: Dict[str, torch.Tensor],
     ):
+        # sourcery skip: merge-comparisons, merge-duplicate-blocks, remove-redundant-if
 
         azimuth_hat = param_hat["azimuth_hat"]
         azimuth = param_groundtruth["azimuth"]
@@ -236,7 +238,6 @@ class SeeSawLoss(nn.Module):
         padding_mask = param_hat["padding_mask"]
 
         assert azimuth_hat.shape == elevation_hat.shape
-
         if self.phase == "train":
 
             loss_azimuth = self.see_saw_loss_calculate(

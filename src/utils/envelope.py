@@ -23,7 +23,7 @@ class ButterWorthFilter(nn.Module):
         self.fc = fc
         self.fs = fs
 
-    def lpf(self):
+    def lpf(self):  # sourcery skip: remove-redundant-if
         if self.fc <= 200:
             N = 6
         elif self.fc > 200 and self.fc <= 700:
@@ -52,8 +52,7 @@ class TemporalEnvelope(nn.Module):
         """Hilbert transform using a filter"""
 
         analytic_signal = self.hilbert(x)
-        amplitude_envelope = torch.abs(analytic_signal)
-        return amplitude_envelope
+        return torch.abs(analytic_signal)
 
     def TAE(self, x):
         # temporal amplitude envelope

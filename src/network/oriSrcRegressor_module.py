@@ -104,8 +104,7 @@ class OriSrcRegressorModule(LightningModule):
         :param x: A tensor of waveform
         :return: A tensor of estimated azimuth and elevation.
         """
-        net_output = self.ori_srcRegressor(source, padding_mask)
-        return net_output
+        return self.ori_srcRegressor(source, padding_mask)
 
     def on_train_start(self) -> None:
         """Lightning hook that is called when training begins."""
@@ -310,7 +309,7 @@ class OriSrcRegressorModule(LightningModule):
         self,
         batch: Dict[str, torch.Tensor],
         batch_idx: int,
-    ) -> None:
+    ) -> None:  # sourcery skip: move-assign
         """Perform a single validation step on a batch of data from the validation set.
 
         :param batch: A batch of data (a dict) containing the input tensor of raw,
@@ -719,6 +718,7 @@ class OriSrcRegressorModule(LightningModule):
         batch: Dict[str, torch.Tensor],
         batch_idx: int,
     ) -> Dict[str, torch.Tensor]:
+        # sourcery skip: inline-immediately-returned-variable, merge-dict-assign
         """Perform a single prediction step on a batch of data from the test set.
 
         :param batch: A batch of data (a dict) containing the input tensor and target
