@@ -8,7 +8,6 @@ torch.manual_seed(2036)
 random.seed(2036)
 
 
-# label_root_path = "/home/s2320016/workspace/acoustic/data/LibriSpeech/mask"
 label_root_path = os.path.join(os.getcwd(), "data/LibriSpeech/mask")
 
 
@@ -20,7 +19,7 @@ def speech_synthesis(num_occ: int, files: pd.DataFrame, max_seq_len: int):
     tail = 0
 
     file_info = []
-    for i in range(num_occ):
+    for _ in range(num_occ):
         file_idx = random.randint(0, len(files) - 1)
         audio, fs = torchaudio.load(files.iloc[file_idx]["filename"])
         base_name = files.iloc[file_idx]["filename"].split("/")[-1].split(".")[0]
@@ -30,7 +29,7 @@ def speech_synthesis(num_occ: int, files: pd.DataFrame, max_seq_len: int):
         )
         label = torch.load(label_path)
         start_idx = torch.randint(0, max_seq_len - audio.shape[-1], (1,)).item()
-        start = start_idx if start_idx < start else start
+        start = min(start_idx, start)
         padded_audio = torch.cat(
             (
                 zeros_seq[:, :start_idx],
@@ -51,7 +50,7 @@ def speech_synthesis(num_occ: int, files: pd.DataFrame, max_seq_len: int):
         )
 
         end_idx = start_idx + audio.shape[-1]
-        tail = end_idx if end_idx > tail else tail
+        tail = max(end_idx, tail)
         dist_speech = torch.normal(mean=torch.tensor(2.5)).abs()
         if dist_speech < 1:
             dist_speech = dist_speech + 1
@@ -81,24 +80,15 @@ def mix_speech(num_occ: pd.DataFrame, files: pd.DataFrame):
     if num_occ != 0:
         if rir_volume < 400:
             max_seq_len = 10 * 16000  # 10s
-            files = files[files["length"] < max_seq_len]
-            mixed_speech, mixed_speech_label, file_info = speech_synthesis(
-                num_occ, files, max_seq_len
-            )
-
-        elif rir_volume >= 400 and rir_volume < 4000:
+        elif rir_volume < 4000:
             max_seq_len = 20 * 16000  # 15s
-            files = files[files["length"] < max_seq_len]
-            mixed_speech, mixed_speech_label, file_info = speech_synthesis(
-                num_occ, files, max_seq_len
-            )
-
-        elif rir_volume >= 4000:
+        else:
             max_seq_len = 25 * 16000  # 20s
-            files = files[files["length"] < max_seq_len]
-            mixed_speech, mixed_speech_label, file_info = speech_synthesis(
-                num_occ, files, max_seq_len
-            )
+        files = files[files["length"] < max_seq_len]
+        mixed_speech, mixed_speech_label, file_info = speech_synthesis(
+            num_occ, files, max_seq_len
+        )
+
     else:
         mixed_speech = torch.zeros(1, 10 * 16000)  # 10s
         mixed_speech_label = torch.zeros(1, 10 * 16000)
