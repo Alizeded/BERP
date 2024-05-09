@@ -9,7 +9,7 @@ transformers
 
 # --------- base --------- #
 scipy
-einops==0.7.0        # for einops.einops
+einops>=0.7.0        # for einops.einops
 librosa
 cupy-cuda12x
 scikit-learn
