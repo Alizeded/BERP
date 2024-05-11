@@ -40,7 +40,7 @@ class VolumeEstimator(nn.Module):
         kernel_size_decoder: Optional[int] = 3,
         num_layers_decoder: int = 3,
         dropout_decoder: float = 0.5,
-    ):  # sourcery skip: collection-into-set, merge-comparisons
+    ):  # sourcery skip: collection-into-set, merge-comparisons, remove-redundant-if, remove-unnecessary-else, swap-if-else-branches
         """Volume module
 
         Args:
