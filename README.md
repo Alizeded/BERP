@@ -1,7 +1,7 @@
 
 <div align="center"> <h1>BERP: A Blind Estimator of Room acoustic and physical Parameters for Single-Channel Noisy Speech Signals</h1> </div>
 
-# The implementation of BERP
+# The official implementation of BERP
 
 [![pytorch](https://img.shields.io/badge/PyTorch_2.0+-ee4c2c?logo=pytorch&logoColor=white)](https://pytorch.org/get-started/locally/)
 [![lightning](https://img.shields.io/badge/-Lightning_2.0+-792ee5?logo=pytorchlightning&logoColor=white)](https://pytorchlightning.ai/)
