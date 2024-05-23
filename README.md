@@ -67,7 +67,7 @@ eval $(pdm venv activate acoustic-toolkit) # activate pdm virtual environment
 pdm install # install dependencies with locking dependencies versions
 ```
 
-# Data download and preprocessing
+## Data download and preprocessing
 
 The data is also avaliable, if it is expired, please contact the authors for more information.
 
