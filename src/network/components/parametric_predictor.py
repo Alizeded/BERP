@@ -50,7 +50,7 @@ class ParametricPredictor(nn.Module):
         self.conv = nn.ModuleList()
         for layer in range(num_layers):
             in_channels = in_dim if layer == 0 else num_channels
-            if layer != 0 and layer != num_layers - 1:
+            if layer not in [0, num_layers - 1]:
                 self.conv.append(
                     nn.Sequential(
                         nn.Conv1d(

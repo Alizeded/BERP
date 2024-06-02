@@ -1,5 +1,4 @@
-# Copyright (c) 2022 Microsoft
-# Licensed under The MIT License [see LICENSE for details]
+# adopted from: torchscale
 
 import math
 
@@ -92,11 +91,10 @@ class RelPosEncoding(nn.Module):
         self.extend_pe(torch.tensor(0.0).expand(1, max_len))
 
     def extend_pe(self, x: Tensor) -> None:
-        if self.pe is not None:
-            if self.pe.size(1) >= x.size(1) * 2 - 1:
-                if self.pe.dtype != x.dtype or self.pe.device != x.device:
-                    self.pe = self.pe.to(dtype=x.dtype, device=x.device)
-                return
+        if self.pe is not None and self.pe.size(1) >= x.size(1) * 2 - 1:
+            if self.pe.dtype != x.dtype or self.pe.device != x.device:
+                self.pe = self.pe.to(dtype=x.dtype, device=x.device)
+            return
 
         pe_positive = torch.zeros(x.size(1), self.d_model)
         pe_negative = torch.zeros(x.size(1), self.d_model)

@@ -117,7 +117,7 @@ class ConvFeatureExtractionModel(nn.Module):
         in_d = 1
         self.conv_layers = nn.ModuleList()
         for i, convlayer in enumerate(conv_layers):
-            assert len(convlayer) == 3, "invalid conv definition: " + str(convlayer)
+            assert len(convlayer) == 3, f"invalid conv definition: {str(convlayer)}"
             (dim, kernel_size, stride) = convlayer
 
             self.conv_layers.append(

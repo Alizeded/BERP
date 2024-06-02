@@ -210,11 +210,7 @@ class RoomFeatureEncoderLayer(nn.Module):
         """
         super(RoomFeatureEncoderLayer, self).__init__()
 
-        if half_step_residual:
-            feedforward_residual_factor = 0.5
-        else:
-            feedforward_residual_factor = 1.0
-
+        feedforward_residual_factor = 0.5 if half_step_residual else 1.0
         self.pos_enc_type = pos_enc_type
 
         self.ffn1 = residual_connection(

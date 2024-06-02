@@ -37,13 +37,13 @@ def init_bert_params(module):
         normal_(module.weight.data)
         if module.padding_idx is not None:
             module.weight.data[module.padding_idx].zero_()
-    if (
-        isinstance(module, RelPositionMultiHeadedAttention)
-        or isinstance(module, XposMultiHeadedAttention)
-        or isinstance(
-            module,
+    if isinstance(
+        module,
+        (
+            RelPositionMultiHeadedAttention,
+            XposMultiHeadedAttention,
             RotaryPositionMultiHeadedAttention,
-        )
+        ),
     ):
         normal_(module.w_q.weight.data)
         normal_(module.w_k.weight.data)
@@ -123,7 +123,7 @@ class RoomFeatureEncoder(nn.Module):
 
         x = F.dropout(x, p=self.dropout, training=self.training)
 
-        for i, layer in enumerate(self.layers):
+        for layer in self.layers:
             dropout_probability = np.random.random()
             if not self.training or (dropout_probability > self.layerdrop):
                 x = layer(
