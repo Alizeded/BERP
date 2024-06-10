@@ -64,7 +64,7 @@ cd BERP
 pdm config venv.backend conda # choose the backend as conda
 pdm venv create --name acoustic-toolkit 3.11.8 # create pdm virtual environment
 eval $(pdm venv activate acoustic-toolkit) # activate pdm virtual environment
-pdm install # install dependencies with locking dependencies versions
+pdm sync # install dependencies with locking dependencies versions
 ```
 
 ## Data download and preprocessing
