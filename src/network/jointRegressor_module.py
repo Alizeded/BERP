@@ -11,6 +11,7 @@ from torchmetrics.classification.accuracy import BinaryAccuracy
 
 from src.utils.unitary_linear_norm import unitary_norm_inv
 from src.criterions.polynomial_see_saw_loss import PolynomialSeeSawLoss
+from src.criterions.joint_eval_metric import JointEstimationEvaluation
 
 # ======================== joint regression module ========================
 
@@ -41,7 +42,7 @@ class JointRegressorModule(LightningModule):
         # loss function
         self.criterion_train = PolynomialSeeSawLoss(phase="train")
         self.criterion_val = PolynomialSeeSawLoss(phase="val")
-        self.criterion_test = PolynomialSeeSawLoss(phase="test")
+        self.criterion_test = JointEstimationEvaluation()
 
         self.Th_weight = self.hparams.optim_cfg.Th_weight
         self.Tt_weight = self.hparams.optim_cfg.Tt_weight
@@ -133,7 +134,7 @@ class JointRegressorModule(LightningModule):
         self.val_corrcoef_best_azimuth = MaxMetric()
         self.val_corrcoef_best_elevation = MaxMetric()
 
-        self.predict_tools = PolynomialSeeSawLoss(phase="infer")
+        self.predict_tools = JointEstimationEvaluation()
 
     def forward(
         self,
