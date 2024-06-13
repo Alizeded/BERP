@@ -21,10 +21,8 @@ The implementation of Blind Estimator of Room Acoustic and Physical Parameters (
 ### Pre-requisites
 
 ```bash
-# wget miniconda
+# Install miniconda
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-
-# install miniconda
 mkdir -p ~/miniconda3
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
 bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
@@ -36,24 +34,19 @@ source ~/.zshrc
 
 # initialize conda
 conda init zsh
-```
-
-### pip installation
-
-```bash
-# clone project
-git clone https://github.com/Alizeded/BERP
-cd acoustic
 
 # create conda environment
 conda create -n acoustic-toolkit python=3.11.8
 conda activate acoustic-toolkit
-
-# install requirements
-pip install -r requirements.txt
 ```
 
 ### pdm installation
+
+#### For better dependency management, we use `pdm` as the package manager and deprecate `pip`. You can install `pdm` with the following command
+
+```bash
+pip install pdm
+```
 
 ```bash
 # clone project
@@ -62,8 +55,6 @@ cd BERP
 
 # create conda environment and install dependencies
 pdm config venv.backend conda # choose the backend as conda
-pdm venv create --name acoustic-toolkit 3.11.8 # create pdm virtual environment
-eval $(pdm venv activate acoustic-toolkit) # activate pdm virtual environment
 pdm sync # install dependencies with locking dependencies versions
 ```
 
@@ -87,7 +78,7 @@ unzip mixed_speech.zip -d data
 
 ## How to run
 
-Train model with the default configuration
+Train model with the default configurations
 
 ```bash
 # train on single GPU
@@ -191,3 +182,18 @@ This project is licensed under the GPL-3.0 License - see the [LICENSE](LICENSE) 
 ## Acknowledgments
 
 This project obtained the great favours from Jianan Chen, our good friend. Thanks for his great help.
+
+## Citation
+
+If you find this repository useful in your research, or if you want to refer to the methodology and code, please cite the following paper:
+
+```bibtex
+@misc{wang2024berp,
+      title={BERP: A Blind Estimator of Room Acoustic and Physical Parameters for Single-Channel Noisy Speech Signals}, 
+      author={Lijun Wang and Yixian Lu and Ziyan Gao and Kai Li and Jianqiang Huang and Yuntao Kong and Shogo Okada},
+      year={2024},
+      eprint={2405.04476},
+      archivePrefix={arXiv},
+      primaryClass={eess.AS}
+}
+```
