@@ -5,7 +5,7 @@ defaults:
 # strategy: ddp_find_unused_parameters_true # default: lightning native ddp with find_unused_parameters=True
 strategy: fsdp # fsdp
 # strategy:
-  # _target_: lightning.fabric.strategies.FSDP
+  # _target_: lightning.fabric.strategies.FSDPstrategy
   # sharding_strategy="FULL_SHARD" # FULL_SHARD, SHARD_GRAD_OP, HYBRID_SHARD, NO_SHARD
 
 # strategy: deepspeed
