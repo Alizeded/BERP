@@ -6,7 +6,7 @@ defaults:
 strategy: fsdp # fsdp
 # strategy:
   # _target_: lightning.fabric.strategies.FSDPstrategy
-  # sharding_strategy="FULL_SHARD" # FULL_SHARD, SHARD_GRAD_OP, HYBRID_SHARD, NO_SHARD
+  # sharding_strategy: "FULL_SHARD" # FULL_SHARD, SHARD_GRAD_OP, HYBRID_SHARD, NO_SHARD
 
 # strategy: deepspeed
 # precision: 32
