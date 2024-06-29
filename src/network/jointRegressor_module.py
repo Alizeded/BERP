@@ -1258,7 +1258,7 @@ class JointRegressorModule(LightningModule):
                 elevation_hat, lb=lb_elevation, ub=ub_elevation
             )
 
-        else:  # default normalization
+        else:  # default normalization span
             Th_hat = unitary_norm_inv(Th_hat, lb=0.005, ub=0.276)
             volume_hat = unitary_norm_inv(volume_hat, lb=1.5051, ub=3.9542)
             dist_src_hat = unitary_norm_inv(dist_src_hat, lb=0.191, ub=28.350)

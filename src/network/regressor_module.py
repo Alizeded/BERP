@@ -459,6 +459,7 @@ class rirRegressorModule(LightningModule):
         if norm_span is not None:
             lb_Th, ub_Th = norm_span["Th"]
             Th_hat = unitary_norm_inv(Th_hat, lb=lb_Th, ub=ub_Th)
+
         else:  # default values
             Th_hat = unitary_norm_inv(Th_hat, lb=0.005, ub=0.276)
 

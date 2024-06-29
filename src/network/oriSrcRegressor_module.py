@@ -793,15 +793,18 @@ class OriSrcRegressorModule(LightningModule):
             lb_azimuth, ub_azimuth = norm_span["azimuth"]
             lb_elevation, ub_elevation = norm_span["elevation"]
 
-            azimuth_hat = unitary_norm_inv(azimuth_hat, lb=lb_azimuth, ub=ub_azimuth)
-            elevation_hat = unitary_norm_inv(
+            ori_azimuth_hat = unitary_norm_inv(
+                azimuth_hat, lb=lb_azimuth, ub=ub_azimuth
+            )
+            ori_elevation_hat = unitary_norm_inv(
                 elevation_hat, lb=lb_elevation, ub=ub_elevation
             )
 
-        ori_azimuth_hat = unitary_norm_inv(azimuth_hat, lb=-1.000, ub=1.000)
-        ori_azimuth_hat = ori_azimuth_hat * torch.pi
+        else:  # default normalization span
+            ori_azimuth_hat = unitary_norm_inv(azimuth_hat, lb=-1.000, ub=1.000)
+            ori_elevation_hat = unitary_norm_inv(elevation_hat, lb=-0.733, ub=0.486)
 
-        ori_elevation_hat = unitary_norm_inv(elevation_hat, lb=-0.733, ub=0.486)
+        ori_azimuth_hat = ori_azimuth_hat * torch.pi
         ori_azimuth_hat = ori_azimuth_hat * torch.pi
 
         preds = {"ori_azimuth_hat": ori_azimuth_hat}

@@ -306,7 +306,7 @@ class VolumeRegressorModule(LightningModule):
             lb, ub = norm_span["volume"]
             volume_hat = unitary_norm_inv(volume_hat, lb=lb, ub=ub)
 
-        else:  # default
+        else:  # default normalization span
             volume_hat = unitary_norm_inv(volume_hat, lb=1.5051, ub=3.9542)
 
         preds = {"volume_hat": volume_hat}
