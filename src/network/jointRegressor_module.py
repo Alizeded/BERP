@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 import torch
 from lightning import LightningModule
@@ -1134,6 +1134,7 @@ class JointRegressorModule(LightningModule):
         self,
         batch: Dict[str, torch.Tensor],
         batch_idx: int,
+        norm_span: Dict[str, Tuple[float, float]] = None,
     ) -> Dict[str, torch.Tensor]:
         # sourcery skip: inline-immediately-returned-variable, merge-dict-assign
         """Perform a single prediction step on a batch of data from the test set.
@@ -1239,11 +1240,31 @@ class JointRegressorModule(LightningModule):
             elevation_hat[idx_elevation_pp_false] = torch.tensor(0.5977)
 
         # inverse unitary normalization
-        Th_hat = unitary_norm_inv(Th_hat, lb=0.005, ub=0.276)
-        volume_hat = unitary_norm_inv(volume_hat, lb=1.5051, ub=3.9542)
-        dist_src_hat = unitary_norm_inv(dist_src_hat, lb=0.191, ub=28.350)
-        azimuth_hat = unitary_norm_inv(azimuth_hat, lb=-1.000, ub=1.000)
-        elevation_hat = unitary_norm_inv(elevation_hat, lb=-0.733, ub=0.486)
+        if norm_span is not None:
+            lb_Th, ub_Th = norm_span["Th"]
+            lb_Tt, ub_Tt = norm_span["Tt"]
+            lb_volume, ub_volume = norm_span["volume"]
+            lb_dist_src, ub_dist_src = norm_span["dist_src"]
+            lb_azimuth, ub_azimuth = norm_span["azimuth"]
+            lb_elevation, ub_elevation = norm_span["elevation"]
+            Th_hat = unitary_norm_inv(Th_hat, lb=lb_Th, ub=ub_Th)
+            Tt_hat = unitary_norm_inv(Tt_hat, lb=lb_Tt, ub=ub_Tt)
+            volume_hat = unitary_norm_inv(volume_hat, lb=lb_volume, ub=ub_volume)
+            dist_src_hat = unitary_norm_inv(
+                dist_src_hat, lb=lb_dist_src, ub=ub_dist_src
+            )
+            azimuth_hat = unitary_norm_inv(azimuth_hat, lb=lb_azimuth, ub=ub_azimuth)
+            elevation_hat = unitary_norm_inv(
+                elevation_hat, lb=lb_elevation, ub=ub_elevation
+            )
+
+        else:  # default normalization
+            Th_hat = unitary_norm_inv(Th_hat, lb=0.005, ub=0.276)
+            volume_hat = unitary_norm_inv(volume_hat, lb=1.5051, ub=3.9542)
+            dist_src_hat = unitary_norm_inv(dist_src_hat, lb=0.191, ub=28.350)
+            azimuth_hat = unitary_norm_inv(azimuth_hat, lb=-1.000, ub=1.000)
+            elevation_hat = unitary_norm_inv(elevation_hat, lb=-0.733, ub=0.486)
+
         azimuth_hat = azimuth_hat * torch.pi  # convert to radian
         elevation_hat = elevation_hat * torch.pi  # convert to radian
 

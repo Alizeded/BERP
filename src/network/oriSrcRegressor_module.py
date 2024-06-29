@@ -717,6 +717,7 @@ class OriSrcRegressorModule(LightningModule):
         self,
         batch: Dict[str, torch.Tensor],
         batch_idx: int,
+        norm_span: Dict[str, Tuple[float, float]],
     ) -> Dict[str, torch.Tensor]:
         # sourcery skip: inline-immediately-returned-variable, merge-dict-assign
         """Perform a single prediction step on a batch of data from the test set.
@@ -788,6 +789,15 @@ class OriSrcRegressorModule(LightningModule):
             elevation_hat[idx_elevation_false] = torch.tensor(0.604)
 
         # inverse unitary normalization
+        if norm_span is not None:
+            lb_azimuth, ub_azimuth = norm_span["azimuth"]
+            lb_elevation, ub_elevation = norm_span["elevation"]
+
+            azimuth_hat = unitary_norm_inv(azimuth_hat, lb=lb_azimuth, ub=ub_azimuth)
+            elevation_hat = unitary_norm_inv(
+                elevation_hat, lb=lb_elevation, ub=ub_elevation
+            )
+
         ori_azimuth_hat = unitary_norm_inv(azimuth_hat, lb=-1.000, ub=1.000)
         ori_azimuth_hat = ori_azimuth_hat * torch.pi
 

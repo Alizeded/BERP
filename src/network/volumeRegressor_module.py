@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 import torch
 from lightning import LightningModule
@@ -246,6 +246,7 @@ class VolumeRegressorModule(LightningModule):
         self,
         batch: Dict[str, torch.Tensor],
         batch_idx: int,
+        norm_span: Dict[str, Tuple[float, float]],
     ) -> Dict[str, torch.Tensor]:
         # sourcery skip: inline-immediately-returned-variable
         """Perform a single prediction step on a batch of data from the test set.
@@ -301,7 +302,12 @@ class VolumeRegressorModule(LightningModule):
             volume_hat = volume_hat.mean(dim=1)
 
         # inverse unitary normalization
-        volume_hat = unitary_norm_inv(volume_hat, lb=1.5051, ub=3.9542)
+        if norm_span is not None:
+            lb, ub = norm_span["volume"]
+            volume_hat = unitary_norm_inv(volume_hat, lb=lb, ub=ub)
+
+        else:  # default
+            volume_hat = unitary_norm_inv(volume_hat, lb=1.5051, ub=3.9542)
 
         preds = {"volume_hat": volume_hat}
 

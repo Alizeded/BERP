@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 import torch
 from lightning import LightningModule
@@ -386,6 +386,7 @@ class OriSrcRegressorModuleWOBC(LightningModule):
         self,
         batch: Dict[str, torch.Tensor],
         batch_idx: int,
+        norm_span: Dict[str, Tuple[float, float]],
     ) -> Dict[str, torch.Tensor]:
         # sourcery skip: inline-immediately-returned-variable, merge-dict-assign
         """Perform a single prediction step on a batch of data from the test set.

@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 import torch
 from lightning import LightningModule
@@ -385,6 +385,7 @@ class rirRegressorModule(LightningModule):
         self,
         batch: Dict[str, torch.Tensor],
         batch_idx: int,
+        norm_span: Dict[str, Tuple[float, float]],
     ) -> Dict[str, torch.Tensor]:
         # sourcery skip: inline-immediately-returned-variable, merge-dict-assign
         """Perform a single prediction step on a batch of data from the test set.
@@ -455,7 +456,11 @@ class rirRegressorModule(LightningModule):
             )  #  collapse as a single value intead of a straight-line prediction
 
         # inverse unitary normalization
-        Th_hat = unitary_norm_inv(Th_hat, lb=0.005, ub=0.276)
+        if norm_span is not None:
+            lb_Th, ub_Th = norm_span["Th"]
+            Th_hat = unitary_norm_inv(Th_hat, lb=lb_Th, ub=ub_Th)
+        else:  # default values
+            Th_hat = unitary_norm_inv(Th_hat, lb=0.005, ub=0.276)
 
         preds = {"Th_hat": Th_hat}
         preds["Tt_hat"] = Tt_hat
