@@ -717,7 +717,7 @@ class OriSrcRegressorModule(LightningModule):
         self,
         batch: Dict[str, torch.Tensor],
         batch_idx: int,
-        norm_span: Dict[str, Tuple[float, float]],
+        norm_span: Dict[str, Tuple[float, float]] = None,
     ) -> Dict[str, torch.Tensor]:
         # sourcery skip: inline-immediately-returned-variable, merge-dict-assign
         """Perform a single prediction step on a batch of data from the test set.
