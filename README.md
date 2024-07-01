@@ -74,6 +74,8 @@ unzip noiseReverbSpeech.zip -d data
 unzip mixed_speech.zip -d data
 ```
 
+Juypiter notebook `data_preprocessing.ipynb` in `notebook` folder details the data preprocessing pipeline.
+
 ## How to run
 
 Train model with the default configurations
@@ -142,6 +144,8 @@ More details about the inference of room acoustic parameters can be found in `in
 
 Please refer to `inference.yaml` in `configs` directory for more details.
 
+
+
 ## Weights are also available, please check the `weights` directory for more information
 
 In the `weights` directory, you can download the corresponding weights of each module for the BERP framework,
@@ -170,8 +174,6 @@ sh volume_module_MFCC.sh
 sh distance_module_MFCC.sh
 sh orientation_module_MFCC.sh
 ```
-
-Juypiter notebook `data_preprocessing.ipynb` in `notebook` folder details the data preprocessing pipeline.
 
 ## License
 
