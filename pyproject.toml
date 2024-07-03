@@ -49,7 +49,7 @@ toolbox = [
     "seaborn",
     "torch-dct",
     "gammatone @ git+https://github.com/detly/gammatone.git",
-    "polars",
+    "polars>=1.0.0",
 ]
 
 logging = ["wandb", "clearml"]
