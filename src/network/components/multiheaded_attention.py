@@ -73,12 +73,19 @@ class RotaryPositionMultiHeadedAttention(nn.Module):
             max_len=rotary_enc_max_len,
         )
 
-        self.w_q = nn.Linear(embed_dim, embed_dim)
-        self.w_k = nn.Linear(embed_dim, embed_dim)
-        self.w_v = nn.Linear(embed_dim, embed_dim)
+        self.w_q = nn.Linear(embed_dim, embed_dim, bias=True)
+        self.w_k = nn.Linear(embed_dim, embed_dim, bias=True)
+        self.w_v = nn.Linear(embed_dim, embed_dim, bias=True)
 
         self.dropout = nn.Dropout(dropout_prob)
-        self.output_proj = nn.Linear(embed_dim, embed_dim)
+        self.output_proj = nn.Linear(embed_dim, embed_dim, bias=True)
+
+    def reset_parameters(self):
+        nn.init.xavier_uniform_(self.w_k.weight, gain=1 / math.sqrt(2))
+        nn.init.xavier_uniform_(self.w_v.weight, gain=1 / math.sqrt(2))
+        nn.init.xavier_uniform_(self.w_q.weight, gain=1 / math.sqrt(2))
+        nn.init.xavier_uniform_(self.out_proj.weight)
+        nn.init.constant_(self.out_proj.bias, 0.0)
 
     def forward(
         self,
@@ -94,7 +101,7 @@ class RotaryPositionMultiHeadedAttention(nn.Module):
             query: The query tensor. [batch, len_query, embed_dim]
             key: The key tensor. [batch, len_key, embed_dim]
             value: The value tensor. [batch, len_key, embed_dim]
-            key_padding_mask: The key_padding_mask tensor. [batch, len_query, len_key] or [batch, 1, len_key]
+            key_padding_mask: The key_padding_mask tensor. [batch, len_query, len_key]
             offset: The offset. Default: 0
         """
         # rotary positional encoding
@@ -203,15 +210,15 @@ class XposMultiHeadedAttention(nn.Module):
         """Attention operations.
 
         Args:
-            q (Tensor): query, [B, T, C]
-            k (Tensor): key, [B, T, C]
-            v (Tensor): value, [B, T, C]
-            key_padding_mask (_type_, optional): key padding [B, T]. Defaults to None.
-            attn_mask (_type_, optional): attention mask [B T]. Defaults to None.
+            q (Tensor): query, [batch, len_query, embed_dim]
+            k (Tensor): key, [batch, len_key, embed_dim]
+            v (Tensor): value, [batch, len_key, embed_dim]
+            key_padding_mask (_type_, optional): key padding [batch, len_key]. Defaults to None.
+            attn_mask (_type_, optional): attention mask [batch, len_query, len_key]. Defaults to None.
 
         Returns:
-            attn: attention output, [B, T, C]
-            attn_weights: attention weights, [B, T, T]
+            attn: attention output, [batch, len_query, embed_dim]
+            attn_weights: attention weights, [batch, len_query, len_key]
         """
 
         q *= self.scaling
@@ -254,11 +261,11 @@ class XposMultiHeadedAttention(nn.Module):
         """Forward pass.
 
         Args:
-            query (Tensor): query, [B, T, C]
-            key (Tensor): key, [B, T, C]
-            value (Tensor): value, [B, T, C]
-            key_padding_mask (Optional[Tensor]): key padding [B, T]
-            attn_mask (Optional[Tensor], optional): attention mask [B, T]. Defaults to None.
+            query (Tensor): query, [batch, len_query, embed_dim]
+            key (Tensor): key, [batch, len_key, embed_dim]
+            value (Tensor): value, [batch, len_key, embed_dim]
+            key_padding_mask (Optional[Tensor]): key padding mask, [batch, len_key]
+            attn_mask (Optional[Tensor], optional): attention mask [batch, len_query, len_key]. Defaults to None.
             offset (int, optional): offset. Defaults to 0.
         Returns:
             attn: attention output, [B, T, C]
@@ -335,9 +342,9 @@ class RelPositionMultiHeadedAttention(nn.Module):
         self.nums_heads = nums_heads
         self.tempature = math.sqrt(self.dim_per_head)
 
-        self.w_q = nn.Linear(embed_dim, embed_dim)
-        self.w_k = nn.Linear(embed_dim, embed_dim)
-        self.w_v = nn.Linear(embed_dim, embed_dim)
+        self.w_q = nn.Linear(embed_dim, embed_dim, bias=True)
+        self.w_k = nn.Linear(embed_dim, embed_dim, bias=True)
+        self.w_v = nn.Linear(embed_dim, embed_dim, bias=True)
         self.w_pos = nn.Linear(embed_dim, embed_dim, bias=False)
 
         self.dropout = nn.Dropout(dropout_prob)
@@ -346,8 +353,15 @@ class RelPositionMultiHeadedAttention(nn.Module):
         torch.nn.init.xavier_uniform_(self.pos_bias_u)
         torch.nn.init.xavier_uniform_(self.pos_bias_v)
 
-        self.out_proj = nn.Linear(embed_dim, embed_dim)
+        self.out_proj = nn.Linear(embed_dim, embed_dim, bias=True)
         self.final_dropout = nn.Dropout(dropout_prob)
+
+    def reset_parameters(self):
+        nn.init.xavier_uniform_(self.w_k.weight, gain=1 / math.sqrt(2))
+        nn.init.xavier_uniform_(self.w_v.weight, gain=1 / math.sqrt(2))
+        nn.init.xavier_uniform_(self.w_q.weight, gain=1 / math.sqrt(2))
+        nn.init.xavier_uniform_(self.out_proj.weight)
+        nn.init.constant_(self.out_proj.bias, 0.0)
 
     def forward(
         self,
@@ -360,14 +374,14 @@ class RelPositionMultiHeadedAttention(nn.Module):
         """Forward pass.
 
         Args:
-            query (Tensor): query [B, T, C]
-            key (Tensor): key [B, T, C]
-            value (Tensor): value [B, T, C]
-            pos_embed (Tensor): positional embedding [B, T, C]
-            key_padding_mask (Optional[Tensor], optional): key padding mask [B, T]. Defaults to None.
+            query (Tensor): query [batch_size, len_q, embed_dim]
+            key (Tensor): key [batch_size, len_k, embed_dim]
+            value (Tensor): value [batch_size, len_k, embed_dim]
+            pos_embed (Tensor): positional embedding [batch_size, len_q, embed_dim]
+            key_padding_mask (Optional[Tensor], optional): key padding mask [batch_size, len_k]. Defaults to None.
 
         Returns:
-            context: attn output [B, T, C]
+            context: attn output [batch_size, len_q, embed_dim]
         """
         q = rearrange(self.w_q(query), "b l (h d) -> b l h d", h=self.nums_heads)
         # q: [batch_size, len_q, n_head, d_k]
