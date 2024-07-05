@@ -224,8 +224,6 @@ class RoomFeatureEncoderLayer(nn.Module):
 
         self.layer_norm = nn.LayerNorm(embed_dim)
 
-        self.self_attn = None
-
         if self.pos_enc_type == "xpos":
             self.self_attn = residual_connection(
                 module=XposMultiHeadedAttention(

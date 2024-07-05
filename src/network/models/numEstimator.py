@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 from src.network.components.conv_prenet import ConvFeatureExtractionModel
 from src.network.components.positional_encoding import RelPosEncoding
-from src.network.components.room_encoder import (
+from src.network.components.room_encoder_layer import (
     RelPositionMultiHeadedAttention,
     RoomFeatureEncoderLayer,
     RotaryPositionMultiHeadedAttention,

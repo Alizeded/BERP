@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 from src.network.components.positional_encoding import RelPosEncoding
-from src.network.components.room_encoder import (
+from src.network.components.room_encoder_layer import (
     RelPositionMultiHeadedAttention,
     RotaryPositionMultiHeadedAttention,
     XposMultiHeadedAttention,
@@ -92,6 +92,7 @@ class RoomFeatureEncoder(nn.Module):
                     num_heads=num_heads,
                     ch_scale=ch_scale,
                     dropout_prob=dropout,
+                    pos_enc_type=pos_enc_type,
                 )
                 for _ in range(num_layers)
             ]
