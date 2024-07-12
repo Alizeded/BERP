@@ -11,7 +11,7 @@ strategy: fsdp # fsdp
 # strategy: deepspeed
 # precision: 32
 
-accelerator: gpu
+accelerator: cuda
 devices: 2
 num_nodes: 1
 sync_batchnorm: True
