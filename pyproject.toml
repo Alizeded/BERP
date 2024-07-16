@@ -7,13 +7,13 @@ authors = [
     {name = "Yixian Lu", email = "mclouc@gmail.com"},
 ]
 dependencies = [
-    "torch==2.2.2",
-    "torchaudio==2.2.2",
+    "torch==2.3.1",
+    "torchaudio",
     "lightning>=2.2.0,<3.0.0",
     "torchmetrics>=1.3.1,<1.4.0",
-    "hydra-core==1.3.2",
-    "hydra-colorlog==1.2.0",
-    "hydra-optuna-sweeper==1.2.0",
+    "hydra-core>=1.3.2",
+    "hydra-colorlog>=1.2.0",
+    "hydra-optuna-sweeper>=1.2.0",
     "scipy>=1.12.0",
     "numpy>=1.26.4",
     "scikit-learn",
@@ -31,12 +31,23 @@ requires-python = ">=3.11,<3.12"
 readme = "README.md"
 license = {text = "GPL-V3"}
 
+[[tool.pdm.sources]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[[tool.pdm.source]]
+include_packages = ["torch", "torchaudio", "xformers"]
+exclude_packages = ["*"]
+name = "torch"
+url = "https://download.pytorch.org/whl/cu121"
+verify_ssl = true
 
 [tool.pdm]
 distribution = true
 
 [build-system]
-requires = ["pdm-backend"]
+requires = ["pdm-backend", "setuptools", "wheel", "Cython", "numpy"]
 build-backend = "pdm.backend"
 
 [project.optional-dependencies]
@@ -57,16 +68,4 @@ logging = ["wandb", "clearml"]
 [tool.pdm.dev-dependencies]
 lint = ["ruff", "black"]
 test = ["pytest"]
-
-[[tool.pdm.sources]]
-url = "https://pypi.org/simple"
-verify_ssl = true
-name = "pypi"
-
-[[tool.pdm.sources]]
-include_packages = ["torch", "torchaudio"]
-exclude_packages = ["*"]
-name = "torch"
-url = "https://download.pytorch.org/whl/cu121"
-verify_ssl = true
 
