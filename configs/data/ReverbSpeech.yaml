@@ -30,4 +30,3 @@ mixedSpeechModule:
   n_bins: 128
   hop_length: 256
   pin_memory: True
-  num_workers: 48

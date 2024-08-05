@@ -24,9 +24,7 @@ class MixedSpeechDataset(Dataset):
 
     def post_process(self, x: torch.Tensor) -> torch.Tensor:
         if self.feature_extractor is not None:
-            if isinstance(self.feature_extractor, Gammatonegram) or isinstance(
-                self.feature_extractor, MelSpectrogram
-            ):
+            if isinstance(self.feature_extractor, (Gammatonegram, MelSpectrogram)):
                 x = 20 * (x + 1e-8).log10()
             if self.feature_extractor is None and self.normalization:
                 x = F.layer_norm(x)
@@ -41,7 +39,7 @@ class MixedSpeechDataset(Dataset):
         feat, fs = torchaudio.load(self.feat[idx])
         feat = feat.squeeze()  # (1, T) -> (T,)
 
-        label = torch.load(self.label[idx])
+        label = torch.load(self.label[idx], weights_only=True)
         label = label.squeeze()  # (1, T) -> (T,)
 
         feat = feat[: label.shape[-1]]  # Truncate feat to match label

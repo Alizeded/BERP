@@ -375,7 +375,7 @@ class numEstimatorModule(LightningModule):
 
         :return: A Dict containing the model predictions.
         """
-        log_prob, _, _, _, _ = self.model_step(**batch["net_input"])
+        log_prob, _, _, _, _ = self.model_step(batch)
 
         pred_label = torch.argmax(log_prob, dim=-1)  # B T C -> B T
 

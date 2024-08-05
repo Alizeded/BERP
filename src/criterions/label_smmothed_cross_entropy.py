@@ -47,16 +47,21 @@ class LabelSmoothedCrossEntropyCriterion(_Loss):
         3) logging outputs to display while training
         """
 
-        if padding_mask is None:
-            padding_mask = (
+        padding_mask = (
+            (
                 torch.BoolTensor(lprob.shape[0], lprob.shape[1])
                 .fill_(False)
                 .to(lprob.device)
             )
-        if target_padding_mask is None:
-            target_padding_mask = (
-                torch.BoolTensor(target.shape).fill_(False).to(target.device)
-            )
+            if padding_mask is None
+            else padding_mask
+        )
+
+        target_padding_mask = (
+            (torch.BoolTensor(target.shape).fill_(False).to(target.device))
+            if target_padding_mask is None
+            else target_padding_mask
+        )
 
         reverse_padding_mask = ~padding_mask
         reverse_target_padding_mask = ~target_padding_mask
