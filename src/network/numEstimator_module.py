@@ -4,7 +4,7 @@ import torch
 from lightning import LightningModule
 from torchmetrics import MaxMetric, MeanMetric, MinMetric
 
-from src.criterions.label_smmothed_cross_entropy import (
+from src.criterions.label_smoothed_cross_entropy import (
     LabelSmoothedCrossEntropyCriterion,
 )
 
