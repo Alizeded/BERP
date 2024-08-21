@@ -1,13 +1,13 @@
 from src.utils import envelope as env  # noqa: E999
 
-import os  # noqa: E402
-import torch  # noqa: E402
-import numpy as np  # noqa: E402
-import torchaudio  # noqa: E402
-import matplotlib.pyplot as plt  # noqa: E402
-import matplotlib.ticker as ticker  # noqa: E402
-import pandas as pd  # noqa: E402
-import rootutils  # noqa: E402
+import os
+import torch
+import numpy as np
+import torchaudio
+import matplotlib.pyplot as plt  # type: ignore
+import matplotlib.ticker as ticker  # type: ignore
+import pandas as pd
+import rootutils
 
 rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 

@@ -11,7 +11,6 @@ from src.utils.unitary_linear_norm import unitary_norm_inv
 
 
 class JointEstimationEvaluation(nn.Module):
-
     def __init__(self):
         super(JointEstimationEvaluation, self).__init__()
 
@@ -51,7 +50,6 @@ class JointEstimationEvaluation(nn.Module):
         param_hat: Dict[str, torch.Tensor],
         param_groundtruth: Dict[str, torch.Tensor],
     ):
-
         # extract predicted parameters
         # force cast to float to avoid mismatch in data type
         Th_hat = param_hat["Th_hat"]

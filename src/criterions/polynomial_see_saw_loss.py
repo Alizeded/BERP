@@ -13,7 +13,6 @@ import einops
 
 
 class PolynomialSeeSawLoss(nn.Module):
-
     def __init__(self, phase: str):
         super(PolynomialSeeSawLoss, self).__init__()
         self.bce_loss = BCEWithLogitsLoss()
@@ -59,7 +58,6 @@ class PolynomialSeeSawLoss(nn.Module):
         param_hat: Dict[str, torch.Tensor],
         param_groundtruth: Dict[str, torch.Tensor],
     ):
-        # sourcery skip: merge-comparisons, merge-duplicate-blocks, remove-redundant-if, split-or-ifs, switch
         # extract predicted parameters
         # force cast to float to avoid mismatch in data type
         Th_hat = param_hat["Th_hat"]
@@ -119,8 +117,7 @@ class PolynomialSeeSawLoss(nn.Module):
             reverse_padding_mask = padding_mask.logical_not()
 
         #! ------------------------- compute loss for training and validation phase ------------------------- #
-        if self.phase == "train" or self.phase == "val":
-
+        if self.phase in ["train", "val"]:
             # -------------- BCE loss for bias corrector -------------- #
 
             # convert azimuth_label and elevation_label to float to calculate BCELoss
@@ -169,7 +166,6 @@ class PolynomialSeeSawLoss(nn.Module):
                 azimuth = azimuth[idx_azimuth_pp]
 
                 if padding_mask is not None and padding_mask.any():
-
                     reverse_padding_mask_azimuth = reverse_padding_mask[
                         idx_azimuth_pp, ...
                     ]
@@ -257,7 +253,6 @@ class PolynomialSeeSawLoss(nn.Module):
                 elevation = elevation[idx_elevation_pp]
 
                 if padding_mask is not None and padding_mask.any():
-
                     reverse_padding_mask_elevation = reverse_padding_mask[
                         idx_elevation_pp, ...
                     ]

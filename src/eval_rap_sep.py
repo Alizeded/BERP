@@ -155,6 +155,7 @@ def rap_eval(cfg: DictConfig) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     log.info(f"Loading volume prediction from <{cfg.volume_pred_path}>")
     volume_pred = torch.load(cfg.volume_pred_path)
 
+    rap_pairs = []
     # segment_size = cfg.batch_size
 
     if cfg.multithreaded:
@@ -172,7 +173,6 @@ def rap_eval(cfg: DictConfig) -> Tuple[Dict[str, Any], Dict[str, Any]]:
                         volume_pred_segment,
                     )
                 )
-        rap_pairs = []
         with Progress(
             TextColumn("[progress.description]{task.description}"),
             BarColumn(bar_width=60),
@@ -182,12 +182,11 @@ def rap_eval(cfg: DictConfig) -> Tuple[Dict[str, Any], Dict[str, Any]]:
             MofNCompleteColumn(),
         ) as progress:
             task = progress.add_task("[green]Processing...", total=len(rap_prediction))
-            for i, rap_pred in enumerate(rap_prediction):
+            for rap_pred in rap_prediction:
                 progress.update(task, advance=1)
                 rap_paired = rap_pred.result()
                 rap_pairs.append(rap_paired)
     else:
-        rap_pairs = []
         with Progress(
             TextColumn("[progress.description]{task.description}"),
             BarColumn(bar_width=60),

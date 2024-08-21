@@ -274,9 +274,7 @@ class ReverbSpeechDataModule(LightningDataModule):
         start = 0
         end = size - diff + start
 
-        slices = []
-        for d in range(dim):
-            slices.append(slice(None))
+        slices = [slice(None) for _ in range(dim)]
         slices.append(slice(start, end))
 
         return t[slices]

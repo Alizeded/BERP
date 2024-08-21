@@ -98,15 +98,16 @@ def rap_predict_segment(
     D50_est_seg = list(map(lambda x: round(x.item(), 4), D50_est_seg))
     Ts_est_seg = list(map(lambda x: round(x.item(), 4), Ts_est_seg))
 
-    rap = {"STI_est": STI_est_seg}
-    rap["ALcons_est"] = ALcons_est_seg
-    rap["TR_est"] = TR_est_seg
-    rap["EDT_est"] = EDT_est_seg
-    rap["C80_est"] = C80_est_seg
-    rap["C50_est"] = C50_est_seg
-    rap["D50_est"] = D50_est_seg
-    rap["Ts_est"] = Ts_est_seg
-
+    rap = {
+        "STI_est": STI_est_seg,
+        "ALcons_est": ALcons_est_seg,
+        "TR_est": TR_est_seg,
+        "EDT_est": EDT_est_seg,
+        "C80_est": C80_est_seg,
+        "C50_est": C50_est_seg,
+        "D50_est": D50_est_seg,
+        "Ts_est": Ts_est_seg,
+    }
     return rap
 
 
@@ -120,6 +121,7 @@ def rap_eval(cfg: DictConfig) -> Tuple[Dict[str, Any], Dict[str, Any]]:
 
     number_of_segments = len(joint_pred)
 
+    rap_predictions = []
     # segment_size = cfg.batch_size
 
     if cfg.multithreaded:
@@ -132,7 +134,6 @@ def rap_eval(cfg: DictConfig) -> Tuple[Dict[str, Any], Dict[str, Any]]:
                         rap_predict_segment, cfg, joint_pred_segment, fs=cfg.fs
                     )
                 )
-        rap_predictions = []
         with Progress(
             TextColumn("[progress.description]{task.description}"),
             BarColumn(bar_width=60),
@@ -142,12 +143,11 @@ def rap_eval(cfg: DictConfig) -> Tuple[Dict[str, Any], Dict[str, Any]]:
             MofNCompleteColumn(),
         ) as progress:
             task = progress.add_task("[green]Processing...", total=len(rap_prediction))
-            for i, rap_pred in enumerate(rap_prediction):
+            for rap_pred in rap_prediction:
                 progress.update(task, advance=1)
                 rap_predicted = rap_pred.result()
                 rap_predictions.append(rap_predicted)
     else:
-        rap_predictions = []
         with Progress(
             TextColumn("[progress.description]{task.description}"),
             BarColumn(bar_width=60),

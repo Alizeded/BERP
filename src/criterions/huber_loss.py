@@ -12,7 +12,6 @@ from src.utils.unitary_linear_norm import unitary_norm_inv
 
 
 class HuberLoss(nn.Module):
-
     def __init__(
         self,
         phase: str,
@@ -99,10 +98,8 @@ class HuberLoss(nn.Module):
     def huber_loss_calculate(
         self, pred: torch.Tensor, target: torch.Tensor, padding_mask: torch.Tensor
     ):  # sourcery skip: merge-comparisons, merge-else-if-into-elif
-
         if self.ablation is False:  # repadding mask for no ablation
             if padding_mask is not None and padding_mask.any():
-
                 padding_mask, reverse_padding_mask = self._re_padding_mask(
                     pred=pred, padding_mask=padding_mask
                 )
@@ -169,7 +166,6 @@ class HuberLoss(nn.Module):
         param_hat: Dict[str, torch.Tensor],
         param_groundtruth: Dict[str, torch.Tensor],
     ):  # sourcery skip: merge-comparisons
-
         if self.module == "rir":
             Th_hat, Tt_hat = param_hat["Th_hat"], param_hat["Tt_hat"]
             Th, Tt = param_groundtruth["Th"], param_groundtruth["Tt"]
@@ -198,7 +194,6 @@ class HuberLoss(nn.Module):
                 }
 
             elif self.phase == "test":
-
                 if self.ablation is False:  # repadding mask for no ablation
                     if padding_mask is not None and padding_mask.any():
                         padding_mask, reverse_padding_mask = self._re_padding_mask(
@@ -259,7 +254,6 @@ class HuberLoss(nn.Module):
                 }
 
             elif self.phase == "test":
-
                 if self.ablation is False:  # no ablation for repadding mask
                     if padding_mask is not None and padding_mask.any():
                         padding_mask, reverse_padding_mask = self._re_padding_mask(
@@ -363,7 +357,6 @@ class HuberLoss(nn.Module):
                 }
 
             elif self.phase == "test":
-
                 if self.ablation is False:
                     if padding_mask is not None and padding_mask.any():
                         padding_mask, reverse_padding_mask = self._re_padding_mask(

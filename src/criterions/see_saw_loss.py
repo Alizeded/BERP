@@ -12,7 +12,6 @@ from src.utils.unitary_linear_norm import unitary_norm_inv
 
 
 class SeeSawLoss(nn.Module):
-
     def __init__(self, phase: str):
         super(SeeSawLoss, self).__init__()
         self.phase = phase
@@ -63,7 +62,6 @@ class SeeSawLoss(nn.Module):
         judge_label: torch.Tensor,
         padding_mask: torch.Tensor,
     ) -> Dict[str, torch.Tensor]:
-        # sourcery skip: assign-if-exp, merge-comparisons, merge-duplicate-blocks, merge-else-if-into-elif, remove-redundant-if, split-or-ifs, switch
         """
         Calculate the see-saw loss
         """
@@ -94,8 +92,7 @@ class SeeSawLoss(nn.Module):
             reverse_padding_mask = padding_mask.logical_not()
 
             # -------------------- padding mask handling --------------------
-        if self.phase == "train" or self.phase == "val":
-
+        if self.phase in ["train", "val"]:
             # ----------------- BCE Loss for bias corrector -----------------
             # Convert the judge_label to float to calculate the BCE loss
             judge_label = judge_label.long().float().to(judge_prob.device)
@@ -125,12 +122,10 @@ class SeeSawLoss(nn.Module):
                 )
 
             if len(idx_pred) > 0:
-
                 pred = pred[idx_pred, ...]
                 target = target[idx_pred]
 
                 if padding_mask is not None and padding_mask.any():
-
                     reverse_padding_mask = reverse_padding_mask[idx_pred, ...]
 
                     if self.phase == "train":
@@ -200,18 +195,12 @@ class SeeSawLoss(nn.Module):
                 }
 
         elif self.phase == "test":
-
-            if padding_mask is not None and padding_mask.any():
-
-                # collapse the pred value to match the target value
-                pred = (pred * reverse_padding_mask).sum(
-                    dim=1
-                ) / reverse_padding_mask.sum(dim=1)
-
-            else:
-                # collapse the pred value to match the target value
-                pred = pred.mean(dim=1)
-
+            pred = (
+                (pred * reverse_padding_mask).sum(dim=1)
+                / reverse_padding_mask.sum(dim=1)
+                if padding_mask is not None and padding_mask.any()
+                else pred.mean(dim=1)
+            )
             return {
                 "pred": pred,
                 "judge_prob": judge_prob,
@@ -239,7 +228,6 @@ class SeeSawLoss(nn.Module):
 
         assert azimuth_hat.shape == elevation_hat.shape
         if self.phase == "train":
-
             loss_azimuth = self.see_saw_loss_calculate(
                 azimuth_hat, azimuth, judge_prob_azimuth, azimuth_label, padding_mask
             )
@@ -258,7 +246,6 @@ class SeeSawLoss(nn.Module):
             }
 
         elif self.phase == "val":
-
             loss_azimuth = self.see_saw_loss_calculate(
                 azimuth_hat, azimuth, judge_prob_azimuth, azimuth_label, padding_mask
             )
@@ -277,7 +264,6 @@ class SeeSawLoss(nn.Module):
             }
 
         elif self.phase == "test":
-
             output_azimuth = self.see_saw_loss_calculate(
                 azimuth_hat, azimuth, judge_prob_azimuth, azimuth_label, padding_mask
             )

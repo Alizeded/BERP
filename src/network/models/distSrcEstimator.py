@@ -86,7 +86,7 @@ class DistSrcEstimator(nn.Module):
                 conv_bias=False,
             )
 
-        elif feat_type == "gammatone" or feat_type == "mel" or feat_type == "mfcc":
+        elif feat_type in {"gammatone", "mel", "mfcc"}:
             self.feat_proj = nn.Linear(ch_in, embed_dim)
 
         else:
@@ -109,24 +109,19 @@ class DistSrcEstimator(nn.Module):
         self.num_layers_decoder = num_layers_decoder
         self.dropout_decoder = dropout_decoder
 
-        if self.decoder_type == "parametric_predictor":
-            self.num_channels_decoder = num_channels_decoder
-            self.kernel_size_decoder = kernel_size_decoder
-        else:
+        if self.decoder_type != "parametric_predictor":
             raise NotImplementedError("Only parametric predictor is supported")
 
-        # parametric predictor decoder
-        if self.decoder_type == "parametric_predictor":
-            # parametric predictor for dist_src
-            self.parametric_predictor = ParametricPredictor(
-                in_dim=embed_dim,
-                num_layers=num_layers_decoder,
-                num_channels=num_channels_decoder,
-                kernel_size=kernel_size_decoder,
-                dropout_prob=dropout_decoder,
-            )
-        else:
-            raise NotImplementedError("Only parametric predictor is supported")
+        self.num_channels_decoder = num_channels_decoder
+        self.kernel_size_decoder = kernel_size_decoder
+        # parametric predictor for dist_src
+        self.parametric_predictor = ParametricPredictor(
+            in_dim=embed_dim,
+            num_layers=num_layers_decoder,
+            num_channels=num_channels_decoder,
+            kernel_size=kernel_size_decoder,
+            dropout_prob=dropout_decoder,
+        )
 
     def parametric_predictor_forward(self, x: torch.Tensor):
         """parametric predictor forward pass"""
