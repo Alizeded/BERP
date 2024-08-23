@@ -40,11 +40,10 @@ class ReverbSpeechDataset(Dataset):
         self.normalization = normalization
 
     def post_process(self, feat: torch.Tensor) -> torch.Tensor:
-        if self.feature_extractor is not None:
-            if isinstance(self.feature_extractor, Gammatonegram) or isinstance(
-                self.feature_extractor, MelSpectrogram
-            ):
-                feat = 20 * (feat + 1e-8).log10()
+        if self.feature_extractor is not None and (
+            isinstance(self.feature_extractor, (Gammatonegram, MelSpectrogram))
+        ):
+            feat = 20 * (feat + 1e-8).log10()
         if self.feature_extractor is None and self.normalization:
             feat = F.layer_norm(feat, normalized_shape=feat.shape)
 
@@ -79,7 +78,7 @@ class ReverbSpeechDataset(Dataset):
         # Extract features
         if self.feature_extractor is not None:
             feat = self.feature_extractor(raw).squeeze()  # (1, C, T) -> (C, T)
-        elif self.feature_extractor is None:
+        else:
             feat = raw
 
         # Post-process
