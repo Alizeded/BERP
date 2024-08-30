@@ -145,7 +145,6 @@ More details about the inference of room acoustic parameters can be found in `in
 Please refer to `inference.yaml` in `configs` directory for more details.
 
 
-
 ## Weights are also available, please check the `weights` directory for more information
 
 In the `weights` directory, you can download the corresponding weights of each module for the BERP framework,
@@ -155,25 +154,29 @@ you can download the weights from the following link:
 
 ```bash
 # download the weights for the unified module
-sh unified_module_Gammatone.sh
-sh unified_module_MFCC.sh
-sh unified_module_Mel.sh
+sh weights/unified_module/unified_module_Gammatone.sh
+sh weights/unified_module/unified_module_MFCC.sh
+sh weights/unified_module/unified_module_Mel.sh
 ```
 
 ```bash
 # download the weights for the occupancy module
-sh occupancy_module_Gammatone.sh
-sh occupancy_module_MFCC.sh
-sh occupancy_module_Mel.sh
+sh weights/occupancy_module/occupancy_module_Gammatone.sh
+sh weights/occupancy_module/occupancy_module_MFCC.sh
+sh weights/occupancy_module/occupancy_module_Mel.sh
 ```
 
 ```bash
 # download the weights for the separate module
-sh rir_module_MFCC.sh
-sh volume_module_MFCC.sh
-sh distance_module_MFCC.sh
-sh orientation_module_MFCC.sh
+sh weights/rir_module/rir_module_MFCC.sh
+sh weights/volume_module/volume_module_MFCC.sh
+sh weights/distance_module/distance_module_MFCC.sh
+sh weights/orientation_module/orientation_module_MFCC.sh
 ```
+
+The downloaded weights will be stored in the `weights' / '$module' directory for the corresponding modules. or you can open the corresponding shell script to check the download link and the storage path.
+
+PS: I have checked the validity of the download link, there should be no problem with the download link. If you encounter any problems, please contact the authors.
 
 ## License
 
