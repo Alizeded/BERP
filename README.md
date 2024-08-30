@@ -58,12 +58,14 @@ pdm sync # install dependencies with locking dependencies versions
 
 ## Data download and preprocessing
 
-The data is also avaliable, if it is expired, please contact the authors for more information.
+The data is also avaliable, you can download from the cloud storage
 
 ```bash
-# download the data
-wget https://jstorage.box.com/v/berp-datasets -O noiseReverbSpeech.zip
-wget https://jstorage.box.com/v/berp-datasets -O mixed_speech.zip
+# noisy reverberant speech data
+https://jstorage.app.box.com/v/berp-datasets/file/1496315212687
+
+# crowded reverberant speech data
+https://jstorage.app.box.com/v/berp-datasets/file/1496441527052
 ```
 
 Then, unzip the data and put it in the `data` directory.
@@ -157,6 +159,10 @@ you can download the weights from the following link:
 sh weights/unified_module/unified_module_Gammatone.sh
 sh weights/unified_module/unified_module_MFCC.sh
 sh weights/unified_module/unified_module_Mel.sh
+# or you can copy & paste the following cloud storage link to your browser
+https://jstorage.box.com/v/BERP-unified-module-gammatone
+https://jstorage.box.com/v/BERP-unified-module-mfcc
+https://jstorage.box.com/v/BERP-unified-module-mel
 ```
 
 ```bash
@@ -164,6 +170,10 @@ sh weights/unified_module/unified_module_Mel.sh
 sh weights/occupancy_module/occupancy_module_Gammatone.sh
 sh weights/occupancy_module/occupancy_module_MFCC.sh
 sh weights/occupancy_module/occupancy_module_Mel.sh
+# or you can copy & paste the following cloud storage link to your browser
+https://jstorage.box.com/v/BERP-occupancy-module-gamma
+https://jstorage.box.com/v/BERP-occupancy-module-mfcc
+https://jstorage.box.com/v/BERP-occupancy-module-mel
 ```
 
 ```bash
@@ -172,11 +182,18 @@ sh weights/rir_module/rir_module_MFCC.sh
 sh weights/volume_module/volume_module_MFCC.sh
 sh weights/distance_module/distance_module_MFCC.sh
 sh weights/orientation_module/orientation_module_MFCC.sh
+# or you can copy & paste the following cloud storage link to your browser
+https://jstorage.box.com/v/BERP-rir-module-mfcc
+https://jstorage.box.com/v/BERP-volume-module-mfcc
+https://jstorage.box.com/v/BERP-distance-module-mfcc
+https://jstorage.box.com/v/BERP-ori-module-mfcc
 ```
 
-The downloaded weights will be stored in the `weights' / '$module' directory for the corresponding modules. or you can open the corresponding shell script to check the download link and the storage path.
+After obtaining the weights, please check the "eval.yaml" or "inference.yaml" in the "configs" directory to put the weights in the correct path for the evaluation or inference.
 
-PS: I have checked the validity of the download link, there should be no problem with the download link. If you encounter any problems, please contact the authors.
+PS1: These shell scripts will pop out the default browser and you can download the weights from the cloud storage.
+
+PS2: We have checked the validity of the download link, there should be no problem with the download link. We are working on migrating the dataset to the hugginggface dataset hub. Please stay tuned.
 
 ## License
 
