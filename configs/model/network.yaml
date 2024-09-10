@@ -78,7 +78,7 @@ jointRegressorModule:
     bc_ori_src_weight_alt: 0.1
     T_max: 300
     apply_norm: True # False for other dataset rather than the default one if you don't want to apply unitory norm
-    norm_span: None # for other dataset, you can set the span to a specific value
+    # norm_span: None # for other dataset, you can set the span to a specific value
 
 
 
