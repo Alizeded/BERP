@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -11,12 +11,20 @@ from src.utils.unitary_linear_norm import unitary_norm_inv
 
 
 class JointEstimationEvaluation(nn.Module):
-    def __init__(self):
+    def __init__(
+        self,
+        apply_norm: bool = True,
+        norm_span: Optional[dict[str, tuple[float, float]]] = None,
+    ):
+
         super(JointEstimationEvaluation, self).__init__()
 
         self.criterion = SmoothL1Loss()
         self.l1_loss = L1Loss()
         self.pearson_corr_coef = PearsonCorrCoef()
+
+        self.apply_norm = apply_norm
+        self.norm_span = norm_span
 
     def _get_param_pred_output_lengths(self, input_lengths: torch.LongTensor):
         """
@@ -137,12 +145,20 @@ class JointEstimationEvaluation(nn.Module):
 
         else:
             # ---------------------- no padding mask handling ---------------------- #
-            azimuth_hat = azimuth_hat.mean(dim=1)
-            elevation_hat = elevation_hat.mean(dim=1)
-            Th_hat = Th_hat.mean(dim=1)
-            Tt_hat = Tt_hat.mean(dim=1)
-            volume_hat = volume_hat.mean(dim=1)
-            dist_src_hat = dist_src_hat.mean(dim=1)
+            if len(azimuth_hat.shape) == 2:
+                azimuth_hat = azimuth_hat.mean(dim=1)
+                elevation_hat = elevation_hat.mean(dim=1)
+                Th_hat = Th_hat.mean(dim=1)
+                Tt_hat = Tt_hat.mean(dim=1)
+                volume_hat = volume_hat.mean(dim=1)
+                dist_src_hat = dist_src_hat.mean(dim=1)
+            else:
+                azimuth_hat = azimuth_hat.squeeze()
+                elevation_hat = elevation_hat.squeeze()
+                Th_hat = Th_hat.squeeze()
+                Tt_hat = Tt_hat.squeeze()
+                volume_hat = volume_hat.squeeze()
+                dist_src_hat = dist_src_hat.squeeze()
 
         # Calculate judge probability for azimuth and elevation
         judge_prob_azimuth = F.sigmoid(judge_logits_azimuth)
@@ -157,16 +173,51 @@ class JointEstimationEvaluation(nn.Module):
             elevation_hat[idx_elevation_pp_false] = torch.tensor(0.5977)
 
         # ------------------- inverse unitary normalization -------------------
-        Th_hat = unitary_norm_inv(Th_hat, lb=0.005, ub=0.276)
-        Th = unitary_norm_inv(Th, lb=0.005, ub=0.276)
-        volume_hat = unitary_norm_inv(volume_hat, lb=1.5051, ub=3.9542)
-        volume = unitary_norm_inv(volume, lb=1.5051, ub=3.9542)
-        dist_src_hat = unitary_norm_inv(dist_src_hat, lb=0.191, ub=28.350)
-        dist_src = unitary_norm_inv(dist_src, lb=0.191, ub=28.350)
-        azimuth_hat = unitary_norm_inv(azimuth_hat, lb=-1.000, ub=1.000)
-        azimuth = unitary_norm_inv(azimuth, lb=-1.000, ub=1.000)
-        elevation_hat = unitary_norm_inv(elevation_hat, lb=-0.733, ub=0.486)
-        elevation = unitary_norm_inv(elevation, lb=-0.733, ub=0.486)
+        if self.apply_norm:
+            if self.norm_span is not None:
+                lb_Th, ub_Th = self.norm_span["Th"]
+                lb_volume, ub_volume = self.norm_span["volume"]
+                lb_dist_src, ub_dist_src = self.norm_span["dist_src"]
+                lb_azimuth, ub_azimuth = self.norm_span["azimuth"]
+                lb_elevation, ub_elevation = self.norm_span["elevation"]
+
+                Th_hat = unitary_norm_inv(Th_hat, lb=lb_Th, ub=ub_Th)
+                Th = unitary_norm_inv(Th, lb=lb_Th, ub=ub_Th)
+                volume_hat = unitary_norm_inv(volume_hat, lb=lb_volume, ub=ub_volume)
+                volume = unitary_norm_inv(volume, lb=lb_volume, ub=ub_volume)
+                dist_src_hat = unitary_norm_inv(
+                    dist_src_hat, lb=lb_dist_src, ub=ub_dist_src
+                )
+                dist_src = unitary_norm_inv(dist_src, lb=lb_dist_src, ub=ub_dist_src)
+                azimuth_hat = unitary_norm_inv(
+                    azimuth_hat, lb=lb_azimuth, ub=ub_azimuth
+                )
+                azimuth = unitary_norm_inv(azimuth, lb=lb_azimuth, ub=ub_azimuth)
+                elevation_hat = unitary_norm_inv(
+                    elevation_hat, lb=lb_elevation, ub=ub_elevation
+                )
+                elevation = unitary_norm_inv(
+                    elevation, lb=lb_elevation, ub=ub_elevation
+                )
+
+            else:
+                Th_hat = unitary_norm_inv(Th_hat, lb=0.005, ub=0.276)
+                Th = unitary_norm_inv(Th, lb=0.005, ub=0.276)
+                volume_hat = unitary_norm_inv(volume_hat, lb=1.5051, ub=3.9542)
+                volume = unitary_norm_inv(volume, lb=1.5051, ub=3.9542)
+                dist_src_hat = unitary_norm_inv(dist_src_hat, lb=0.191, ub=28.350)
+                dist_src = unitary_norm_inv(dist_src, lb=0.191, ub=28.350)
+                azimuth_hat = unitary_norm_inv(azimuth_hat, lb=-1.000, ub=1.000)
+                azimuth = unitary_norm_inv(azimuth, lb=-1.000, ub=1.000)
+                elevation_hat = unitary_norm_inv(elevation_hat, lb=-0.733, ub=0.486)
+                elevation = unitary_norm_inv(elevation, lb=-0.733, ub=0.486)
+
+        else:
+            Th_hat = unitary_norm_inv(Th_hat, lb=0.005, ub=0.276)
+            volume_hat = unitary_norm_inv(volume_hat, lb=1.5051, ub=3.9542)
+            dist_src_hat = unitary_norm_inv(dist_src_hat, lb=0.191, ub=28.350)
+            azimuth_hat = unitary_norm_inv(azimuth_hat, lb=-1.000, ub=1.000)
+            elevation_hat = unitary_norm_inv(elevation_hat, lb=-0.733, ub=0.486)
 
         # MAE metric for all the predicted parameters
         loss_Th = self.l1_loss(Th_hat, Th)

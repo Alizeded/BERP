@@ -2,14 +2,9 @@ defaults:
   - default
 
 # strategy: ddp # lightning native ddp with find_unused_parameters=False
-# strategy: ddp_find_unused_parameters_true # default: lightning native ddp with find_unused_parameters=True
-strategy: fsdp # fsdp
-# strategy:
-  # _target_: lightning.fabric.strategies.FSDPstrategy
-  # sharding_strategy: "FULL_SHARD" # FULL_SHARD, SHARD_GRAD_OP, HYBRID_SHARD, NO_SHARD
-
-# strategy: deepspeed
-# precision: 32
+strategy: ddp_find_unused_parameters_true # default: lightning native ddp with find_unused_parameters=True
+# strategy: fsdp # fsdp
+# strategy: deepspeed_stage_2 # deepspeed stage 2
 
 accelerator: cuda
 devices: 2

@@ -6,6 +6,7 @@ import torch.nn.functional as F
 import torchaudio
 from nnAudio.features.gammatone import Gammatonegram
 from nnAudio.features.mel import MelSpectrogram
+from nnAudio.features.stft import STFT
 
 from torch.utils.data import Dataset
 
@@ -41,7 +42,7 @@ class ReverbSpeechDataset(Dataset):
 
     def post_process(self, feat: torch.Tensor) -> torch.Tensor:
         if self.feature_extractor is not None and (
-            isinstance(self.feature_extractor, (Gammatonegram, MelSpectrogram))
+            isinstance(self.feature_extractor, (Gammatonegram, MelSpectrogram, STFT))
         ):
             feat = 20 * (feat + 1e-8).log10()
         if self.feature_extractor is None and self.normalization:

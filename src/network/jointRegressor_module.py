@@ -42,7 +42,10 @@ class JointRegressorModule(LightningModule):
         # loss function
         self.criterion_train = PolynomialSeeSawLoss(phase="train")
         self.criterion_val = PolynomialSeeSawLoss(phase="val")
-        self.criterion_test = JointEstimationEvaluation()
+        self.criterion_test = JointEstimationEvaluation(
+            apply_norm=self.hparams.optim_cfg.apply_norm,
+            norm_span=self.hparams.optim_cfg.norm_span,
+        )
 
         self.Th_weight = self.hparams.optim_cfg.Th_weight
         self.Tt_weight = self.hparams.optim_cfg.Tt_weight
@@ -1219,12 +1222,20 @@ class JointRegressorModule(LightningModule):
             ) / reverse_padding_mask.sum(dim=1)
 
         else:
-            Th_hat = Th_hat.mean(dim=1)
-            Tt_hat = Tt_hat.mean(dim=1)
-            volume_hat = volume_hat.mean(dim=1)
-            dist_src_hat = dist_src_hat.mean(dim=1)
-            azimuth_hat = azimuth_hat.mean(dim=1)
-            elevation_hat = elevation_hat.mean(dim=1)
+            if len(Th_hat.shape) == 2:
+                Th_hat = Th_hat.mean(dim=1)
+                Tt_hat = Tt_hat.mean(dim=1)
+                volume_hat = volume_hat.mean(dim=1)
+                dist_src_hat = dist_src_hat.mean(dim=1)
+                azimuth_hat = azimuth_hat.mean(dim=1)
+                elevation_hat = elevation_hat.mean(dim=1)
+            else:
+                Th_hat = Th_hat.squeeze()
+                Tt_hat = Tt_hat.squeeze()
+                volume_hat = volume_hat.squeeze()
+                dist_src_hat = dist_src_hat.squeeze()
+                azimuth_hat = azimuth_hat.squeeze()
+                elevation_hat = elevation_hat.squeeze()
 
         judge_prob_ori_src = self.jointRegressor.get_judge_prob(net_output)
 

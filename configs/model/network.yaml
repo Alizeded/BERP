@@ -30,6 +30,7 @@ numEstimatorModule:
     dropout_prob: 0.1
     # feat_type: "gammatone"
     # feat_type: "mel"
+    # feat_type: "spectrogram"
     feat_type: "mfcc"
 
 
@@ -46,7 +47,7 @@ jointRegressorModule:
     embed_dim: 512
     ch_scale: 4
     dropout_prob: 0.1
-    feat_type: "mfcc" # "gammatone", "mel", "mfcc"
+    feat_type: "mfcc" # "gammatone", "mel", "mfcc", "spectrogram"
     decoder_type: "parametric_predictor"
     num_channels_decoder: 384
     kernel_size_decoder: 3
@@ -76,9 +77,10 @@ jointRegressorModule:
     bc_ori_src_weight: 0.1
     bc_ori_src_weight_alt: 0.1
     T_max: 300
+    apply_norm: True # False for other dataset rather than the default one if you don't want to apply unitory norm
+    norm_span: None # for other dataset, you can set the span to a specific value
 
 
-      
 
 rirRegressorModule:
   _target_: src.network.regressor_module.rirRegressorModule

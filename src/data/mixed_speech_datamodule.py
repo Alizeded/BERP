@@ -7,6 +7,7 @@ import torch
 from lightning import LightningDataModule
 from nnAudio.features.gammatone import Gammatonegram
 from nnAudio.features.mel import MFCC, MelSpectrogram
+from nnAudio.features.stft import STFT
 from torch.utils.data import ConcatDataset, DataLoader, Dataset
 
 from src.data.components.mixed_speech_dataset import MixedSpeechDataset
@@ -138,6 +139,14 @@ class MixedSpeechDataModule(LightningDataModule):
                 hop_length=hop_length,
                 n_mels=n_bins,
                 power=1.0,
+            )
+        if feat_type == "spectrogram":
+            self.feature_extractor = STFT(
+                sr=sample_rate,
+                n_fft=n_fft,
+                hop_length=hop_length,
+                freq_bins=n_bins,
+                output_format="Magnitude",
             )
         if feat_type == "waveform":
             self.feature_extractor = None

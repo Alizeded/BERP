@@ -6,6 +6,7 @@ import pandas as pd
 import torch
 from nnAudio.features.gammatone import Gammatonegram
 from nnAudio.features.mel import MelSpectrogram, MFCC
+from nnAudio.features.stft import STFT
 
 from lightning import LightningDataModule
 from torch.utils.data import ConcatDataset, DataLoader, Dataset
@@ -169,6 +170,15 @@ class ReverbSpeechDataModuleJointEst(LightningDataModule):
                 hop_length=hop_length,
                 n_mels=n_bins,
                 power=1.0,
+            )
+
+        elif feat_type == "spectrogram":
+            self.feature_extractor = STFT(
+                sr=sample_rate,
+                n_fft=n_fft,
+                hop_length=hop_length,
+                freq_bins=n_bins,
+                output_format="Magnitude",
             )
 
         elif feat_type == "waveform":

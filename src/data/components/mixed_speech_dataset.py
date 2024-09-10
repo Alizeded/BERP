@@ -5,6 +5,7 @@ import torch.nn.functional as F
 import torchaudio
 from nnAudio.features.gammatone import Gammatonegram
 from nnAudio.features.mel import MelSpectrogram
+from nnAudio.features.stft import STFT
 from torch import nn
 from torch.utils.data import Dataset
 
@@ -24,7 +25,9 @@ class MixedSpeechDataset(Dataset):
 
     def post_process(self, x: torch.Tensor) -> torch.Tensor:
         if self.feature_extractor is not None:
-            if isinstance(self.feature_extractor, (Gammatonegram, MelSpectrogram)):
+            if isinstance(
+                self.feature_extractor, (Gammatonegram, MelSpectrogram, STFT)
+            ):
                 x = 20 * (x + 1e-8).log10()
             if self.feature_extractor is None and self.normalization:
                 x = F.layer_norm(x)

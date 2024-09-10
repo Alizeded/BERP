@@ -141,10 +141,11 @@ class PolynomialSeeSawLoss(nn.Module):
                 loss_elevation_pp=[],  # elevation loss for room parametric predictor
             )
 
-            corr_ori_src_val = dict(
-                corr_azimuth_pp_val=[],  # azimuth correlation for room parametric predictor
-                corr_elevation_pp_val=[],  # elevation correlation for room parametric predictor
-            )
+            if self.phase == "val":
+                corr_ori_src_val = dict(
+                    corr_azimuth_pp_val=[],  # azimuth correlation for room parametric predictor
+                    corr_elevation_pp_val=[],  # elevation correlation for room parametric predictor
+                )
 
             loss_ori_src["loss_azimuth_bc"].append(bce_loss_azimuth)
             loss_ori_src["loss_elevation_bc"].append(bce_loss_elevation)
@@ -231,10 +232,6 @@ class PolynomialSeeSawLoss(nn.Module):
 
                 if self.phase == "val":
                     corr_ori_src_val["corr_azimuth_pp_val"].append(corr_azimuth_pp)
-                else:
-                    raise NotImplementedError(
-                        "Correlation is only computed in validation phase"
-                    )
 
             # ------------------- elevation loss ------------------- #
             if self.phase == "train":  #! for training phase
@@ -320,10 +317,6 @@ class PolynomialSeeSawLoss(nn.Module):
 
                 if self.phase == "val":
                     corr_ori_src_val["corr_elevation_pp_val"].append(corr_elevation_pp)
-                else:
-                    raise NotImplementedError(
-                        "Correlation is only computed in validation phase"
-                    )
 
             pred_azimuth_label = torch.where(judge_prob_azimuth > 0.5, 1, 0)
             pred_elevation_label = torch.where(judge_prob_elevation > 0.5, 1, 0)
