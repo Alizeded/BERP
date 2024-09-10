@@ -18,7 +18,7 @@ wandb:
   # project: distSrcRegressor_evaluation_Gammatone
   # project: distSrcRegressor_evaluation_Mel
   # project: distSrcRegressor_evaluation_MFCC
-  entity: lucx
+  entity: {your_wandb_entity}
   log_model: True # upload lightning ckpts
   prefix: "" # a string to put at the beginning of metric keys
   # entity: "" # set to name of your wandb team

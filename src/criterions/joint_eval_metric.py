@@ -24,7 +24,7 @@ class JointEstimationEvaluation(nn.Module):
         self.pearson_corr_coef = PearsonCorrCoef()
 
         self.apply_norm = apply_norm
-        self.norm_span = norm_span
+        self.norm_span = norm_span if norm_span is not None else None
 
     def _get_param_pred_output_lengths(self, input_lengths: torch.LongTensor):
         """

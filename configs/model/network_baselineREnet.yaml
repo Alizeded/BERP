@@ -1,0 +1,156 @@
+
+rirRegressorModule:
+  _target_: src.network.regressor_baselineREnet.rirRegressorModuleBaselineREnet
+
+  net:
+    _target_: src.network.models.baselineREnet.REnet
+    ch_out: 2
+    ch_H: 64
+    depth: 5
+    kernel_size: [3, 2]
+    stride: [2, 1]
+    n_fft_spectrogram: 320
+    hop_length_spectrogram: 160
+    freq_bins: 192
+
+
+  optimizer:
+    _target_: torch.optim.Adam
+    _partial_: true
+    lr: 1e-3
+  
+  scheduler: 
+    _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+    _partial_: true
+    mode: 'min'
+    factor: 0.5
+    patience: 3
+
+  optim_cfg:
+    Th_weight: 1.0
+    Tt_weight: 1.0
+
+
+
+volumeRegressorModule:
+  _target_: src.network.volumeRegressor_baselineREnet.volumeRegressorModuleBaselineREnet
+
+  net:
+    _target_: src.network.models.baselineREnet.REnet
+    ch_out: 1
+    ch_H: 64
+    depth: 5
+    kernel_size: [3, 2]
+    stride: [2, 1]
+    n_fft_spectrogram: 320
+    hop_length_spectrogram: 160
+    freq_bins: 192
+
+
+  optimizer:
+    _target_: torch.optim.Adam
+    _partial_: true
+    lr: 1e-3
+
+  scheduler:
+    _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+    _partial_: true
+    mode: 'min'
+    factor: 0.5
+    patience: 3
+
+
+
+distSrcRegressorModule:
+  _target_: src.network.distSrcRegressor_baselineREnet.DistSrcRegressorModuleBaselineREnet
+
+  net:
+    _target_: src.network.models.baselineREnet.REnet
+    ch_out: 1
+    ch_H: 64
+    depth: 5
+    kernel_size: [3, 2]
+    stride: [2, 1]
+    n_fft_spectrogram: 320
+    hop_length_spectrogram: 160
+    freq_bins: 192
+    dist_src_est: True
+
+  optimizer:
+    _target_: torch.optim.Adam
+    _partial_: true
+    lr: 1e-3
+
+  scheduler:
+    _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+    _partial_: true
+    mode: 'min'
+    factor: 0.5
+    patience: 3
+
+
+
+oriSrcRegressorModule:
+  _target_: src.network.oriSrcRegressor_baselineREnet.OriSrcRegressorModuleBaselineREnet
+
+  net:
+    _target_: src.network.models.baselineREnet.REnet
+    ch_out: 2
+    ch_H: 64
+    depth: 5
+    kernel_size: [3, 2]
+    stride: [2, 1]
+    n_fft_spectrogram: 320
+    hop_length_spectrogram: 160
+    freq_bins: 192
+
+
+  optimizer:
+    _target_: torch.optim.Adam
+    _partial_: true
+    lr: 1e-4
+
+  scheduler:
+    _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+    _partial_: true
+    mode: 'min'
+    factor: 0.5
+    patience: 3
+
+jointRegressorModule:
+  _target_: src.network.jointRegressor_baselineREnet.JointRegressorModuleBaselineREnet
+
+  net:
+    _target_: src.network.models.baselineREnet.REnet
+    ch_out: 6
+    ch_H: 64
+    depth: 5
+    kernel_size: [3, 2]
+    stride: [2, 1]
+    n_fft_spectrogram: 320
+    hop_length_spectrogram: 160
+    freq_bins: 192
+    dist_src_est: True
+
+  optimizer:
+    _target_: torch.optim.Adam
+    _partial_: true
+    lr: 1e-3
+
+  scheduler:
+    _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+    _partial_: true
+    mode: 'min'
+    factor: 0.5
+    patience: 3
+
+  optim_cfg:
+    Th_weight: 1.0
+    Tt_weight: 1.0
+    volume_weight: 1.0
+    distSrc_weight: 1.0
+    azimuthSrc_weight: 1.0
+    elevationSrc_weight: 1.0
+
+
+

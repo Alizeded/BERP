@@ -26,12 +26,16 @@ tags: ["dev"]
 # pred_path: ${paths.output_dir}/predictions_joint_gammatone.pt
 
 # melspectrogram model for joint estimation
-# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_joint_est/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
-# pred_path: ${paths.output_dir}/predictions_joint_mel.pt
+ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_joint_est/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
+pred_path: ${paths.output_dir}/predictions_joint_mel.pt
 
 # MFCC model for joint estimation
-ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_joint_est/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
-pred_path: ${paths.output_dir}/predictions_joint_mfcc.pt
+# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_joint_est/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
+# pred_path: ${paths.output_dir}/predictions_joint_mfcc.pt
+
+# Spectrogram model for joint estimation
+# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_joint_est/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
+# pred_path: ${paths.output_dir}/predictions_joint_spectrogram.pt
 
 
 # ! -------------------- RIR estimation --------------------

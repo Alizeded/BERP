@@ -8,7 +8,7 @@ reverbSpeechModule:
   sample_rate: 16000
   batch_size: 16
   shuffle: True
-  feat_type: "mfcc" # "gammatone", "mel", "mfcc"
+  feat_type: "mfcc" # "gammatone", "mel", "mfcc", "spectrogram"
   n_fft: 1024
   n_bins: 128
   hop_length: 256
@@ -18,14 +18,14 @@ reverbSpeechModule:
 mixedSpeechModule:
   _target_: src.data.mixed_speech_datamodule.MixedSpeechDataModule
 
-  raw_path: mixed_speech.data/reverb_mixed
+  raw_path: mixed_speech_noise.data/reverb_mixed # or mixed_speech.data/reverb_mixed w/o background noise
   label_path: mixed_speech_label.data
   data_dir: ${paths.data_dir}mixed_speech
   max_sample_len: 360000 # 25 seconds
   sample_rate: 16000
   batch_size: 16
   shuffle: True
-  feat_type: "mfcc" # "gammatone", "mel", "mfcc"
+  feat_type: "mel" # "gammatone", "mel", "mfcc", "spectrogram"
   n_fft: 1024
   n_bins: 128
   hop_length: 256

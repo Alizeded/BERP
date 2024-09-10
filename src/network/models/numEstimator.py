@@ -77,7 +77,7 @@ class NumOccEstimator(nn.Module):
             (512, 2, 2),
             (512, 2, 2),
         ],
-        feat_type: str = "gammatone",  # "gammatone", "mel", "MFCC", "cnn_prenet"
+        feat_type: str = "mel",  # "gammatone", "mel", "MFCC", "cnn_prenet"
     ):  # sourcery skip: collection-into-set, merge-comparisons
         """Occupancy Module
 
@@ -105,7 +105,12 @@ class NumOccEstimator(nn.Module):
                 dropout=dropout_prob,
                 conv_bias=False,
             )
-        elif feat_type == "gammatone" or feat_type == "mel" or feat_type == "mfcc":
+        elif (
+            feat_type == "gammatone"
+            or feat_type == "mel"
+            or feat_type == "mfcc"
+            or feat_type == "spectrogram"
+        ):
             self.feat_proj = nn.Linear(ch_in, embed_dim)
         else:
             raise ValueError(f"Feature type {feat_type} not supported")

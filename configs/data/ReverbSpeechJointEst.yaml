@@ -8,9 +8,7 @@ reverbSpeechModule:
   sample_rate: 16000
   batch_size: 12
   shuffle: True
-  # feat_type: "gammatone"
-  # feat_type: "mel"
-  feat_type: "mfcc"
+  feat_type: "mel" # "gammatone", "mel", "mfcc", "spectrogram"
   n_fft: 1024
   n_bins: 128
   hop_length: 256

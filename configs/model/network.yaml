@@ -28,10 +28,7 @@ numEstimatorModule:
     embed_dim: 512
     ch_scale: 4
     dropout_prob: 0.1
-    # feat_type: "gammatone"
-    # feat_type: "mel"
-    # feat_type: "spectrogram"
-    feat_type: "mfcc"
+    feat_type: "mel" # "gammatone", "mel", "mfcc", "spectrogram"
 
 
 
@@ -47,7 +44,7 @@ jointRegressorModule:
     embed_dim: 512
     ch_scale: 4
     dropout_prob: 0.1
-    feat_type: "mfcc" # "gammatone", "mel", "mfcc", "spectrogram"
+    feat_type: "mel" # "gammatone", "mel", "mfcc", "spectrogram"
     decoder_type: "parametric_predictor"
     num_channels_decoder: 384
     kernel_size_decoder: 3
@@ -149,7 +146,7 @@ volumeRegressorModule:
     eps: 1e-8
     weight_decay: 1e-6
 
-  scheduler: 
+  scheduler:
     _target_: torch.optim.lr_scheduler.CosineAnnealingLR
     _partial_: true
 
@@ -224,7 +221,7 @@ oriSrcRegressorModule:
     eps: 1e-8
     weight_decay: 1e-6
 
-  scheduler: 
+  scheduler:
     _target_: torch.optim.lr_scheduler.CosineAnnealingLR
     _partial_: true
 

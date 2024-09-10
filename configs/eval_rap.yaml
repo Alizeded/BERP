@@ -24,19 +24,24 @@ rir_dataset_path: ${paths.data_dir}RIR_aggregated/RIR.data/
 multithreaded: false
 
 #! joint gammatone model for RAP
-joint_pred_path: ${paths.root_dir}/logs/prediction_joint/runs/${time_stamp}/predictions_joint_gammatone.pt
-rap_eval_path: ${paths.output_dir}/evaluation_rap_joint_gammatone.pt
-rap_eval_metric_path: ${paths.output_dir}/evaluation_rap_joint_gammatone_metric.csv
+# joint_pred_path: ${paths.root_dir}/logs/prediction_joint/runs/${time_stamp}/predictions_joint_gammatone.pt
+# rap_eval_path: ${paths.output_dir}/evaluation_rap_joint_gammatone.pt
+# rap_eval_metric_path: ${paths.output_dir}/evaluation_rap_joint_gammatone_metric.csv
 
 #! joint melspectrogram model for RAP
-# joint_pred_path: ${paths.root_dir}/logs/prediction_joint/runs/${time_stamp}/predictions_joint_mel.pt
-# rap_eval_path: ${paths.output_dir}/evaluation_rap_joint_mel.pt
-# rap_eval_metric_path: ${paths.output_dir}/evaluation_rap_joint_mel_metric.csv
+joint_pred_path: ${paths.root_dir}/logs/prediction_joint/runs/${time_stamp}/predictions_joint_mel.pt
+rap_eval_path: ${paths.output_dir}/evaluation_rap_joint_mel.pt
+rap_eval_metric_path: ${paths.output_dir}/evaluation_rap_joint_mel_metric.csv
 
 #! joint mfcc model for RAP
 # joint_pred_path: ${paths.root_dir}/logs/prediction_joint/runs/${time_stamp}/predictions_joint_mfcc.pt
 # rap_eval_path: ${paths.output_dir}/evaluation_rap_joint_mfcc.pt
 # rap_eval_metric_path: ${paths.output_dir}/evaluation_rap_joint_mfcc_metric.csv
+
+#! joint spectrogram model for RAP
+# joint_pred_path: ${paths.root_dir}/logs/prediction_joint/runs/${time_stamp}/predictions_joint_spectrogram.pt
+# rap_eval_path: ${paths.output_dir}/evaluation_rap_joint_spectrogram.pt
+# rap_eval_metric_path: ${paths.output_dir}/evaluation_rap_joint_spectrogram_metric.csv
 
 #! gammatonegram model for RAP
 # TiTd_pred_path: ${paths.root_dir}/logs/prediction_rir/runs/${time_stamp}/predictions_rir_gammatone.pt

@@ -84,7 +84,7 @@ class JointEstimator(nn.Module):
             (512, 2, 2),
             (512, 2, 2),
         ],
-        feat_type: str = "gammatone",  # "gammatone", "mel", "mfcc", "waveform"
+        feat_type: str = "mel",  # "gammatone", "mel", "mfcc", "waveform"
         decoder_type: str = "parametric_predictor",  # parametric_predictor only
         num_channels_decoder: Optional[int] = 384,
         kernel_size_decoder: Optional[int] = 3,
@@ -136,7 +136,7 @@ class JointEstimator(nn.Module):
                 conv_bias=False,
             )
 
-        elif feat_type in {"gammatone", "mel", "mfcc"}:
+        elif feat_type in {"gammatone", "mel", "mfcc", "spectrogram"}:
             self.feat_proj = nn.Linear(ch_in, embed_dim)
 
         else:

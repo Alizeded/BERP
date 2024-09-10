@@ -30,7 +30,7 @@ wandb:
   # project: oriSrcRegressor_evaluation_Gammatone_woBC
   # project: oriSrcRegressor_evaluation_Mel_woBC
   # project: oriSrcRegressor_evaluation_MFCC_woBC
-  entity: lucx
+  entity: ${your_wandb_entity}
   log_model: True # upload lightning ckpts
   prefix: "" # a string to put at the beginning of metric keys
   # entity: "" # set to name of your wandb team

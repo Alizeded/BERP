@@ -1,0 +1,101 @@
+
+rirRegressorModule:
+  _target_: src.network.regressor_baselineTAECNN.rirRegressorModuleBaselineTAECNN
+
+  net:
+    _target_: src.network.models.baselineTAECNN.TAECNN
+    ch_in: 1
+    ch_out: 2
+    max_length_sec: 20
+    fs: 16000
+    fc: 20
+    dropout_prob: 0.4
+
+  optimizer:
+    _target_: torch.optim.RMSprop
+    _partial_: true
+    lr: 1e-3
+
+  optim_cfg:
+    Th_weight: 1.0
+    Tt_weight: 1.0
+
+
+volumeRegressorModule:
+  _target_: src.network.volumeRegressor_baselineTAECNN.volumeRegressorModuleBaselineTAECNN
+
+  net:
+    _target_: src.network.models.baselineTAECNN.TAECNN
+    ch_in: 1
+    ch_out: 1
+    max_length_sec: 20
+    fs: 16000
+    fc: 20
+    dropout_prob: 0.4
+
+  optimizer:
+    _target_: torch.optim.RMSprop
+    _partial_: true
+    lr: 1e-3
+
+  
+distSrcRegressorModule:
+  _target_: src.network.distSrcRegressor_baselineTAECNN.DistSrcRegressorModuleBaselineTAECNN
+
+  net:
+    _target_: src.network.models.baselineTAECNN.TAECNN
+    ch_in: 1
+    ch_out: 1
+    max_length_sec: 20
+    fs: 16000
+    fc: 20
+    dropout_prob: 0.4
+
+  optimizer:
+    _target_: torch.optim.RMSprop
+    _partial_: true
+    lr: 1e-3
+
+
+oriSrcRegressorModule:
+  _target_: src.network.oriSrcRegressor_baselineTAECNN.OriSrcRegressorModuleBaselineTAECNN
+
+  net:
+    _target_: src.network.models.baselineTAECNN.TAECNN
+    ch_in: 1
+    ch_out: 2
+    max_length_sec: 20
+    fs: 16000
+    fc: 20
+    dropout_prob: 0.4
+
+  optimizer:
+    _target_: torch.optim.RMSprop
+    _partial_: true
+    lr: 1e-3
+
+
+jointRegressorModule:
+  _target_: src.network.jointRegressor_baselineTAECNN.JointRegressorModuleBaselineTAECNN
+
+  net:
+    _target_: src.network.models.baselineTAECNN.TAECNN
+    ch_in: 1
+    ch_out: 6
+    max_length_sec: 20
+    fs: 16000
+    fc: 20
+    dropout_prob: 0.4
+
+  optimizer:
+    _target_: torch.optim.RMSprop
+    _partial_: true
+    lr: 1e-3
+
+  optim_cfg:
+    Th_weight: 1.0
+    Tt_weight: 1.0
+    volume_weight: 1.0
+    distSrc_weight: 1.0
+    azimuthSrc_weight: 1.0
+    elevationSrc_weight: 1.0

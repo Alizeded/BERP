@@ -27,12 +27,16 @@ multithreaded: false
 # rap_pred_path: ${paths.output_dir}/prediction_rap_joint_gammatone.csv
 
 #! joint melspectrogram model for RAP
-# joint_pred_path: ${paths.root_dir}/logs/prediction_joint/runs/${time_stamp}/predictions_joint_mel.pt
-# rap_pred_path: ${paths.output_dir}/prediction_rap_joint_mel.csv
+joint_pred_path: ${paths.root_dir}/logs/prediction_joint/runs/${time_stamp}/predictions_joint_mel.pt
+rap_pred_path: ${paths.output_dir}/prediction_rap_joint_mel.csv
 
 #! joint mfcc model for RAP
-joint_pred_path: ${paths.root_dir}/logs/prediction_joint/runs/${time_stamp}/predictions_joint_mfcc.pt
-rap_pred_path: ${paths.output_dir}/prediction_rap_joint_mfcc.csv
+# joint_pred_path: ${paths.root_dir}/logs/prediction_joint/runs/${time_stamp}/predictions_joint_mfcc.pt
+# rap_pred_path: ${paths.output_dir}/prediction_rap_joint_mfcc.csv
+
+#! joint spectrogram model for RAP
+# joint_pred_path: ${paths.root_dir}/logs/prediction_joint/runs/${time_stamp}/predictions_joint_spectrogram.pt
+# rap_pred_path: ${paths.output_dir}/prediction_rap_joint_spectrogram.csv
 
 # ! mfcc model for RAP
 # TiTd_pred_path: ${paths.root_dir}/logs/prediction_rir/runs/${time_stamp}/predictions_rir_mfcc.pt
