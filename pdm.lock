@@ -5,7 +5,7 @@
 groups = ["default", "lint", "test"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:c6416869891978f18760773527a728a91b7e79ae47ed6a69d29ef296fffdf067"
+content_hash = "sha256:f33d665c7335f6c894796ac273238704d4f59ad297a4ad9247824a580110c7f9"
 
 [[metadata.targets]]
 requires_python = ">=3.11,<3.12"
@@ -1775,13 +1775,18 @@ files = [
 
 [[package]]
 name = "xformers"
-version = "0.0.28.post1"
+version = "0.0.27"
 requires_python = ">=3.7"
-summary = ""
+summary = "XFormers: A collection of composable Transformer building blocks."
 groups = ["default"]
+dependencies = [
+    "numpy",
+    "torch==2.3.1",
+]
 files = [
-    {file = "xformers-0.0.28.post1-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:33f594c01d0a803a782eac5a1824ed7631baf15cfa2d34400013b2976913dd27"},
-    {file = "xformers-0.0.28.post1.tar.gz", hash = "sha256:5b292643885983950f6e2e3aed08dfd6b175ac8b725802f6f3e527b5a22e2a9b"},
+    {file = "xformers-0.0.27-cp311-cp311-manylinux2014_x86_64.whl", hash = "sha256:253a647e40d5381dca6f556893d64e642cf839dda8bac46c3bea07292ca3f8fc"},
+    {file = "xformers-0.0.27-cp311-cp311-win_amd64.whl", hash = "sha256:93a41717c6edbfda4ca55a583d6d0a3e0726262ffa7f7f26ab439d84a7c482b9"},
+    {file = "xformers-0.0.27.tar.gz", hash = "sha256:7bf9db7330fbe7b9b633d720db6f2284f939ec1564e4916bae57aafdc265d43d"},
 ]
 
 [[package]]

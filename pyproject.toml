@@ -19,7 +19,7 @@ dependencies = [
     "scikit-learn",
     "nnAudio==0.3.2",
     "librosa",
-    "xformers",
+    "xformers==0.0.27",
     "einops>=0.8.0",
     "rich",
     "tqdm",
