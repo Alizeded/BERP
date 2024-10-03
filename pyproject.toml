@@ -1,6 +1,6 @@
 [project]
 name = "BERP"
-version = "0.1.3post0"
+version = "0.1.4"
 description = "BERP:A Blind Estimator of Room Acoustic and Physical Parameters"
 authors = [
     {name = "Lijun Wang & Yixian Lu", email = "lijun.wang@jaist.ac.jp"},
