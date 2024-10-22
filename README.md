@@ -163,6 +163,7 @@ sh weights/unified_module/unified_module_Mel.sh
 https://jstorage.box.com/v/BERP-unified-module-gammatone
 https://jstorage.box.com/v/BERP-unified-module-mfcc
 https://jstorage.box.com/v/BERP-unified-module-mel
+https://jstorage.box.com/v/BERP-unified-module-spectro
 ```
 
 ```bash
@@ -174,6 +175,7 @@ sh weights/occupancy_module/occupancy_module_Mel.sh
 https://jstorage.box.com/v/BERP-occupancy-module-gamma
 https://jstorage.box.com/v/BERP-occupancy-module-mfcc
 https://jstorage.box.com/v/BERP-occupancy-module-mel
+https://jstorage.box.com/v/BERP-occupancy-module-spectro
 ```
 
 ```bash
