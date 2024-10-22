@@ -66,7 +66,10 @@ toolbox = [
     "polars>=1.0.0",
 ]
 
-logging = ["wandb", "clearml"]
+logging = [
+    "wandb",
+    "clearml",
+]
 
 [tool.pdm.dev-dependencies]
 lint = ["ruff", "black"]
