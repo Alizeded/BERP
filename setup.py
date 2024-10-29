@@ -4,7 +4,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="src",
-    version="0.1.0",
+    version="0.1.4",
     description="BERP: A Blind Estimator of Room acoustic and physical Parameters.",
     author="Lucianius L. Wang",
     author_email="lijun.wang@jaist.ac.jp",
