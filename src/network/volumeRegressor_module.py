@@ -267,7 +267,7 @@ class VolumeRegressorModule(LightningModule):
             input_lengths = (1 - padding_mask.long()).sum(-1)
 
             # apply conv formula to get real output_lengths
-            output_lengths = self.predict_tools._get_feat_extract_output_lengths(
+            output_lengths = self.predict_tools._get_param_pred_output_lengths(
                 input_lengths=input_lengths
             )
 
