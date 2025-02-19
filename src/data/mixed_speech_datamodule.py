@@ -1,6 +1,6 @@
 import os
 from math import ceil
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import pandas as pd
 import torch
@@ -59,7 +59,9 @@ class MixedSpeechDataModule(LightningDataModule):
     def __init__(
         self,
         raw_path: str,  # mixed_speech.data
+        test_path: str,  # mixed_speech.data
         label_path: str,  # mixed_speech_label.data
+        label_test_path: str,  # mixed_speech_label.data
         data_dir: str = "data/mixed_speech",
         batch_size: int = 20,
         shuffle: bool = True,
@@ -69,6 +71,8 @@ class MixedSpeechDataModule(LightningDataModule):
         hop_length: int = 256,
         max_sample_len: int = 320000,
         sample_rate: int = 16000,
+        uniform_train: bool = True,
+        uniform_test: bool = False,
         num_workers: Optional[int] = os.cpu_count() - 1 if os.cpu_count() > 1 else 0,
         pin_memory: bool = False,
     ):
@@ -97,6 +101,8 @@ class MixedSpeechDataModule(LightningDataModule):
             data_dir,
             os.path.join(data_dir, raw_path),
             os.path.join(data_dir, label_path),
+            os.path.join(data_dir, test_path),
+            os.path.join(data_dir, label_test_path),
         )
 
         print(
@@ -187,7 +193,7 @@ class MixedSpeechDataModule(LightningDataModule):
             )
 
     def downsample_frame(self, x: torch.Tensor, frame_len: int = 256):
-        frame_num = ceil((x.shape[-1] / frame_len))
+        frame_num = ceil(x.shape[-1] / frame_len)
         frame_aggregated = torch.zeros(frame_num)
         for n in range(frame_num):
             if n != frame_num - 1:
@@ -211,7 +217,9 @@ class MixedSpeechDataModule(LightningDataModule):
         start = 0
         end = size - diff + start
 
-        slices = [slice(None) for _ in range(dim)]
+        slices = []
+        for _ in range(dim):
+            slices.append(slice(None))
         slices.append(slice(start, end))
 
         return t[slices]
@@ -254,7 +262,7 @@ class MixedSpeechDataModule(LightningDataModule):
         ).fill_(False)
         label_padding_mask = torch.BoolTensor(collated_labels.shape).fill_(False)
 
-        for i, (source, size) in enumerate(zip(sources, sizes)):
+        for i, (source, size) in enumerate(zip(sources, sizes, strict=False)):
             diff = size - target_size
             if diff == 0:
                 collated_sources[i, ...] = source
@@ -273,7 +281,7 @@ class MixedSpeechDataModule(LightningDataModule):
                     source, target_size, dim=-1
                 )
 
-        for i, (label, size) in enumerate(zip(labels, label_sizes)):
+        for i, (label, size) in enumerate(zip(labels, label_sizes, strict=False)):
             diff = size - target_label_size
             if diff == 0:
                 collated_labels[i, ...] = label
@@ -362,14 +370,14 @@ class MixedSpeechDataModule(LightningDataModule):
         """
         return super().teardown(stage=stage)
 
-    def state_dict(self) -> Dict[Any, Any]:
+    def state_dict(self) -> dict[Any, Any]:
         """Called when saving a checkpoint. Implement to generate and save the datamodule state.
 
         :return: A dictionary containing the datamodule state that you want to save.
         """
         return {}  # self.hparams
 
-    def load_state_dict(self, state_dict: Dict[str, Any]):
+    def load_state_dict(self, state_dict: dict[str, Any]):
         """Called when loading a checkpoint. Implement to reload datamodule state given datamodule
         `state_dict()`.
 
@@ -377,17 +385,40 @@ class MixedSpeechDataModule(LightningDataModule):
         """
         pass
 
-    def _get_item_and_labels(self, data_dir, path_raw, path_label):
+    def _get_item_and_labels(
+        self, data_dir, path_raw, path_label, path_test, path_label_test
+    ):
         if (
             os.path.isfile(os.path.join(data_dir, "train_manifest.csv"))
             and os.path.isfile(os.path.join(data_dir, "test_manifest.csv"))
             and os.path.isfile(os.path.join(data_dir, "val_manifest.csv"))
+            and os.path.isfile(os.path.join(data_dir, "test_manifest_uniform.csv"))
+            and os.path.isfile(os.path.join(data_dir, "train_manifest_uniform.csv"))
+            and os.path.isfile(os.path.join(data_dir, "val_manifest_uniform.csv"))
         ):
-            manifest_train_df = pd.read_csv(
-                os.path.join(data_dir, "train_manifest.csv")
-            )
-            manifest_val_df = pd.read_csv(os.path.join(data_dir, "val_manifest.csv"))
-            manifest_test_df = pd.read_csv(os.path.join(data_dir, "test_manifest.csv"))
+            if self.hparams.uniform_train:
+                manifest_train_df = pd.read_csv(
+                    os.path.join(data_dir, "train_manifest_uniform.csv")
+                )
+                manifest_val_df = pd.read_csv(
+                    os.path.join(data_dir, "val_manifest_uniform.csv")
+                )
+            else:
+                manifest_train_df = pd.read_csv(
+                    os.path.join(data_dir, "train_manifest.csv")
+                )
+                manifest_val_df = pd.read_csv(
+                    os.path.join(data_dir, "val_manifest.csv")
+                )
+
+            if self.hparams.uniform_test:
+                manifest_test_df = pd.read_csv(
+                    os.path.join(data_dir, "test_manifest_uniform.csv")
+                )
+            else:
+                manifest_test_df = pd.read_csv(
+                    os.path.join(data_dir, "test_manifest.csv")
+                )
 
             # manifest for reverb waveforms
             mixed_speech_train = [
@@ -399,7 +430,7 @@ class MixedSpeechDataModule(LightningDataModule):
                 for idx in manifest_val_df["mixed_speech"].tolist()
             ]
             mixed_speech_test = [
-                os.path.join(path_raw, idx)
+                os.path.join(path_test, idx)
                 for idx in manifest_test_df["mixed_speech"].tolist()
             ]
 
@@ -413,7 +444,7 @@ class MixedSpeechDataModule(LightningDataModule):
                 for idx in manifest_val_df["mixed_speech_label"].tolist()
             ]
             label_test = [
-                os.path.join(path_label, idx)
+                os.path.join(path_label_test, idx)
                 for idx in manifest_test_df["mixed_speech_label"].tolist()
             ]
 

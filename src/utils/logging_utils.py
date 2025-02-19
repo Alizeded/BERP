@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 from lightning.pytorch.utilities import rank_zero_only
 from omegaconf import OmegaConf
@@ -9,7 +9,7 @@ log = pylogger.get_pylogger(__name__)
 
 
 @rank_zero_only
-def log_hyperparameters(object_dict: Dict[str, Any]) -> None:
+def log_hyperparameters(object_dict: dict[str, Any]) -> None:
     """Controls which config parts are saved by Lightning loggers.
 
     Additionally saves:

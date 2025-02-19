@@ -8,17 +8,25 @@ wandb:
   # id: acoustic-toolkit-distSrcRegressor-ParametricPredictor-Gammatone # training on Gammatone model
   # id: acoustic-toolkit-distSrcRegressor-ParametricPredictor-Mel # training on Mel model
   id: acoustic-toolkit-distSrcRegressor-ParametricPredictor-MFCC # training on MFCC model
+  # id: acoustic-toolkit-distSrcRegressor-baselineFullCNN # training on baseline FullCNN model
+  # id: acoustic-toolkit-distSrcRegressor-baselineCRNN # training on baseline CRNN model
+  # id: acoustic-toolkit-distSrcRegressor-baselineREnet # training on baseline REnet model
+  # id: acoustic-toolkit-distSrcRegressor-baselineTAECNN # training on baseline TAECNN model
   # id: acoustic-toolkit-distSrcRegressor-evaluation-Gammatone # evaluate on Gammatone model
   # id: acoustic-toolkit-distSrcRegressor-evaluation-Mel # evaluate on Mel model
   # id: acoustic-toolkit-distSrcRegressor-evaluation-MFCC # evaluate on MFCC model
   anonymous: null # enable anonymous logging
-  # project: distSrcRegressor_ParametricPredictor_Gammatone
-  # project: distSrcRegressor_ParametricPredictor_Mel
-  project: distSrcRegressor_ParametricPredictor_MFCC
-  # project: distSrcRegressor_evaluation_Gammatone
-  # project: distSrcRegressor_evaluation_Mel
-  # project: distSrcRegressor_evaluation_MFCC
-  entity: {your_wandb_entity}
+  # project: distSrcRegressor_ParametricPredictor_Gammatone_Xpos
+  # project: distSrcRegressor_ParametricPredictor_Mel_Xpos
+  project: distSrcRegressor_ParametricPredictor_MFCC_Xpos
+  # project: distSrcRegressor_baselineFullCNN
+  # project: distSrcRegressor_baselineCRNN
+  # project: distSrcRegressor_baselineREnet
+  # project: distSrcRegressor_baselineTAECNN
+  # project: distSrcRegressor_evaluation_Gammatone_Xpos
+  # project: distSrcRegressor_evaluation_Mel_Xpos
+  # project: distSrcRegressor_evaluation_MFCC_Xpos
+  entity: lucx
   log_model: True # upload lightning ckpts
   prefix: "" # a string to put at the beginning of metric keys
   # entity: "" # set to name of your wandb team

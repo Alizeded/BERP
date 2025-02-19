@@ -2,65 +2,89 @@
 
 defaults:
   - _self_
-  - data: ReverbSpeech # "ReverbSpeechJoint", "ReverbSpeechBaseline", choose datamodule with `predict_dataloader()` for evaluation,
-  - model: network
-  - logger: wandb
+  - data: ReverbSpeechJointEstE2EMixReal
+  - model: network_e2e
+  - logger: null
   - trainer: default
   - paths: default
   - extras: default
   - hydra: default
 
-task_name: "evaluation_joint"
-# task_name: "evaluation_rir"
+# task_name: "evaluation_joint_hybrid"
+# task_name: "evaluation_joint_RAP"
+# task_name: "evaluation_joint_RAP_mixReal"
+task_name: "evaluation_joint_RAP_realPart"
+# task_name: "evaluation_joint_RAP_syntheticPart"
+# task_name: "evaluation_EDT"
+# task_name: "evaluation_TR"
+# task_name: "evaluation_C50"
+# task_name: "evaluation_D50"
+# task_name: "evaluation_Ts"
 # task_name: "evaluation_volume"
 # task_name: "evaluation_dist_src"
-# task_name: "evaluation_ori_src"
-# task_name: "evaluation_ori_src_woBC"
 # task_name: "evaluation_numEst"
-# task_name: "evaluation_roomEncoder"
 
 tags: ["dev"]
 
-# ! -------------------- joint estimation --------------------
+# * -------------------- joint estimation --------------------
 # gammatonegram model for joint estimation
-# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_joint_est/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
+# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_joint_RAP_mixReal/runs/{run_id}/checkpoints/epoch_{epoch}.ckpt
 
 # melspectrogram model for joint estimation
-ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_joint_est/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
+# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_joint_RAP_mixReal/runs/{run_id}/checkpoints/epoch_{epoch}.ckpt
 
 # MFCC model for joint estimation
-# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_joint_est/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
+# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_joint_RAP/runs/2024-12-12_07-32-38/checkpoints/epoch_269.ckpt
+ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_joint_RAP_mixReal/runs/{run_id}/checkpoints/epoch_{epoch}.ckpt
 
 # Spectrogram model for joint estimation
-# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_joint_est/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
+# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_joint_RAP_mixReal/runs/{run_id}/checkpoints/epoch_{epoch}.ckpt
 
-# ! -------------------- RIR estimation --------------------
+# * -------------------- EDT estimation --------------------
 # passing checkpoint path is necessary for prediction or evaluation
-# MFCC model for RIR
-# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_RIR/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
+# MFCC model for EDT
+# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_separate_RAP_mixReal/{run_id}/checkpoints/epoch_{epoch}.ckpt
 
+# * -------------------- TR estimation --------------------
+# MFCC model for TR
+# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_separate_RAP_mixReal/runs/{run_id}/checkpoints/epoch_{epoch}.ckpt
 
-# ! -------------------- volume estimation --------------------
+# * -------------------- C50 estimation --------------------
+# MFCC model for C50
+# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_separate_RAP_mixReal/runs/{run_id}/checkpoints/epoch_{epoch}.ckpt
+
+# * -------------------- D50 estimation --------------------
+# MFCC model for D50
+# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_separate_RAP_mixReal/runs/{run_id}/checkpoints/epoch_{epoch}.ckpt
+
+# * -------------------- Ts estimation --------------------
+# MFCC model for Ts
+# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_separate_RAP_mixReal/runs/{run_id}/checkpoints/epoch_{epoch}.ckpt
+
+# * -------------------- volume estimation --------------------
 # MFCC model for volume
-# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_volume/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
+# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_volume/runs/{run_id}/checkpoints/epoch_{epoch}.ckpt
 
 
-# ! -------------------- dist_src estimation --------------------
+# * -------------------- dist_src estimation --------------------
 # MFCC model for dist_src
-# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_dist_src/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
+# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_dist_src/{run_id}/checkpoints/epoch_{epoch}.ckpt
 
 
-# ! -------------------- ori_src estimation --------------------
-# MFCC model for ori_src
-# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_ori_src/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
-
-
-# ! -------------------- numEst estimation --------------------
+# * -------------------- numEst estimation --------------------
 # gammatonegram model for num of occupancy
-# ckpt_path: ${paths.root_dir}/logs/classification_numOcc/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
+# ckpt_path: ${paths.root_dir}/logs/classification_numOcc/runs/{run_id}/checkpoints/epoch_{epoch}.ckpt
 
 # melspectrogram model for num of occupancy
-# ckpt_path: ${paths.root_dir}/logs/classification_numOcc/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
+# ckpt_path: ${paths.root_dir}/logs/classification_numOcc/runs/{run_id}/checkpoints/epoch_{epoch}.ckpt
 
 # MFCC model for num of occupancy
-# ckpt_path: ${paths.root_dir}/logs/classification_numOcc/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
+# ckpt_path: ${paths.root_dir}/logs/classification_numOcc/runs/{run_id}/checkpoints/epoch_{epoch}.ckpt
+
+# Spectrogram model for num of occupancy
+# ckpt_path: ${paths.root_dir}/logs/classification_numOcc/runs/{run_id}/checkpoints/epoch_{epoch}.ckpt
+
+
+# * -------------------- ablation study for hybrid model --------------------
+# unifiedModule: "MFCC"
+# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_joint_RAP_mixReal/{run_id}/checkpoints/epoch_{epoch}.ckpt

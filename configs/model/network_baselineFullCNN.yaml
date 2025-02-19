@@ -1,112 +1,25 @@
-
-rirRegressorModule:
-  _target_: src.network.regressor_baselineFullCNN.rirRegressorModuleBaselineFullCNN
-
-  net:
-    _target_: src.network.models.baselineFullCNN.FullCNN
-    ch_in: 1
-    ch_out: 2
-    n_fft_gammatone: 384
-    n_bins_gammatone: 128
-    hop_length_gammatone: 192
-    dropout_prob: 0.5
-
-
-  optimizer:
-    _target_: torch.optim.Adam
-    _partial_: true
-    lr: 1e-3
-
-  optim_cfg:
-    Th_weight: 1.0
-    Tt_weight: 1.0
-
-
-
-volumeRegressorModule:
-  _target_: src.network.volumeRegressor_baselineFullCNN.volumeRegressorModuleBaselineFullCNN
-
-  net:
-    _target_: src.network.models.baselineFullCNN.FullCNN
-    ch_in: 1
-    ch_out: 1
-    n_fft_gammatone: 384
-    n_bins_gammatone: 128
-    hop_length_gammatone: 192
-    dropout_prob: 0.5
-
-
-  optimizer:
-    _target_: torch.optim.Adam
-    _partial_: true
-    lr: 1e-3
-
-
-
-
-distSrcRegressorModule:
-  _target_: src.network.distSrcRegressor_baselineFullCNN.DistSrcRegressorModuleBaselineFullCNN
-
-  net:
-    _target_: src.network.models.baselineFullCNN.FullCNN
-    ch_in: 1
-    ch_out: 1
-    n_fft_gammatone: 384
-    n_bins_gammatone: 128
-    hop_length_gammatone: 192
-    dropout_prob: 0.5
-    dist_src_est: true
-
-  optimizer:
-    _target_: torch.optim.Adam
-    _partial_: true
-    lr: 1e-3
-
-
-
-oriSrcRegressorModule:
-  _target_: src.network.oriSrcRegressor_baselineFullCNN.OriSrcRegressorModuleBaselineFullCNN
-
-  net:
-    _target_: src.network.models.baselineFullCNN.FullCNN
-    ch_in: 1
-    ch_out: 2
-    n_fft_gammatone: 384
-    n_bins_gammatone: 128
-    hop_length_gammatone: 192
-    dropout_prob: 0.5
-
-
-  optimizer:
-    _target_: torch.optim.Adam
-    _partial_: true
-    lr: 1e-3
-
 jointRegressorModule:
-  _target_: src.network.jointRegressor_baselineFullCNN.JointRegressorModuleBaselineFullCNN
+  _target_: src.network.RpRegressor_baselineFullCNN.JointRegressorModuleBaselineFullCNN
 
   net:
     _target_: src.network.models.baselineFullCNN.FullCNN
     ch_in: 1
-    ch_out: 6
+    ch_out: 2 # 2 for RapRegressor_baselineFullCNN, 4 for jointRegressor_baselineFullCNN
     n_fft_gammatone: 384
     n_bins_gammatone: 128
     hop_length_gammatone: 192
     dropout_prob: 0.5
-    dist_src_est: true
+    dist_src_est: False
 
   optimizer:
     _target_: torch.optim.Adam
     _partial_: true
     lr: 1e-3
 
-  optim_cfg:
+  optim_cfg: # only for jointRegressor_baselineCRNN
     Th_weight: 1.0
     Tt_weight: 1.0
     volume_weight: 1.0
     distSrc_weight: 1.0
-    azimuthSrc_weight: 1.0
-    elevationSrc_weight: 1.0
-
 
 

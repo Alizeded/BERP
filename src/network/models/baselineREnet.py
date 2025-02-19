@@ -6,7 +6,11 @@ from nnAudio.features.stft import STFT
 
 
 def padding(x, n_frame_len):
-    """padding zeroes to x so that denoised audio has the same length"""
+    """padding zeroes to x so that denoised audio has the same length,
+    when transforming using Fourier Transform, it will be as the upsampling process in the frequency domain,
+    so that the output has the same length as the input without losing information
+    see: B.P. Lathi, Linear Systems and Signals, 3rd ed., Oxford University Press, 2018, Ch. 7 & 8.
+    """
     len_seq = x.shape[-1]
     n_frame = 1997 - 1
     if len_seq < n_frame_len * n_frame:
@@ -140,6 +144,7 @@ class REnet(nn.Module):
                     ),
                     nn.GLU(dim=1),
                 )
+                self.encoder.append(encode)
             else:
                 encode = nn.Sequential(
                     nn.Conv2d(
@@ -150,7 +155,8 @@ class REnet(nn.Module):
                     ),
                     nn.GLU(dim=1),
                 )
-            self.encoder.append(encode)
+                self.encoder.append(encode)
+
         # --------------- output layer -----------------
         self.MG_TCNs = nn.Sequential(  # 6 is the feature dim output from the encoder
             MG_TCN(kernel_size=5, dilation=1, ch_in=ch_H * 4),

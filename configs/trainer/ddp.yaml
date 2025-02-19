@@ -2,9 +2,10 @@ defaults:
   - default
 
 # strategy: ddp # lightning native ddp with find_unused_parameters=False
-strategy: ddp_find_unused_parameters_true # default: lightning native ddp with find_unused_parameters=True
-# strategy: fsdp # fsdp
+# strategy: ddp_find_unused_parameters_true # default: lightning native ddp with find_unused_parameters=True
+strategy: fsdp
 # strategy: deepspeed_stage_2 # deepspeed stage 2
+# strategy: deepspeed_stage_3 # deepspeed stage 3
 
 accelerator: cuda
 devices: 2

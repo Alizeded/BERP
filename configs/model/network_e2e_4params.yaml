@@ -1,0 +1,42 @@
+
+
+jointRegressorModule:
+  _target_: src.network.jointRegressor_module_e2e_4params.JointRegressorModuleE2E
+
+  net:
+    _target_: src.network.models.jointEstimatorRAP_4params.JointEstimator
+    ch_in: 128
+    ch_out: 1
+    num_layers: 8
+    num_heads: 8
+    embed_dim: 512
+    ch_scale: 4
+    dropout_prob: 0.1
+    # feat_type: "gammatone"
+    # feat_type: "mel"
+    feat_type: "mfcc"
+    # feat_type: "spectrogram"
+    decoder_type: "parametric_predictor"
+    num_channels_decoder: 384
+    kernel_size_decoder: 3
+    num_layers_decoder: 3
+    dropout_decoder: 0.5
+
+  optimizer:
+    _target_: torch.optim.RAdam
+    _partial_: true
+    lr: 1e-4
+    betas : [0.9, 0.98]
+    eps: 1e-8
+    weight_decay: 1e-6
+
+  scheduler:
+    _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+    _partial_: true
+
+  optim_cfg:
+    sti_weight: 1.0
+    tr_weight: 1.0
+    c80_weight: 1.0
+    c50_weight: 1.0
+    T_max: 150

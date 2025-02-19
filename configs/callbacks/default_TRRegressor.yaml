@@ -1,0 +1,35 @@
+defaults:
+  - model_checkpoint
+  - early_stopping
+  - model_summary
+  - rich_progress_bar
+  - learning_rate_monitor
+  - _self_
+
+model_checkpoint:
+  dirpath: ${paths.output_dir}/checkpoints
+  filename: "epoch_{epoch:03d}"
+  monitor: "val/loss/tr"
+  mode: "min" # "max" means higher metric value is better, can be also "min"
+  save_last: True
+  auto_insert_metric_name: False
+  every_n_train_steps: 0 # number of training steps between checkpoints
+  every_n_epochs: 10 # number of epochs between checkpoints
+  save_on_train_epoch_end: True # save checkpoint at the end of training epoch
+
+early_stopping:
+  monitor: "train/loss/tr"
+  min_delta: 1e-4 # minimum change in the monitored quantity to qualify as an improvement
+  patience: 30
+  mode: "min" # "max" means higher metric value is better, can be also "min"
+  check_finite: True
+  # stopping_threshold: null
+
+
+model_summary:
+  max_depth: -1
+
+
+learning_rate_monitor:
+  logging_interval: "step"
+  log_momentum: False

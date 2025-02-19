@@ -3,17 +3,17 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from src.network.components.conv_prenet import ConvFeatureExtractionModel
-from src.network.components.positional_encoding import RelPosEncoding
-from src.network.components.room_encoder_layer import (
+from network.components.room_encoder_layer import (
     RelPositionMultiHeadedAttention,
     RoomFeatureEncoderLayer,
     RotaryPositionMultiHeadedAttention,
     XposMultiHeadedAttention,
 )
+from src.network.components.conv_prenet import ConvFeatureExtractionModel
+from src.network.components.positional_encoding import RelPosEncoding
 
 
-def init_bert_params(module):  # sourcery skip: merge-isinstance
+def init_bert_params(module):
     """
     Initialize the weights specific to the BERT Model.
     This overrides the default initializations depending on the specified arguments.
@@ -68,17 +68,9 @@ class NumOccEstimator(nn.Module):
         embed_dim: int = 512,
         ch_scale: int = 4,
         dropout_prob: float = 0.1,
-        conv_feature_layers=[
-            (512, 10, 4),
-            (512, 3, 2),
-            (512, 3, 2),
-            (512, 3, 2),
-            (512, 3, 2),
-            (512, 2, 2),
-            (512, 2, 2),
-        ],
-        feat_type: str = "mel",  # "gammatone", "mel", "MFCC", "cnn_prenet"
-    ):  # sourcery skip: collection-into-set, merge-comparisons
+        conv_feature_layers=None,
+        feat_type: str = "gammatone",  # "gammatone", "mel", "MFCC", "cnn_prenet"
+    ):
         """Occupancy Module
 
         Args:
@@ -92,7 +84,17 @@ class NumOccEstimator(nn.Module):
             conv_feature_layers (list, optional): conv prenet featurization. Defaults to [ (512, 10, 4), (512, 3, 2), (512, 3, 2), (512, 3, 2), (512, 3, 2), (512, 2, 2), (512, 2, 2), ].
             feat_type (str, optional): feature type. Defaults to "gammatone".
         """
-        super(NumOccEstimator, self).__init__()
+        if conv_feature_layers is None:
+            conv_feature_layers = [
+                (512, 10, 4),
+                (512, 3, 2),
+                (512, 3, 2),
+                (512, 3, 2),
+                (512, 3, 2),
+                (512, 2, 2),
+                (512, 2, 2),
+            ]
+        super().__init__()
 
         self.feature_extractor = None
         self.feat_proj = None
@@ -287,7 +289,7 @@ class RoomFeatureEncoder(nn.Module):
 
         x = F.dropout(x, p=self.dropout, training=self.training)
 
-        for layer in self.layers:
+        for _, layer in enumerate(self.layers):
             dropout_probability = np.random.random()
             if not self.training or (dropout_probability > self.layerdrop):
                 x = layer(

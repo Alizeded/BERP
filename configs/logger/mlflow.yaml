@@ -2,11 +2,11 @@
 
 mlflow:
   _target_: lightning.pytorch.loggers.mlflow.MLFlowLogger
-  # experiment_name: ""
-  # run_name: ""
+  experiment_name: jointRegressor_ParametricPredictor_MFCC # training on joint MFCC model
+  run_name: acoustic-toolkit-jointRegressor-ParametricPredictor-MFCC # training on joint MFCC model
   tracking_uri: ${paths.log_dir}/mlflow/mlruns # run `mlflow ui` command inside the `logs/mlflow/` dir to open the UI
   tags: null
-  # save_dir: "./mlruns"
+  save_dir: ${paths.output_dir}
   prefix: ""
-  artifact_location: null
+  artifact_location: ${paths.log_dir}/mlflow/artifacts
   # run_id: ""

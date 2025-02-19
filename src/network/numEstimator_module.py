@@ -1,10 +1,10 @@
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Optional
 
 import torch
 from lightning import LightningModule
 from torchmetrics import MaxMetric, MeanMetric, MinMetric
 
-from src.criterions.label_smoothed_cross_entropy import (
+from criterions.label_smoothed_cross_entropy import (
     LabelSmoothedCrossEntropyCriterion,
 )
 
@@ -101,12 +101,14 @@ class numEstimatorModule(LightningModule):
         :param x: A tensor of mixed audio.
         :return: A tensor of predicted logits.
         """
-        return self.numEstimator(source, padding_mask)
+        net_output = self.numEstimator(source, padding_mask)
+
+        return net_output
 
     def model_step(
         self,
-        batch: Dict[str, torch.Tensor],
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        batch: dict[str, torch.Tensor],
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Perform a single model step on a batch of data.
 
         :param batch: A batch of data (a Dict) containing
@@ -149,7 +151,7 @@ class numEstimatorModule(LightningModule):
 
     def training_step(
         self,
-        batch: Dict[str, torch.Tensor],
+        batch: dict[str, torch.Tensor],
         batch_idx: int,
     ) -> torch.Tensor:
         """Perform a single training step on a batch of data from the training set.
@@ -203,7 +205,7 @@ class numEstimatorModule(LightningModule):
 
     def validation_step(
         self,
-        batch: Dict[str, torch.Tensor],
+        batch: dict[str, torch.Tensor],
         batch_idx: int,
     ) -> None:
         """Perform a single validation step on a batch of data from the validation set.
@@ -302,7 +304,7 @@ class numEstimatorModule(LightningModule):
 
     def test_step(
         self,
-        batch: Dict[str, torch.Tensor],
+        batch: dict[str, torch.Tensor],
         batch_idx: int,
     ) -> None:
         """Perform a single test step on a batch of data from the test set.
@@ -362,10 +364,9 @@ class numEstimatorModule(LightningModule):
 
     def predict_step(
         self,
-        batch: Dict[str, torch.Tensor],
+        batch: dict[str, torch.Tensor],
         batch_idx: int,
-    ) -> Dict[str, torch.Tensor]:
-        # sourcery skip: inline-immediately-returned-variable
+    ) -> dict[str, torch.Tensor]:
         """Perform a single prediction step on a batch of data from the test set.
 
         :param batch: A batch of data (a Dict) containing
@@ -375,13 +376,19 @@ class numEstimatorModule(LightningModule):
 
         :return: A Dict containing the model predictions.
         """
+        groundtruth = batch["groundtruth"]["target"]
+        padding_mask = batch["groundtruth"]["target_padding_mask"]
         log_prob, _, _, _, _ = self.model_step(batch)
 
         pred_label = torch.argmax(log_prob, dim=-1)  # B T C -> B T
 
-        return pred_label
+        return {
+            "pred_label": pred_label,
+            "groundtruth": groundtruth,
+            "padding_mask": padding_mask,
+        }
 
-    def configure_optimizers(self) -> Dict[str, Any]:
+    def configure_optimizers(self) -> dict[str, Any]:
         """Configures optimizers and learning-rate schedulers to be used for training.
 
         Normally you'd need one, but in the case of GANs or similar you might need multiple.
@@ -391,10 +398,10 @@ class numEstimatorModule(LightningModule):
 
         :return: A dict containing the configured optimizers and learning-rate schedulers to be used for training.
         """
-        # optimizer for denoiser
+        # optimizer for numEstimator
         optimizer = self.hparams.optimizer(self.numEstimator.parameters())
 
-        # ================ scheduler for denoiser and numEstimator ================
+        # ================ scheduler for numEstimator ================
         if self.hparams.scheduler is not None:
             init_lr = self.hparams.optim_cfg.init_lr
             peak_lr = self.hparams.optim_cfg.peak_lr

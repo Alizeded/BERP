@@ -20,7 +20,7 @@ model_checkpoint:
 early_stopping:
   monitor: "train/l1_dist"
   min_delta: 1e-1 # minimum change in the monitored quantity to qualify as an improvement
-  patience: 50 # number of validation epochs with no improvement after which training will be stopped
+  patience: 10 # number of validation epochs with no improvement after which training will be stopped
   mode: "min" # "max" means higher metric value is better, can be also "min"
   check_finite: True
   # stopping_threshold: null

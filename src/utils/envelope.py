@@ -1,9 +1,9 @@
-import torch
-import torchaudio.functional as F
-import torch.nn as nn
-import scipy.signal as signal
-
 from typing import Optional
+
+import scipy.signal as signal
+import torch
+import torch.nn as nn
+import torchaudio.functional as F
 
 """
 Envelope extraction using the Hilbert transform and a low-pass filter
@@ -23,7 +23,7 @@ class ButterWorthFilter(nn.Module):
         self.fc = fc
         self.fs = fs
 
-    def lpf(self):  # sourcery skip: remove-redundant-if
+    def lpf(self):
         if self.fc <= 200:
             N = 6
         elif self.fc > 200 and self.fc <= 700:
@@ -52,7 +52,8 @@ class TemporalEnvelope(nn.Module):
         """Hilbert transform using a filter"""
 
         analytic_signal = self.hilbert(x)
-        return torch.abs(analytic_signal)
+        amplitude_envelope = torch.abs(analytic_signal)
+        return amplitude_envelope
 
     def TAE(self, x):
         # temporal amplitude envelope

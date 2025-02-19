@@ -1,0 +1,26 @@
+jointRegressorModule:
+  _target_: src.network.RpRegressor_baselineREnet_10params.JointRegressorModuleBaselineREnet
+
+  net:
+    _target_: src.network.models.baselineREnet.REnet
+    ch_out: 10
+    ch_H: 64
+    depth: 5
+    kernel_size: [3, 2]
+    stride: [2, 1]
+    n_fft_spectrogram: 320
+    hop_length_spectrogram: 160
+    freq_bins: 192
+    dist_src_est: True
+
+  optimizer:
+    _target_: torch.optim.Adam
+    _partial_: true
+    lr: 1e-3
+
+  scheduler:
+    _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+    _partial_: true
+    mode: 'min'
+    factor: 0.5
+    patience: 3

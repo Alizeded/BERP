@@ -1,0 +1,46 @@
+
+reverbSpeechModule:
+  _target_: src.data.reverbSpeech_datamodule_joint_e2e_mixReal.ReverbSpeechDataModuleJointEstE2EMixReal
+
+  path_raw: speech.data
+  path_real: real_audio.data
+  data_dir: ${paths.data_dir}noiseReverbSpeech
+  data_dir_real: ${paths.data_dir}BUT_real_recording_11160samples
+  max_sample_len: 320000 # 20 seconds
+  num_real_samples: 10044 # real recordings num for training
+  replacement: False # for weighted sampler, whether to sample with replacement
+  sample_rate: 16000
+  batch_size: 24
+  shuffle: False
+  # feat_type: "gammatone"
+  # feat_type: "mel"
+  feat_type: "mfcc"
+  # feat_type: "spectrogram"
+  n_fft: 1024
+  n_bins: 128
+  hop_length: 256
+  pin_memory: True
+  norm_amplitude: True
+
+mixedSpeechModule:
+  _target_: src.data.mixed_speech_datamodule.MixedSpeechDataModule
+
+  raw_path: mixed_speech_uniform.data/reverb_mixed
+  test_path: mixed_speech.data/reverb_mixed
+  label_path: mixed_speech_label_uniform.data
+  label_test_path: mixed_speech_label.data
+  data_dir: ${paths.data_dir}mixed_speech_noise
+  max_sample_len: 360000 # 25 seconds
+  sample_rate: 16000
+  batch_size: 24
+  shuffle: True
+  # feat_type: "gammatone"
+  # feat_type: "mel"
+  feat_type: "mfcc"
+  # feat_type: "spectrogram"
+  n_fft: 1024
+  n_bins: 128
+  hop_length: 256
+  pin_memory: True
+  uniform_train: True
+  uniform_test: False

@@ -5,6 +5,7 @@ import torch.nn as nn
 from torch import Tensor
 
 from .multiheaded_attention import (
+    ConditionalMultiHeadedAttention,
     RelPositionMultiHeadedAttention,
     RotaryPositionMultiHeadedAttention,
     XposMultiHeadedAttention,
@@ -15,7 +16,7 @@ class Transpose(nn.Module):
     """Wrapper class of torch.transpose() for Sequential module."""
 
     def __init__(self, shape: tuple):
-        super(Transpose, self).__init__()
+        super().__init__()
         self.shape = shape
 
     def forward(self, x: Tensor) -> Tensor:
@@ -29,7 +30,7 @@ class Swish(nn.Module):
     """
 
     def __init__(self):
-        super(Swish, self).__init__()
+        super().__init__()
 
     def forward(self, inputs: Tensor) -> Tensor:
         return inputs * inputs.sigmoid()
@@ -55,7 +56,7 @@ class DepthWiseConv1d(nn.Module):
         stride: int = 1,
         padding: int = 0,
     ):
-        super(DepthWiseConv1d, self).__init__()
+        super().__init__()
         assert (
             ch_out % ch_in == 0
         ), "out_channels should be constant multiple of in_channels"
@@ -85,7 +86,7 @@ class pointWiseConv1d(nn.Module):
     """
 
     def __init__(self, ch_in: int, ch_out: int, stride: int = 1):
-        super(pointWiseConv1d, self).__init__()
+        super().__init__()
         self.pointwise = nn.Conv1d(ch_in, ch_out, kernel_size=1, stride=stride)
 
     def forward(self, x: Tensor) -> Tensor:
@@ -114,7 +115,7 @@ class ConvBlock(nn.Module):
         dropout_prob: float = 0.1,
         expansion_factor: int = 2,
     ):
-        super(ConvBlock, self).__init__()
+        super().__init__()
         assert (kernel_size - 1) % 2 == 0, "kernel_size should be odd number"
         assert expansion_factor == 2, "Currently expansion factor is 2"
 
@@ -155,7 +156,7 @@ class PosWiseFeedForwardModule(nn.Module):
     def __init__(
         self, encoder_dim: int, expansion_factor: int = 4, dropout_prob: float = 0.1
     ):
-        super(PosWiseFeedForwardModule, self).__init__()
+        super().__init__()
         self.sequentail = nn.Sequential(
             nn.LayerNorm(encoder_dim),
             nn.Linear(encoder_dim, encoder_dim * expansion_factor, bias=True),
@@ -169,6 +170,69 @@ class PosWiseFeedForwardModule(nn.Module):
         return self.sequentail(x)
 
 
+class GLUPosWiseFeedForwardModule(nn.Module):
+    """
+    Position-wise Feed-Forward Module with GLU mechanism
+
+    :Parameters:
+        embed_dim: int, dimension of embedding
+        expansion_factor: int, expansion factor of feed forward module
+        inner_dim_to_mulitple: int, the dimension to the inner projection is rounded up to the nearest multiple of this value
+        dropout_prob: float, dropout probability
+
+    """
+
+    def __init__(
+        self,
+        encoder_dim: int,
+        expansion_factor: float = 2 / 3,
+        inner_dim_to_mulitple: int = 1,
+        dropout_prob: float = 0.1,
+    ):
+        super().__init__()
+
+        self.inner_dim_scale = expansion_factor
+
+        if self.inner_dim_scale != 1.0:
+            inner_dim = int(encoder_dim * self.inner_dim_scale)
+
+        self.inner_dim_to_mulitple = inner_dim_to_mulitple
+
+        if inner_dim_to_mulitple != 1:
+            inner_dim = inner_dim_to_mulitple * (
+                (inner_dim + inner_dim_to_mulitple - 1) // inner_dim_to_mulitple
+            )
+
+        self.gate_proj = nn.Linear(encoder_dim, inner_dim, bias=True)
+
+        self.gate_activation = Swish()
+
+        self.inner_proj = nn.Linear(encoder_dim, inner_dim, bias=True)
+
+        if dropout_prob > 0.0:
+            self.dropout = nn.Dropout(dropout_prob)
+        else:
+            self.register_module("dropout", None)
+
+        self.output_proj = nn.Linear(inner_dim, encoder_dim, bias=True)
+
+    def forward(self, x: Tensor) -> Tensor:
+        gate = self.gate_proj(x)
+
+        gate = self.gate_activation(gate)
+
+        x = self.inner_proj(x)
+
+        x = x * gate
+
+        if self.dropout is not None:
+            x = self.dropout(x)
+
+        x = self.output_proj(x)
+
+        return x
+
+
 class residual_connection(nn.Module):
     """
     Residual Connection Module.
@@ -178,7 +242,7 @@ class residual_connection(nn.Module):
     def __init__(
         self, module: nn.Module, module_factor: float = 1.0, input_factor: float = 1.0
     ):
-        super(residual_connection, self).__init__()
+        super().__init__()
         self.module = module
         self.module_factor = module_factor
         self.input_factor = input_factor
@@ -196,9 +260,9 @@ class RoomFeatureEncoderLayer(nn.Module):
         embed_dim: int = 512,
         ch_scale: int = 2,
         dropout_prob: float = 0.1,
-        pos_enc_type: str = "xpos",  # xpos or rel_pos or rope
+        pos_enc_type: str = "xpos",  # cope or cope_gpa or xpos or rel_pos or rope
         half_step_residual: bool = True,
-    ):
+    ):  # sourcery skip: assign-if-exp
         """Room Feature Encoder Layer
 
         Args:
@@ -208,9 +272,13 @@ class RoomFeatureEncoderLayer(nn.Module):
             dropout_prob (float, optional): dropout probability. Defaults to 0.1.
             pos_enc_type (str, optional): positional encoding type. Defaults to "xpos".
         """
-        super(RoomFeatureEncoderLayer, self).__init__()
+        super().__init__()
 
-        feedforward_residual_factor = 0.5 if half_step_residual else 1.0
+        if half_step_residual:
+            feedforward_residual_factor = 0.5
+        else:
+            feedforward_residual_factor = 1.0
+
         self.pos_enc_type = pos_enc_type
 
         self.ffn1 = residual_connection(
@@ -232,7 +300,8 @@ class RoomFeatureEncoderLayer(nn.Module):
                     dropout_prob=dropout_prob,
                 ),
             )
-        if self.pos_enc_type == "rel_pos":
+
+        elif self.pos_enc_type == "rel_pos":
             self.self_attn = residual_connection(
                 module=RelPositionMultiHeadedAttention(
                     nums_heads=num_heads,
@@ -241,13 +310,19 @@ class RoomFeatureEncoderLayer(nn.Module):
                     dropout_prob=dropout_prob,
                 ),
             )
-        if self.pos_enc_type == "rope":
+
+        elif self.pos_enc_type == "rope":
             self.self_attn = residual_connection(
                 module=RotaryPositionMultiHeadedAttention(
                     embed_dim=embed_dim,
                     num_heads=num_heads,
                     dropout_prob=dropout_prob,
                 ),
+            )
+
+        else:
+            raise NotImplementedError(
+                f"pos_enc_type: {self.pos_enc_type} not supported"
             )
 
         self.conv_module = residual_connection(

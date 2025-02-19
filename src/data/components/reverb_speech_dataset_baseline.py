@@ -1,32 +1,43 @@
 from typing import Optional
 
-import torchaudio
 import torch
+import torchaudio
 from torch.utils.data import Dataset
 
 
-class ReverbSpeechDataset(Dataset):
+class ReverbSpeechDatasetBaseline(Dataset):
+
     def __init__(
         self,
         raw_audio: Optional[list],
-        clean_audio: Optional[list],
         Th: Optional[list],
         Tt: Optional[list],
         volume: Optional[list],
+        sti: Optional[list],
+        alcons: Optional[list],
+        t60: Optional[list],
+        c80: Optional[list],
+        c50: Optional[list],
+        volume_ns: Optional[list],
         dist_src: Optional[list],
-        azimuth_src: Optional[list],
-        elevation_src: Optional[list],
-        azimuth_classif: Optional[list] = None,
-        elevation_classif: Optional[list] = None,
+        edt: Optional[list],
+        d50: Optional[list],
+        ts: Optional[list],
     ):
         self.raw_audio = raw_audio
-        self.clean_audio = clean_audio
         self.Th = Th
         self.Tt = Tt
         self.volume = volume
+        self.sti = sti
+        self.alcons = alcons
+        self.t60 = t60
+        self.c80 = c80
+        self.c50 = c50
+        self.volume_ns = volume_ns
         self.dist_src = dist_src
-        self.azimuth_src = azimuth_src
-        self.elevation_src = elevation_src
+        self.edt = edt
+        self.d50 = d50
+        self.ts = ts
 
     def __len__(self):
         # assert len(self.raw_audio) == len(self.clean_audio)
@@ -38,16 +49,32 @@ class ReverbSpeechDataset(Dataset):
         Th = torch.tensor(self.Th[idx])
         Tt = torch.tensor(self.Tt[idx])
         volume = torch.tensor(self.volume[idx])
+        sti = torch.tensor(self.sti[idx])
+        alcons = torch.tensor(self.alcons[idx])
+        t60 = torch.tensor(self.t60[idx])
+        c80 = torch.tensor(self.c80[idx])
+        c50 = torch.tensor(self.c50[idx])
+        volume_ns = torch.tensor(self.volume_ns[idx])
         dist_src = torch.tensor(self.dist_src[idx])
-        azimuth_src = torch.tensor(self.azimuth_src[idx])
-        elevation_src = torch.tensor(self.elevation_src[idx])
+        d50 = torch.tensor(self.d50[idx])
+        ts = torch.tensor(self.ts[idx])
+        edt = torch.tensor(self.edt[idx])
+        d50 = torch.tensor(self.d50[idx])
+        ts = torch.tensor(self.ts[idx])
 
         return {
             "raw": raw,
             "Th": Th,
             "Tt": Tt,
             "volume": volume,
+            "sti": sti,
+            "alcons": alcons,
+            "t60": t60,
+            "edt": edt,
+            "c80": c80,
+            "c50": c50,
+            "d50": d50,
+            "ts": ts,
+            "volume_ns": volume_ns,
             "dist_src": dist_src,
-            "azimuth_src": azimuth_src,
-            "elevation_src": elevation_src,
         }

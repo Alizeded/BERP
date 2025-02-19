@@ -1,10 +1,11 @@
 # Data preparation for occupant level estimation
+import os
+
+import pandas as pd
+import rootutils
 import torch
 import torchaudio
-import pandas as pd
-import os
 from tqdm import tqdm
-import rootutils
 
 rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 

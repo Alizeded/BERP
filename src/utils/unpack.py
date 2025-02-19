@@ -1,11 +1,10 @@
-from typing import Dict, Tuple
 import torch
 
 
 def agg_pair(
-    rap_pairs: Tuple[Dict[str, torch.Tensor]],
+    rap_pairs: tuple[dict[str, torch.Tensor]],
     batch_size: int = 16,
-) -> Dict[str, Tuple[torch.Tensor, torch.Tensor]]:
+) -> dict[str, tuple[torch.Tensor, torch.Tensor]]:
     raps_size = len(rap_pairs) * batch_size
     STI_hat, STI = torch.zeros(raps_size), torch.zeros(raps_size)
     ALcons_hat, ALcons = torch.zeros(raps_size), torch.zeros(raps_size)
@@ -17,7 +16,7 @@ def agg_pair(
     Ts_hat, Ts = torch.zeros(raps_size), torch.zeros(raps_size)
 
     j = 0
-    for k, batch_rap in enumerate(rap_pairs):
+    for _, batch_rap in enumerate(rap_pairs):
         for i in range(batch_size):
             STI_hat[j] = batch_rap["STI_est"][i]
             STI[j] = batch_rap["STI_gt"][i]
@@ -52,9 +51,9 @@ def agg_pair(
 
 
 def agg_rap_pred(
-    rap_pred: Tuple[Dict[str, torch.Tensor]],
+    rap_pred: tuple[dict[str, torch.Tensor]],
     batch_size: int = 16,
-) -> Dict[str, torch.Tensor]:
+) -> dict[str, torch.Tensor]:
 
     rap_size = len(rap_pred) * batch_size
     STI = torch.zeros(rap_size)
@@ -67,7 +66,7 @@ def agg_rap_pred(
     Ts = torch.zeros(rap_size)
 
     j = 0
-    for k, batch_rap in enumerate(rap_pred):
+    for _, batch_rap in enumerate(rap_pred):
         for i in range(batch_size):
             STI[j] = batch_rap["STI_est"][i]
             ALcons[j] = batch_rap["ALcons_est"][i]
@@ -94,20 +93,25 @@ def agg_rap_pred(
 
 
 def agg_rpp_pred(
-    rpp_pred: Tuple[Dict[str, torch.Tensor]],
+    rpp_pred: tuple[dict[str, torch.Tensor]],
     param: str,
     batch_size: int = 16,
-) -> Dict[str, torch.Tensor]:
+) -> dict[str, torch.Tensor]:
 
-    parmeters_size = len(rpp_pred) * batch_size
+    parmeters_size = (len(rpp_pred) - 1) * batch_size + len(rpp_pred[-1][param])
 
     params = torch.zeros(parmeters_size)
 
     j = 0
-    for k, batch_rpp in enumerate(rpp_pred):
-        for i in range(batch_size):
-            params[j] = batch_rpp[param][i]
-            j += 1
+    for n, batch_rpp in enumerate(rpp_pred):
+        if n != len(rpp_pred) - 1:
+            for i in range(batch_size):
+                params[j] = batch_rpp[param][i]
+                j += 1
+        else:
+            for i in range(len(batch_rpp[param])):
+                params[j] = batch_rpp[param][i]
+                j += 1
 
     output = {
         param: params,

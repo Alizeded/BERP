@@ -2,32 +2,16 @@ from typing import Optional
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torchaudio.transforms import Resample
 
 from src.utils.envelope import TemporalEnvelope
-
-
-def temporal_padding(
-    x: torch.Tensor, max_length_sec: Optional[int] = 20, fs: Optional[int] = 16000
-):
-    """padding zeroes to x so that audio has the same length"""
-    len_seq = x.shape[-1]
-    if len_seq < max_length_sec * fs:
-        len_seq = int(max_length_sec * fs)
-        x = F.pad(x, (0, len_seq - x.shape[-1]), mode="constant")
-    elif len_seq > max_length_sec * fs:
-        len_seq = int(max_length_sec * fs)
-        x = x[:, :len_seq]
-
-    return x
 
 
 class TAECNN(nn.Module):
     def __init__(
         self,
         ch_in: int = 1,
-        ch_out: int = 1,
+        ch_out: int = 2,
         max_length_sec: Optional[int] = 20,
         fs: Optional[int] = 16000,
         fc: Optional[int] = 20,
@@ -45,7 +29,7 @@ class TAECNN(nn.Module):
         # temporal amplitude envelope
         self.envelope = TemporalEnvelope(dim=1, fs=fs, fc=fc, mode="TAE")
 
-        self.resample = Resample(orig_freq=fs, new_freq=2 * fc)
+        # self.resample = Resample(orig_freq=fs, new_freq=2 * fc)
 
         self.conv_block = nn.Sequential(
             nn.Conv1d(  # 1st conv layer
@@ -92,10 +76,10 @@ class TAECNN(nn.Module):
         x = x / torch.max(torch.abs(x), dim=-1, keepdim=True)[0]  # B x T
 
         # temporal amplitude envelope extraction
-        x = temporal_padding(x, self.max_length_sec, self.fs)  # B x T
+        # x = temporal_padding(x, self.max_length_sec, self.fs)  # B x T
         x = self.envelope(x)  # B x T
         # resample to 40 Hz
-        x = self.resample(x)  # B x T
+        # x = self.resample(x)  # B x T
 
         # normalize to unitary amplitude
         x = x / torch.max(torch.abs(x), dim=-1, keepdim=True)[0]  # B x T

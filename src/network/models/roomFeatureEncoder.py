@@ -1,4 +1,5 @@
-from typing import Dict, Optional
+from typing import Optional
+
 import torch
 import torch.nn as nn
 
@@ -21,10 +22,9 @@ class RoomEncoder(nn.Module):
         ch_scale: int = 4,
         dropout_prob: float = 0.1,
         feat_type: str = "mfcc",  # "gammatone", "mel", "mfcc"
-        decoder_type: str = "rir",  # rir, volume, distSrc, oriSrc, joint
         dist_src_est: Optional[bool] = False,
-    ):  # sourcery skip: collection-into-set, merge-comparisons
-        super(RoomEncoder, self).__init__()
+    ):
+        super().__init__()
 
         # conformer encoder
         self.ch_in = ch_in
@@ -58,87 +58,50 @@ class RoomEncoder(nn.Module):
             num_layers=num_layers,
         )
 
-        # decoder type
-        self.decoder_type = decoder_type
-
-        # decoder
-        self.decoder = nn.Linear(embed_dim, ch_out)
+        self.decoder_sti = nn.Linear(embed_dim, ch_out)
+        self.decoder_alcons = nn.Linear(embed_dim, ch_out)
+        self.decoder_tr = nn.Linear(embed_dim, ch_out)
+        self.decoder_edt = nn.Linear(embed_dim, ch_out)
+        self.decoder_c80 = nn.Linear(embed_dim, ch_out)
+        self.decoder_c50 = nn.Linear(embed_dim, ch_out)
+        self.decoder_d50 = nn.Linear(embed_dim, ch_out)
+        self.decoder_ts = nn.Linear(embed_dim, ch_out)
+        self.decoder_volume = nn.Linear(embed_dim, ch_out)
+        self.decoder_dist_src = nn.Linear(embed_dim, ch_out)
 
     def decoder_forward(
         self, x: torch.Tensor, padding_mask: torch.Tensor
-    ) -> Dict[str, torch.Tensor]:
-        # sourcery skip: extract-duplicate-method, extract-method
+    ) -> dict[str, torch.Tensor]:
 
-        if self.decoder_type == "rir":
-            Th_hat = self.decoder(x)
-            Tt_hat = self.decoder(x)
+        # decoder
+        sti_hat = self.decoder_sti(x)
+        alcons_hat = self.decoder_alcons(x)
+        tr_hat = self.decoder_tr(x)
+        edt_hat = self.decoder_edt(x)
+        c80_hat = self.decoder_c80(x)
+        c50_hat = self.decoder_c50(x)
+        d50_hat = self.decoder_d50(x)
+        ts_hat = self.decoder_ts(x)
+        volume_hat = self.decoder_volume(x)
+        dist_src_hat = self.decoder_dist_src(x)
 
-            Th_hat, Tt_hat = (
-                Th_hat.squeeze(),
-                Tt_hat.squeeze(),
-            )  # B x C x T -> B x T
-
-            return {
-                "Th_hat": Th_hat,
-                "Tt_hat": Tt_hat,
-                "padding_mask": padding_mask,
-            }
-
-        elif self.decoder_type == "volume":
-            volume_hat = self.decoder(x)
-            volume_hat = volume_hat.squeeze()  # B x C x T -> B x T
-
-            return {"volume_hat": volume_hat, "padding_mask": padding_mask}
-
-        elif self.decoder_type == "distSrc":
-            dist_src_hat = self.decoder(x)
-            dist_src_hat = dist_src_hat.squeeze()
-
-            return {"dist_src_hat": dist_src_hat, "padding_mask": padding_mask}
-
-        elif self.decoder_type == "oriSrc":
-            azimuth_hat = self.decoder(x)
-            elevation_hat = self.decoder(x)
-
-            azimuth_hat, elevation_hat = (
-                azimuth_hat.squeeze(),
-                elevation_hat.squeeze(),
-            )
-
-            return {
-                "azimuth_hat": azimuth_hat,
-                "elevation_hat": elevation_hat,
-                "padding_mask": padding_mask,
-            }
-
-        elif self.decoder_type == "joint":
-            Th_hat = self.decoder(x)
-            Tt_hat = self.decoder(x)
-            volume_hat = self.decoder(x)
-            dist_src_hat = self.decoder(x)
-            # azimuth_hat = self.decoder(x)
-            # elevation_hat = self.decoder(x)
-
-            Th_hat = Th_hat.squeeze()
-            Tt_hat = Tt_hat.squeeze()
-            volume_hat = volume_hat.squeeze()
-            dist_src_hat = dist_src_hat.squeeze()
-            # azimuth_hat = azimuth_hat.squeeze()
-            # elevation_hat = elevation_hat.squeeze()
-
-            return {
-                "Th_hat": Th_hat,
-                "Tt_hat": Tt_hat,
-                "volume_hat": volume_hat,
-                "dist_src_hat": dist_src_hat,
-                # "azimuth_hat": azimuth_hat,
-                # "elevation_hat": elevation_hat,
-                "padding_mask": padding_mask,
-            }
+        return {
+            "sti_hat": sti_hat.squeeze(),
+            "alcons_hat": alcons_hat.squeeze(),
+            "tr_hat": tr_hat.squeeze(),
+            "edt_hat": edt_hat.squeeze(),
+            "c80_hat": c80_hat.squeeze(),
+            "c50_hat": c50_hat.squeeze(),
+            "d50_hat": d50_hat.squeeze(),
+            "ts_hat": ts_hat.squeeze(),
+            "volume_hat": volume_hat.squeeze(),
+            "dist_src_hat": dist_src_hat.squeeze(),
+            "padding_mask": padding_mask,
+        }
 
     def forward(
         self, source: torch.Tensor, padding_mask: torch.Tensor
-    ) -> Dict[str, torch.Tensor]:
+    ) -> dict[str, torch.Tensor]:
         """
         Inputs:
             x: [batch, len, in_dim]
@@ -164,6 +127,4 @@ class RoomEncoder(nn.Module):
         x = self.encoder(x, padding_mask)
 
         # decoder
-        x = self.decoder_forward(x=x, padding_mask=padding_mask)
-
-        return x
+        return self.decoder_forward(x=x, padding_mask=padding_mask)

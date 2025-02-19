@@ -2,76 +2,53 @@
 
 defaults:
   - _self_
-  - data: ReverbSpeech # "ReverbSpeechJoint", "ReverbSpeechBaseline", choose datamodule with `predict_dataloader()` for evaluation,
-  - model: network
+  - data: ReverbSpeechJointEstE2EMixReal
+  - model: network_e2e
   - logger: null
   - trainer: default
   - paths: default
   - extras: default
   - hydra: default
 
-task_name: "prediction_joint"
-# task_name: "prediction_rir"
-# task_name: "prediction_volume"
-# task_name: "prediction_dist_src"
-# task_name: "prediction_ori_src"
+# task_name: "prediction_joint"
+task_name: "prediction_joint_RP_realPart"
+# task_name: "prediction_joint_RP_syntheticPart"
 # task_name: "prediction_numEst"
 
 tags: ["dev"]
 
 
-# ! -------------------- joint estimation --------------------
+# * -------------------- joint estimation --------------------
 # gammatonegram model for joint estimation
-# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_joint_est/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
+# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_joint_est/{run_id}/checkpoints/epoch_{epoch}.ckpt
 # pred_path: ${paths.output_dir}/predictions_joint_gammatone.pt
 
-# melspectrogram model for joint estimation
-ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_joint_est/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
-pred_path: ${paths.output_dir}/predictions_joint_mel.pt
+# # melspectrogram model for joint estimation
+# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_joint_est/{run_id}/checkpoints/epoch_{epoch}.ckpt
+# pred_path: ${paths.output_dir}/predictions_joint_mel.pt
 
 # MFCC model for joint estimation
-# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_joint_est/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
-# pred_path: ${paths.output_dir}/predictions_joint_mfcc.pt
+ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_joint_RAP_mixReal/{run_id}/checkpoints/epoch_{epoch}.ckpt
+pred_path: ${paths.output_dir}/predictions_joint_mfcc.pt
 
 # Spectrogram model for joint estimation
-# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_joint_est/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
+# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_joint_est/runs/{run_id}/checkpoints/epoch_{epoch}.ckpt
 # pred_path: ${paths.output_dir}/predictions_joint_spectrogram.pt
 
 
-# ! -------------------- RIR estimation --------------------
-# passing checkpoint path is necessary for prediction or evaluation
-# MFCC model for RIR
-# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_RIR/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
-# pred_path: ${paths.output_dir}/predictions_rir_mfcc.pt
-
-
-# ! -------------------- volume estimation --------------------
-# MFCC model for volume
-# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_volume/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
-# pred_path: ${paths.output_dir}/predictions_volume_mfcc.pt
-
-
-# ! -------------------- dist_src estimation --------------------
-# MFCC model for dist_src
-# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_dist_src/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
-# pred_path: ${paths.output_dir}/predictions_dist_src_mfcc.pt
-
-
-# ! -------------------- ori_src estimation --------------------
-# MFCC model for ori_src
-# ckpt_path: ${paths.root_dir}/logs/regression_ParametricPredictor_ori_src/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
-# pred_path: ${paths.output_dir}/predictions_ori_src_mfcc.pt
-
-
-# ! -------------------- numEst estimation --------------------
+# * -------------------- numEst estimation --------------------
 # gammatonegram model for num of occupancy
-# ckpt_path: ${paths.root_dir}/logs/classification_numOcc/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
+# ckpt_path: ${paths.root_dir}/logs/classification_numOcc/runs/{run_id}/checkpoints/epoch_{epoch}.ckpt
 # pred_path: ${paths.output_dir}/predictions_numOcc_gammatone.pt
 
 # melspectrogram model for num of occupancy
-# ckpt_path: ${paths.root_dir}/logs/classification_numOcc/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
+# ckpt_path: ${paths.root_dir}/logs/classification_numOcc/runs/{run_id}/checkpoints/epoch_{epoch}.ckpt
 # pred_path: ${paths.output_dir}/predictions_numOcc_mel.pt
 
 # MFCC model for num of occupancy
-# ckpt_path: ${paths.root_dir}/logs/classification_numOcc/runs/${time_stamp}/checkpoints/${epoch_num}.ckpt
+# ckpt_path: ${paths.root_dir}/logs/classification_numOcc/runs/{run_id}/checkpoints/epoch_{epoch}.ckpt
 # pred_path: ${paths.output_dir}/predictions_numOcc_mfcc.pt
+
+# Spectrogram model for num of occupancy
+# ckpt_path: ${paths.root_dir}/logs/classification_numOcc/runs/{run_id}/checkpoints/epoch_{epoch}.ckpt
+# pred_path: ${paths.output_dir}/predictions_numOcc_spectrogram.pt

@@ -1,3 +1,8 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+#
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 import torch
 from sklearn.metrics import accuracy_score, f1_score
 from torch.nn import L1Loss
@@ -42,6 +47,7 @@ class LabelSmoothedCrossEntropyCriterion(_Loss):
         3) logging outputs to display while training
         """
 
+        # if padding_mask is None:
         padding_mask = (
             (
                 torch.BoolTensor(lprob.shape[0], lprob.shape[1])

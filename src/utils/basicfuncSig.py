@@ -1,12 +1,13 @@
-
-from torch import *
 import numpy as np
+import torch
 
 """
 Some basic functions for signal processing
 Ref: https://github.com/sergiocallegari/PyDSM/blob/master/pydsm
 """
-def acorr(x, N): 
+
+
+def acorr(x, N):
     """
     Computes the raw autocorrelation of a vector up to lag N.
 
@@ -31,10 +32,10 @@ def acorr(x, N):
     (but only in some cases), zero padding is practiced.
     """
     m = len(x)
-    if not is_tensor(x):
-        x = tensor(x)
-    
-    q = as_tensor([torch.dot(x[k:m], x[0:m-k]) for k in range(N+1)])
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+
+    q = torch.as_tensor([torch.dot(x[k:m], x[0 : m - k]) for k in range(N + 1)])
     return q
 
 
@@ -66,8 +67,12 @@ def xcorr(x, y, N):
     """
     mx = len(x)
     my = len(y)
-    q = as_tensor([dot(y[k:min(my, mx+k)],
-                           x[0:min(my-k, mx)]) for k in range(N+1)])
+    q = torch.as_tensor(
+        [
+            torch.dot(y[k : min(my, mx + k)], x[0 : min(my - k, mx)])
+            for k in range(N + 1)
+        ]
+    )
     return q
 
 
@@ -132,9 +137,9 @@ def shiftdim(x, n=None, nargout=2):
         if n <= m:
             x = x.reshape(s[n:])
         else:
-            x = x.transpose(roll(range(x.dim()), -n))
+            x = x.transpose(torch.roll(range(x.dim()), -n))
     elif n < 0:
-            x = x.reshape((1)*(-n) + s)
+        x = x.reshape((1) * (-n) + s)
     return (x, n)[outsel]
 
 
@@ -142,7 +147,7 @@ def apply_along_axis(function, x, axis=0, *args, **kwargs):
     """
     apply a function along a given axis
     reimplemented from numpy.apply_along_axis
-    
+
      Execute `func1d(a, *args, **kwargs)` where `func1d` operates on 1-D arrays
     and `a` is a 1-D slice of `arr` along `axis`.
 
@@ -159,7 +164,7 @@ def apply_along_axis(function, x, axis=0, *args, **kwargs):
         Additional arguments to `func1d`.
     kwargs : any
         Additional named arguments to `func1d`.
-        
+
 
     Returns
     -------
@@ -171,12 +176,11 @@ def apply_along_axis(function, x, axis=0, *args, **kwargs):
         fewer dimensions than `arr`.
     """
     # handle negative axis
-    return stack([
-        function(x_i, *args, **kwargs) for x_i in torch.unbind(x, dim=axis)
-    ], dim=axis)
-    
+    return torch.stack(
+        [function(x_i, *args, **kwargs) for x_i in torch.unbind(x, dim=axis)], dim=axis
+    )
 
-            
+
 def cplxpair(x, tol=None, dim=None):
     """
     Sorts values into complex pairs a la Matlab.
@@ -242,37 +246,54 @@ def cplxpair(x, tol=None, dim=None):
            [1, 2, 3]])
 
     """
+
     def cplxpair_vec(x, tol):
-        real_mask = np.abs(x.imag) <= tol*np.abs(x)
+        real_mask = np.abs(x.imag) <= tol * np.abs(x)
         x_real = np.sort(np.real(x[real_mask]))
         x_cplx = np.sort(x[np.logical_not(real_mask)])
         if x_cplx.size == 0:
             return x_real
         if (x_cplx.size % 2) != 0:
-            raise ValueError('Complex numbers cannot be paired')
-        if np.any(np.real(x_cplx[1::2])-np.real(x_cplx[0::2]) >
-                  tol*np.abs(x_cplx[0::2])):
-            raise ValueError('Complex numbers cannot be paired')
+            raise ValueError("Complex numbers cannot be paired")
+        if np.any(
+            np.real(x_cplx[1::2]) - np.real(x_cplx[0::2]) > tol * np.abs(x_cplx[0::2])
+        ):
+            raise ValueError("Complex numbers cannot be paired")
         start = 0
         while start < x_cplx.size:
-            sim_len = next((i for i, v in enumerate(x_cplx[start+1:]) if
-                           (np.abs(np.real(v)-np.real(x_cplx[start])) >
-                            tol*np.abs(v))), x_cplx.size-start-1)+1
+            sim_len = (
+                next(
+                    (
+                        i
+                        for i, v in enumerate(x_cplx[start + 1 :])
+                        if (
+                            np.abs(np.real(v) - np.real(x_cplx[start]))
+                            > tol * np.abs(v)
+                        )
+                    ),
+                    x_cplx.size - start - 1,
+                )
+                + 1
+            )
             if (sim_len % 2) != 0:
                 sim_len -= 1
             # At this point, sim_len elements with identical real part
             # have been identified.
-            sub_x = x_cplx[start:start+sim_len]
+            sub_x = x_cplx[start : start + sim_len]
             srt = np.argsort(np.imag(sub_x))
             sub_x = sub_x[srt]
-            if np.any(np.abs(np.imag(sub_x)+np.imag(sub_x[::-1])) >
-                      tol*np.abs(sub_x)):
-                raise ValueError('Complex numbers cannot be paired')
+            if np.any(
+                np.abs(np.imag(sub_x) + np.imag(sub_x[::-1])) > tol * np.abs(sub_x)
+            ):
+                raise ValueError("Complex numbers cannot be paired")
             # Output should contain "perfect" pairs. Hence, keep entries
             # with positive imaginary parts amd use conjugate for pair
-            x_cplx[start:start+sim_len] = np.concatenate(
-                (np.conj(sub_x[:sim_len//2-1:-1]),
-                 sub_x[:sim_len//2-1:-1]))
+            x_cplx[start : start + sim_len] = np.concatenate(
+                (
+                    np.conj(sub_x[: sim_len // 2 - 1 : -1]),
+                    sub_x[: sim_len // 2 - 1 : -1],
+                )
+            )
             start += sim_len
         return np.concatenate((x_cplx, x_real))
 
@@ -283,8 +304,9 @@ def cplxpair(x, tol=None, dim=None):
         dim = next((i for i, v in enumerate(x.shape) if v > 1), 0)
     if tol is None:
         try:
-            tol = 100*np.finfo(x.dtype).eps
+            tol = 100 * np.finfo(x.dtype).eps
         except:
-            tol = 100*np.finfo(x.dtype).eps
+            tol = 100 * np.finfo(x.dtype).eps
+            raise
     output = np.apply_along_axis(cplxpair_vec, dim, x, tol)
-    return as_tensor(output)
+    return torch.as_tensor(output)  # noqa: F405

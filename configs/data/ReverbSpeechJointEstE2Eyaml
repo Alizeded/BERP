@@ -1,0 +1,18 @@
+
+reverbSpeechModule:
+  _target_: src.data.reverbSpeech_datamodule_joint_e2e.ReverbSpeechDataModuleJointEstE2E
+
+  path_raw: speech.data
+  data_dir: ${paths.data_dir}noiseReverbSpeech
+  max_sample_len: 320000 # 20 seconds
+  sample_rate: 16000
+  batch_size: 24
+  shuffle: True
+  # feat_type: "gammatone"
+  # feat_type: "mel"
+  feat_type: "mfcc"
+  # feat_type: "spectrogram"
+  n_fft: 1024
+  n_bins: 128
+  hop_length: 256
+  pin_memory: True

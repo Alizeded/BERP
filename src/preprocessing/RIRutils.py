@@ -1,10 +1,31 @@
+import ast
 import os
+import random
+from pathlib import Path
+from re import sub
+
+import numpy as np
+import pandas as pd
+import rootutils
+import scipy as sp
+import sklearn.model_selection as skms
 import torch
 import torchaudio
+
 import src.utils.envelope as env
-import scipy as sp
-import pandas as pd
-import ast
+
+rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
+
+from src.utils.AcousticParameterUtils import (  # noqa: E402
+    CenterTime,
+    Clarity,
+    Definition,
+    EarlyDecayTime,
+    PercentageArticulationLoss,
+    RapidSpeechTransmissionIndex,
+)
+
+random.seed(42)
 
 
 def polyval(p, x) -> torch.Tensor:
@@ -46,7 +67,7 @@ def RIRestT60(h, fs, opMod=False):
     def linearfit(sta, end, EDC):
         I_xT = torch.arange(sta, end + 1)
         I_xT = I_xT.reshape(I_xT.numel(), 1)
-        A = I_xT ** torch.arange(1, -1, -1.0)
+        A = I_xT ** torch.arange(1, -1, -1.0).double()
         p = torch.linalg.inv(A.T @ A) @ (A.T @ EDC[I_xT])
         fittedline = polyval(p, I)
         return fittedline
@@ -65,12 +86,15 @@ def RIRestT60(h, fs, opMod=False):
             xT_60 = 3.3 * torch.where(fittedline <= -18.2)[0][0]
         else:
             xT_60 = 3.3 * torch.where(fittedline <= -18.2)[0][0]
-    except Exception:
+    except:  # noqa: E722
         print("T60 does not exist, the signal is not an RIR.")
     RT = xT_60 / fs
     RT = RT.round(decimals=3)
 
-    return (RT, EDC, fittedline) if opMod else RT
+    if opMod:
+        return RT, EDC, fittedline
+    else:
+        return RT
 
 
 # ----------------- Th and Tt estimation ----------------- #
@@ -81,7 +105,8 @@ def RIRestThTt(h, fs, opMod=False):
     """
     # ----------------- temporal amplitude envelope ----------------- #
     fc = 20
-    eh = env.temporalEnvelope(fc, fs).TAE(h)
+    temporal_env = env.TemporalEnvelope(dim=0, fc=fc, fs=fs, mode="TAE")
+    eh = temporal_env(h)
     torch.arange(0, len(eh)) / fs  # time vector
 
     # -------------- parameter estimation via fitting -------------- #
@@ -107,9 +132,9 @@ def RIRestThTt(h, fs, opMod=False):
             bounds=([0.0, Pks], [0.01, t0]),
             method="trf",
         )
-    except Exception:
+    except:  # noqa: E722
         fit = [0.0000, t0]  # Th does not exist
-        print("Th does not exist. Set to t0.")
+        # print("Th does not exist. Set to t0.")
 
     torch.as_tensor(fit[0]).round(decimals=3)
     Th = torch.as_tensor(fit[1]).round(decimals=3)
@@ -127,7 +152,10 @@ def RIRestThTt(h, fs, opMod=False):
     yf_Tt = torch.exp(-6.9 * xT_Tt / Tt)
     eh_fit = Pks * torch.cat((yf_Th, yf_Tt))
 
-    return (Th, Tt, a, eh, eh_fit) if opMod else (Th, Tt, a)
+    if opMod:
+        return Th, Tt, a, eh, eh_fit
+    else:
+        return Th, Tt, a
 
 
 # ----------------- read RIRs ------------------- #
@@ -177,7 +205,6 @@ def foldercheck_Arni(folderNo):
 
 
 def micOri_Arni(posNo):
-    # sourcery skip: extract-duplicate-method, inline-immediately-returned-variable
     match posNo:
         case 1:
             adjacent_a = torch.tensor(890 - 240 - 175)
@@ -276,7 +303,7 @@ def readRIR_Arni(commonpath, savepath, csv_savemode="w"):
                 rm_ID = room_ID_Arni()
                 ThTtdistRcvOriSrc_label.append(
                     [
-                        f"Arni_RIR_no{i}.wav",
+                        "Arni_RIR_no" + str(i) + ".wav",
                         rm_ID,
                         Th,
                         Tt,
@@ -288,7 +315,9 @@ def readRIR_Arni(commonpath, savepath, csv_savemode="w"):
                 if not os.path.exists(savepath + "/RIR.data"):
                     os.makedirs(savepath + "/RIR.data")
                 torchaudio.save(
-                    os.path.join(savepath + "/RIR.data", f"Arni_RIR_no{i}.wav"),
+                    os.path.join(
+                        savepath + "/RIR.data", "Arni_RIR_no" + str(i) + ".wav"
+                    ),
                     rir.unsqueeze(0),
                     sample_rate=fs,
                     bits_per_sample=16,
@@ -348,22 +377,21 @@ def micPos_Motus(posNo):
 
 
 def source_ori_Motus(posNo):
-    # sourcery skip: extract-duplicate-method, inline-immediately-returned-variable
     match posNo:
         case 1:  # 1st ld
-            azimuth = torch.tensor(-1.00).reshape(1)
+            azimuth = torch.tensor(0.0).reshape(1)
             elevation = torch.tensor(0.0).reshape(1)
             ori = torch.cat((azimuth, elevation))  # radian unit
         case 2:  # 2nd ld
-            azimuth = torch.tensor(-0.5).reshape(1)
+            azimuth = torch.tensor(0.5).reshape(1)
             elevation = torch.tensor(0.0).reshape(1)
             ori = torch.cat((azimuth, elevation))  # radian unit
         case 3:  # 3rd ld
-            azimuth = torch.tensor(-0.25).reshape(1)
+            azimuth = torch.tensor(0.33).reshape(1)
             elevation = torch.tensor(0.0).reshape(1)
             ori = torch.cat((azimuth, elevation))  # radian unit
         case 4:  # 4th ld
-            azimuth = torch.tensor(0.50).reshape(1)
+            azimuth = torch.tensor(0.25).reshape(1)
             elevation = torch.tensor(0.0).reshape(1)
             ori = torch.cat((azimuth, elevation))  # radian unit
     return ori.round(decimals=3)
@@ -418,12 +446,12 @@ def readRIR_Motus(commonpath, savepath, csv_savemode="w"):
             # idx = int(os.path.basename(filename).split('_raw_rirs.wav', 1)[0].split('_', 1)[0])
             rm_ID = room_ID_Motus()
             ThTtDistRcvOriSrc_label.append(
-                [f"Motus_RIR_no{i}.wav", rm_ID, Th, Tt, V, rcv_dist, src_ori]
+                ["Motus_RIR_no" + str(i) + ".wav", rm_ID, Th, Tt, V, rcv_dist, src_ori]
             )
             if not os.path.exists(savepath + "/RIR.data"):
                 os.makedirs(savepath + "/RIR.data")
             torchaudio.save(
-                os.path.join(savepath + "/RIR.data", f"Motus_RIR_no{i}.wav"),
+                os.path.join(savepath + "/RIR.data", "Motus_RIR_no" + str(i) + ".wav"),
                 rir.unsqueeze(0),
                 sample_rate=fs,
                 bits_per_sample=16,
@@ -484,7 +512,6 @@ def checkfolder_BUT(folderNo):
 
 
 def volume_BUT(folderNo, commonpath):
-    # sourcery skip: extract-duplicate-method, inline-immediately-returned-variable
     match folderNo:
         case 1:
             path = commonpath + "/Hotel_SkalskyDvur_ConferenceRoom2/env_meta.txt"
@@ -639,17 +666,17 @@ def readRIR_BUT(commonpath, savepath, csv_savemode="w"):
                     )
                     rir_metadata = pd.read_csv(dstRcvOriSrc_path, sep="\t", header=None)
                     dist_rcv = rir_metadata[
-                        rir_metadata[0] == f"$EnvMic{str(i)}RelDistance"
+                        rir_metadata[0] == "$EnvMic" + str(i) + "RelDistance"
                     ][1].values[0]
                     dist_rcv = torch.tensor(float(dist_rcv)).round(decimals=3)
                     azimuth = rir_metadata[
-                        rir_metadata[0] == f"$EnvMic{str(i)}RelAzimuth"
+                        rir_metadata[0] == "$EnvMic" + str(i) + "RelAzimuth"
                     ][1].values[0]
                     azimuth = (
                         torch.deg2rad(torch.tensor(float(azimuth))) / torch.pi
                     )  # radian unit
                     elevation = rir_metadata[
-                        rir_metadata[0] == f"$EnvMic{str(i)}RelElevation"
+                        rir_metadata[0] == "$EnvMic" + str(i) + "RelElevation"
                     ][1].values[0]
                     elevation = (
                         torch.deg2rad(torch.tensor(float(elevation))) / torch.pi
@@ -667,7 +694,9 @@ def readRIR_BUT(commonpath, savepath, csv_savemode="w"):
                     if not os.path.exists(savepath + "/RIR.data"):
                         os.makedirs(savepath + "/RIR.data")
                     torchaudio.save(
-                        os.path.join(savepath + "/RIR.data", f"BUT_RIR_no{j}.wav"),
+                        os.path.join(
+                            savepath + "/RIR.data", "BUT_RIR_no" + str(j) + ".wav"
+                        ),
                         rir.unsqueeze(0),
                         sample_rate=fs,
                         bits_per_sample=16,
@@ -676,7 +705,7 @@ def readRIR_BUT(commonpath, savepath, csv_savemode="w"):
 
                     ThTtDistRcvOriSrc_label.append(
                         [
-                            f"BUT_RIR_no{j}.wav",
+                            "BUT_RIR_no" + str(j) + ".wav",
                             rm_ID,
                             Th,
                             Tt,
@@ -702,6 +731,465 @@ def readRIR_BUT(commonpath, savepath, csv_savemode="w"):
     elif csv_savemode == "a":
         ThTtDistRcvOriSrc_label = ThTtDistRcvOriSrc_label.to_csv(
             savepath + "/RIR.metadata/ThTtDistRcvOriSrc_label.csv",
+            mode=csv_savemode,
+            index=False,
+            header=False,
+        )
+
+    return print(
+        "RIRs saved in "
+        + savepath
+        + "/RIR.data"
+        + " and metadata saved in "
+        + savepath
+        + "/RIR.metadata"
+    )
+
+
+sti_calculator = RapidSpeechTransmissionIndex()
+alcons_calculator = PercentageArticulationLoss()
+edt_calculator = EarlyDecayTime()
+c80_calculator = Clarity(clarity_mode="C80")
+c50_calculator = Clarity(clarity_mode="C50")
+d50_calculator = Definition()
+ts_calculator = CenterTime()
+
+
+def readRIR_BUT_real_recording(
+    path_retrans,
+    path_rir,
+    savepath,
+    num_files: int = 100,
+):
+    """
+    read RIR from BUT RIR database for the retransmission dataset
+
+    """
+    j = 0
+    n = 0
+    folderNos = [4, 6, 7, 8, 9]
+    ThTtDistRcvOriSrc_label = []
+    random.seed(3407)
+    for folderNo in folderNos:
+        print("Processing folder " + str(folderNo) + "...")
+        path_ = path_retrans + checkfolder_BUT(folderNo)
+        lst = os.listdir(path_)
+        lst.sort()
+        path = path_rir + checkfolder_BUT(folderNo)
+        for foldername in lst:
+            if foldername.startswith("SpkID"):
+                print("Processing speaker " + foldername + "...")
+                for i in range(1, 32):
+                    retransed_path = os.path.join(
+                        path_,
+                        foldername,
+                        str(i).zfill(2),
+                        "english/LibriSpeech/test-clean/",
+                    )
+                    librispeech_folder = Path(retransed_path)
+                    extension = ".wav"
+                    matching_files = librispeech_folder.rglob(f"*{extension}")
+                    matching_files = [str(x) for x in matching_files]
+                    # sort the files
+                    matching_files.sort()
+                    # randomly choose some audio file
+                    # real_audio_paths = random.sample(matching_files, num_files)
+
+                    real_audio_paths = matching_files[
+                        j * num_files : (j + 1) * num_files
+                    ]
+                    if len(real_audio_paths) < num_files:
+                        # handle the last batch
+                        real_audio_paths = random.sample(matching_files, num_files)
+                    j += 1
+
+                    for subpath in real_audio_paths:
+                        print("Processing audio file " + subpath + "...")
+                        real_audio, fs_audio = torchaudio.load(
+                            os.path.join(retransed_path, subpath)
+                        )
+                        meta_info = subpath.split("/")[-1].split(".")[0]
+                        real_audio = real_audio.reshape(-1)  # 1D tensor
+                        if fs_audio != 16000:
+                            real_audio = torchaudio.transforms.Resample(
+                                fs_audio, 16000
+                            )(real_audio)
+                            fs_audio = 16000
+
+                        if not os.path.exists(savepath + "/real_audio.data"):
+                            os.makedirs(savepath + "/real_audio.data")
+                        torchaudio.save(
+                            os.path.join(
+                                savepath + "/real_audio.data",
+                                "BUT_realRecording_no" + str(n) + ".wav",
+                            ),
+                            real_audio.unsqueeze(0),
+                            sample_rate=fs_audio,
+                            bits_per_sample=16,
+                            encoding="PCM_S",
+                        )
+
+                        rir_path = os.path.join(
+                            path, foldername, str(i).zfill(2), "RIR"
+                        )
+                        rir_path_sub = os.listdir(rir_path)
+                        rir_path_sub = [
+                            file for file in rir_path_sub if file.endswith("v00.wav")
+                        ]
+                        rir, fs = torchaudio.load(
+                            os.path.join(rir_path, rir_path_sub[0])
+                        )
+                        rir = rir.reshape(-1)
+                        if fs != 16000:
+                            rir = torchaudio.transforms.Resample(fs, 16000)(rir)
+                            fs = 16000
+
+                        Th, Tt, _ = RIRestThTt(rir, fs)
+                        Th, Tt = Th.numpy().round(decimals=4), Tt.numpy().round(
+                            decimals=4
+                        )
+
+                        V = volume_BUT(folderNo, path_rir)
+                        # compute volume of the room
+                        V_log10 = np.log10(torch.prod(V).numpy()).round(decimals=3)
+                        # round to 1 decimal place
+                        V_ns = torch.prod(V).numpy().round(decimals=0)
+
+                        dstRcvOriSrc_path = os.path.join(
+                            path, foldername, str(i).zfill(2), "mic_meta.txt"
+                        )
+                        rir_metadata = pd.read_csv(
+                            dstRcvOriSrc_path, sep="\t", header=None
+                        )
+                        dist_rcv = rir_metadata[
+                            rir_metadata[0] == "$EnvMic" + str(i) + "RelDistance"
+                        ][1].values[0]
+                        dist_rcv = torch.tensor(float(dist_rcv)).round(decimals=3)
+                        azimuth = rir_metadata[
+                            rir_metadata[0] == "$EnvMic" + str(i) + "RelAzimuth"
+                        ][1].values[0]
+                        azimuth = (
+                            torch.deg2rad(torch.tensor(float(azimuth))) / torch.pi
+                        ).round(
+                            decimals=3
+                        )  # radian unit
+                        elevation = rir_metadata[
+                            rir_metadata[0] == "$EnvMic" + str(i) + "RelElevation"
+                        ][1].values[0]
+                        elevation = (
+                            torch.deg2rad(torch.tensor(float(elevation))) / torch.pi
+                        ).round(
+                            decimals=3
+                        )  # radian unit
+
+                        dist_rcv = round(dist_rcv.tolist(), 3)
+                        elevation = round(elevation.tolist(), 3)
+                        azimuth = round(azimuth.tolist(), 3)
+
+                        rm_ID = room_ID_BUT(folderNo)
+                        spk_ID = foldername
+
+                        # RA calculation
+                        sti = sti_calculator(rir, fs)
+                        alcons = alcons_calculator(sti)
+                        t60 = Tt
+                        edt = edt_calculator(rir, fs)
+                        c80 = c80_calculator(rir, fs)
+                        c50 = c50_calculator(rir, fs)
+                        d50 = d50_calculator(rir, fs) / 100  # dicard the percentage
+                        ts = ts_calculator(rir, fs)
+
+                        sti = round(sti.tolist(), 4)
+                        alcons = round(alcons.tolist(), 4)
+                        t60 = round(t60.tolist(), 4)
+                        edt = round(edt.tolist(), 4)
+                        c80 = round(c80.tolist(), 4)
+                        c50 = round(c50.tolist(), 4)
+                        d50 = round(d50.tolist(), 4)
+                        ts = round(ts.tolist(), 4)
+
+                        if not os.path.exists(savepath + "/RIR.data"):
+                            os.makedirs(savepath + "/RIR.data")
+                        torchaudio.save(
+                            os.path.join(
+                                savepath + "/RIR.data", "BUT_RIR_no" + str(j) + ".wav"
+                            ),
+                            rir.unsqueeze(0),
+                            sample_rate=fs,
+                            bits_per_sample=16,
+                            encoding="PCM_S",
+                        )
+
+                        ThTtDistRcvOriSrc_label.append(
+                            [
+                                "BUT_realRecording_no" + str(n) + ".wav",
+                                "BUT_RIR_no" + str(j) + ".wav",
+                                str(i).zfill(2),
+                                meta_info,
+                                spk_ID,
+                                rm_ID,
+                                Th,
+                                Tt,
+                                V_ns,
+                                V_log10,
+                                dist_rcv,
+                                azimuth,
+                                elevation,
+                                sti,
+                                alcons,
+                                t60,
+                                edt,
+                                c80,
+                                c50,
+                                d50,
+                                ts,
+                            ]
+                        )
+
+                        n += 1
+
+    ThTtDistRcvOriSrc_label = pd.DataFrame(
+        ThTtDistRcvOriSrc_label,
+        columns=[
+            "realRecording",
+            "RIR",
+            "No",
+            "librispeech_metainfo",
+            "spkID",
+            "roomID",
+            "Th",
+            "Tt",
+            "volume",
+            "volume_log10",
+            "distRcv",
+            "azimuth",
+            "elevation",
+            "STI",
+            "ALCONS",
+            "T60",
+            "EDT",
+            "C80",
+            "C50",
+            "D50",
+            "TS",
+        ],
+    )
+    # uniformly sample the 279 real recordings from previous 2620 unique-speech real recordings
+    train_val_test, test_manifest = skms.train_test_split(
+        ThTtDistRcvOriSrc_label,
+        test_size=279 * 2,
+        random_state=2406,
+        stratify=ThTtDistRcvOriSrc_label["RIR"],
+    )
+    # uniformly sample the 2341 real recordings from previous 2341 unique-speech real recordings
+    train_manifest, val_manifest = skms.train_test_split(
+        train_val_test,
+        test_size=279 * 2,
+        random_state=2406,
+        stratify=train_val_test["RIR"],
+    )
+    # reshuflle the dataframe
+    train_manifest = train_manifest.sample(frac=1, random_state=2406).reset_index(
+        drop=True
+    )
+    val_manifest = val_manifest.sample(frac=1, random_state=2406).reset_index(drop=True)
+    test_manifest = test_manifest.sample(frac=1, random_state=2406).reset_index(
+        drop=True
+    )
+    if not os.path.exists(savepath + "/real_audio.metadata"):
+        os.makedirs(savepath + "/real_audio.metadata")
+
+    train_manifest.to_csv(
+        savepath + "/real_audio.metadata/train_manifest.csv", index=False
+    )
+    val_manifest.to_csv(savepath + "/real_audio.metadata/val_manifest.csv", index=False)
+    test_manifest.to_csv(
+        savepath + "/real_audio.metadata/test_manifest.csv", index=False
+    )
+
+    return print(
+        "Real recordings saved in "
+        + savepath
+        + "/real_audio.data"
+        + " and metadata saved in "
+        + savepath
+        + "/real_audio.metadata"
+    )
+
+
+def readRIR_BUT_retrans(
+    path_retrans, path_rir, savepath, num_files: int = 1, csv_savemode="w"
+):
+    """
+    read RIR from BUT RIR database for the retransmission dataset
+
+    """
+    j = 0
+    n = 0
+    folderNos = [4, 6, 7, 8, 9]
+    ThTtDistRcvOriSrc_label = []
+    random.seed(42)
+    for folderNo in folderNos:
+        print("Processing folder " + str(folderNo) + "...")
+        path_ = path_retrans + checkfolder_BUT(folderNo)
+        lst = os.listdir(path_)
+        lst.sort()
+        path = path_rir + checkfolder_BUT(folderNo)
+        for foldername in lst:
+            if foldername.startswith("SpkID"):
+                for i in range(1, 32):
+                    j += 1
+                    retransed_path = os.path.join(
+                        path_,
+                        foldername,
+                        str(i).zfill(2),
+                        "english/LibriSpeech/test-clean/",
+                    )
+                    librispeech_folder = Path(retransed_path)
+                    extension = ".wav"
+                    matching_files = librispeech_folder.rglob(f"*{extension}")
+                    matching_files = [str(x) for x in matching_files]
+                    # randomly choose one audio file
+                    retran_audio_paths = random.sample(matching_files, num_files)
+
+                    n += 1
+                    retran_audio, fs_audio = torchaudio.load(
+                        os.path.join(retransed_path, retran_audio_paths[0])
+                    )
+                    retran_audio = retran_audio.reshape(-1)  # 1D tensor
+                    if fs_audio != 16000:
+                        retran_audio = torchaudio.transforms.Resample(fs_audio, 16000)(
+                            retran_audio
+                        )
+                        fs_audio = 16000
+
+                    if not os.path.exists(savepath + "/retrans_audio.data"):
+                        os.makedirs(savepath + "/retrans_audio.data")
+                    torchaudio.save(
+                        os.path.join(
+                            savepath + "/retrans_audio.data",
+                            "BUT_retrans_speech_no" + str(n) + ".wav",
+                        ),
+                        retran_audio.unsqueeze(0),
+                        sample_rate=fs_audio,
+                        bits_per_sample=16,
+                        encoding="PCM_S",
+                    )
+
+                    rir_path = os.path.join(path, foldername, str(i).zfill(2), "RIR")
+                    rir_path_sub = os.listdir(rir_path)
+                    rir_path_sub = [
+                        file for file in rir_path_sub if file.endswith("v00.wav")
+                    ]
+                    rir, fs = torchaudio.load(os.path.join(rir_path, rir_path_sub[0]))
+                    rir = rir.reshape(-1)
+                    if fs != 16000:
+                        rir = torchaudio.transforms.Resample(fs, 16000)(rir)
+                        fs = 16000
+
+                    Th, Tt, _ = RIRestThTt(rir, fs)
+                    Th, Tt = Th.numpy().round(decimals=4), Tt.numpy().round(decimals=4)
+
+                    V = volume_BUT(folderNo, path_rir)
+                    # compute volume of the room
+                    V_log10 = np.log10(torch.prod(V).numpy()).round(decimals=3)
+                    # round to 1 decimal place
+                    V_ns = torch.prod(V).numpy().round(decimals=0)
+
+                    dstRcvOriSrc_path = os.path.join(
+                        path, foldername, str(i).zfill(2), "mic_meta.txt"
+                    )
+                    rir_metadata = pd.read_csv(dstRcvOriSrc_path, sep="\t", header=None)
+                    dist_rcv = rir_metadata[
+                        rir_metadata[0] == "$EnvMic" + str(i) + "RelDistance"
+                    ][1].values[0]
+                    dist_rcv = torch.tensor(float(dist_rcv)).round(decimals=3)
+                    azimuth = rir_metadata[
+                        rir_metadata[0] == "$EnvMic" + str(i) + "RelAzimuth"
+                    ][1].values[0]
+                    azimuth = (
+                        torch.deg2rad(torch.tensor(float(azimuth))) / torch.pi
+                    ).round(
+                        decimals=3
+                    )  # radian unit
+                    elevation = rir_metadata[
+                        rir_metadata[0] == "$EnvMic" + str(i) + "RelElevation"
+                    ][1].values[0]
+                    elevation = (
+                        torch.deg2rad(torch.tensor(float(elevation))) / torch.pi
+                    ).round(
+                        decimals=3
+                    )  # radian unit
+
+                    dist_rcv = round(dist_rcv.tolist(), 3)
+                    elevation = round(elevation.tolist(), 3)
+                    azimuth = round(azimuth.tolist(), 3)
+
+                    rm_ID = room_ID_BUT(folderNo)
+                    spk_ID = foldername
+
+                    if not os.path.exists(savepath + "/RIR.data"):
+                        os.makedirs(savepath + "/RIR.data")
+                    torchaudio.save(
+                        os.path.join(
+                            savepath + "/RIR.data", "BUT_RIR_no" + str(j) + ".wav"
+                        ),
+                        rir.unsqueeze(0),
+                        sample_rate=fs,
+                        bits_per_sample=16,
+                        encoding="PCM_S",
+                    )
+
+                    ThTtDistRcvOriSrc_label.append(
+                        [
+                            "BUT_retrans_speech_no" + str(n) + ".wav",
+                            "BUT_RIR_no" + str(j) + ".wav",
+                            str(i).zfill(2),
+                            spk_ID,
+                            rm_ID,
+                            Th,
+                            Tt,
+                            V_ns,
+                            V_log10,
+                            dist_rcv,
+                            azimuth,
+                            elevation,
+                        ]
+                    )
+
+    ThTtDistRcvOriSrc_label = pd.DataFrame(
+        ThTtDistRcvOriSrc_label,
+        columns=[
+            "retrans_speech",
+            "RIR",
+            "No",
+            "spkID",
+            "roomID",
+            "Th",
+            "Tt",
+            "volume",
+            "volume_log10",
+            "distRcv",
+            "azimuth",
+            "elevation",
+        ],
+    )
+    # reshuflle the dataframe
+    ThTtDistRcvOriSrc_label = ThTtDistRcvOriSrc_label.sample(
+        frac=1, random_state=42
+    ).reset_index(drop=True)
+    if not os.path.exists(savepath + "/retrans.metadata"):
+        os.makedirs(savepath + "/retrans.metadata")
+
+    if csv_savemode == "w":
+        ThTtDistRcvOriSrc_label = ThTtDistRcvOriSrc_label.to_csv(
+            savepath + "/retrans.metadata/BUT_retrans.csv",
+            mode=csv_savemode,
+            index=False,
+        )
+    elif csv_savemode == "a":
+        ThTtDistRcvOriSrc_label = ThTtDistRcvOriSrc_label.to_csv(
+            savepath + "/retrans.metadata/BUT_retrans.csv",
             mode=csv_savemode,
             index=False,
             header=False,
@@ -817,7 +1305,6 @@ def micPos_ACE(folderNo, micNo):
 
 
 def micOri_ACE(folderNo, micNo):
-    # sourcery skip: extract-duplicate-method, inline-immediately-returned-variable
     match folderNo:
         case 1:
             match micNo:
@@ -966,7 +1453,9 @@ def readRIR_ACE(commonpath, savepath, csv_savemode="w"):
                     if not os.path.exists(savepath + "/RIR.data"):
                         os.makedirs(savepath + "/RIR.data")
                     torchaudio.save(
-                        os.path.join(savepath + "/RIR.data", f"ACE_RIR_no{j}.wav"),
+                        os.path.join(
+                            savepath + "/RIR.data", "ACE_RIR_no" + str(j) + ".wav"
+                        ),
                         rir.unsqueeze(0),
                         sample_rate=fs,
                         bits_per_sample=16,
@@ -974,7 +1463,7 @@ def readRIR_ACE(commonpath, savepath, csv_savemode="w"):
                     )
                     ThTtDistRcvOriSrc_label.append(
                         [
-                            f"ACE_RIR_no{j}.wav",
+                            "ACE_RIR_no" + str(j) + ".wav",
                             rm_ID,
                             Th,
                             Tt,
@@ -1115,7 +1604,9 @@ def checkfolder_OpenAIR(path, filename, foldername):
 
     elif foldername == "r1-nuclear-reactor-hall":
         V = torch.tensor(3500.0)
-        if filename in ["r1_bformat.wav", "r1_bformat-48k.wav"]:
+        if filename == "r1_bformat.wav":
+            dist_rcv = torch.tensor(14.88)
+        elif filename == "r1_bformat-48k.wav":
             dist_rcv = torch.tensor(14.88)
         else:
             raise ValueError("filename not found: " + foldername + "/" + filename)
@@ -1378,12 +1869,13 @@ def checkfolder_OpenAIR(path, filename, foldername):
 
     elif foldername == "st-marys-abbey-reconstruction":
         V = torch.tensor(47000.0)
-        if filename in [
-            "phase1_bformat.wav",
-            "phase2_bformat.wav",
-            "phase3_bformat.wav",
-            "phase1_bformat_catt.wav",
-        ]:
+        if filename == "phase1_bformat.wav":
+            dist_rcv = torch.tensor(45.0)
+        elif filename == "phase2_bformat.wav":
+            dist_rcv = torch.tensor(45.0)
+        elif filename == "phase3_bformat.wav":
+            dist_rcv = torch.tensor(45.0)
+        elif filename == "phase1_bformat_catt.wav":
             dist_rcv = torch.tensor(45.0)
         else:
             raise ValueError("filename not found: " + foldername + "/" + filename)
@@ -1547,14 +2039,24 @@ def readRIR_OpenAIR(commonpath, rootpath, savepath, csv_savemode="w"):
                 if not os.path.exists(savepath + "/RIR.data"):
                     os.makedirs(savepath + "/RIR.data")
                 torchaudio.save(
-                    os.path.join(savepath + "/RIR.data", f"OpenAIR_No{j}.wav"),
+                    os.path.join(
+                        savepath + "/RIR.data", "OpenAIR_No" + str(j) + ".wav"
+                    ),
                     rir.unsqueeze(0),
                     sample_rate=fs,
                     bits_per_sample=16,
                     encoding="PCM_S",
                 )
                 ThTtDictRcvOriSrc_label.append(
-                    [f"OpenAIR_No{j}.wav", rm_ID, Th, Tt, V, dist_rcv, ori_src]
+                    [
+                        "OpenAIR_No" + str(j) + ".wav",
+                        rm_ID,
+                        Th,
+                        Tt,
+                        V,
+                        dist_rcv,
+                        ori_src,
+                    ]
                 )
     ThTtDictRcvOriSrc_label = pd.DataFrame(
         ThTtDictRcvOriSrc_label,
@@ -1587,7 +2089,6 @@ def readRIR_OpenAIR(commonpath, rootpath, savepath, csv_savemode="w"):
 
 
 def readSpeech_ATR(folderpath):
-    # sourcery skip: inline-immediately-returned-variable
     """
     read speech from folder with VAD
 
@@ -1619,7 +2120,7 @@ def readSpeech_ATR(folderpath):
             # merge consecutive speech chunks
             speech = collect_chunks(speech_timestamps, speech_raw)
             speech_ATR.append(speech)
-    speech_ATR = pd.DataFrame(zip(speech_ATR), columns=["ATR_speech"])
+    speech_ATR = pd.DataFrame(zip(speech_ATR, strict=False), columns=["ATR_speech"])
     # if not os.path.exists(folderpath+"/ATR_speech_labeled"):
     #     os.makedirs(folderpath+"/ATR_speech_labeled")
     # path = folderpath+"/ATR_speech_labeled/speech_ATR.pt"
@@ -1714,7 +2215,9 @@ def readNoise_DEMAND(path, savepath, csv_savemode="w"):
                 if not os.path.exists(savepath + "/noise.data"):
                     os.makedirs(savepath + "/noise.data")
                 torchaudio.save(
-                    os.path.join(savepath + "/noise.data", f"DEMAND_No{no}.wav"),
+                    os.path.join(
+                        savepath + "/noise.data", "DEMAND_No" + str(no) + ".wav"
+                    ),
                     noise_raw,
                     sample_rate=fs,
                     bits_per_sample=16,
@@ -1723,7 +2226,7 @@ def readNoise_DEMAND(path, savepath, csv_savemode="w"):
 
                 noise_label.append(
                     [
-                        f"DEMAND_No{no}.wav",
+                        "DEMAND_No" + str(no) + ".wav",
                         suffix + "_" + filename.split(".wav")[0],
                     ]
                 )

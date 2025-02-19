@@ -7,7 +7,9 @@ import torch
 from lightning import LightningDataModule
 from torch.utils.data import ConcatDataset, DataLoader, Dataset
 
-from src.data.components.reverb_speech_dataset_baseline import ReverbSpeechDataset
+from src.data.components.reverb_speech_dataset_baseline import (
+    ReverbSpeechDatasetBaseline,
+)
 from src.utils.pylogger import get_pylogger
 
 log = get_pylogger(__name__)
@@ -112,17 +114,29 @@ class ReverbSpeechDataModuleBaseline(LightningDataModule):
         self.volume_val = self.labels_val["volume"]
         self.volume_test = self.labels_test["volume"]
 
+        self.sti_train = self.labels_train["sti"]
+        self.sti_val = self.labels_val["sti"]
+        self.sti_test = self.labels_test["sti"]
+
+        self.t60_train = self.labels_train["t60"]
+        self.t60_val = self.labels_val["t60"]
+        self.t60_test = self.labels_test["t60"]
+
+        self.c80_train = self.labels_train["c80"]
+        self.c80_val = self.labels_val["c80"]
+        self.c80_test = self.labels_test["c80"]
+
+        self.c50_train = self.labels_train["c50"]
+        self.c50_val = self.labels_val["c50"]
+        self.c50_test = self.labels_test["c50"]
+
+        self.volume_ns_train = self.labels_train["volume_ns"]
+        self.volume_ns_val = self.labels_val["volume_ns"]
+        self.volume_ns_test = self.labels_test["volume_ns"]
+
         self.dist_src_train = self.labels_train["dist_src"]
         self.dist_src_val = self.labels_val["dist_src"]
         self.dist_src_test = self.labels_test["dist_src"]
-
-        self.azimuth_src_train = self.labels_train["azimuth_src"]
-        self.azimuth_src_val = self.labels_val["azimuth_src"]  #
-        self.azimuth_src_test = self.labels_test["azimuth_src"]
-
-        self.elevation_src_train = self.labels_train["elevation_src"]
-        self.elevation_src_val = self.labels_val["elevation_src"]
-        self.elevation_src_test = self.labels_test["elevation_src"]
 
         self.data_train: Optional[Dataset] = None
         self.data_val: Optional[Dataset] = None
@@ -141,44 +155,56 @@ class ReverbSpeechDataModuleBaseline(LightningDataModule):
         """
         # load and split datasets only if not loaded already
         if not self.data_train and not self.data_val and not self.data_test:
-            self.data_train = ReverbSpeechDataset(
+            self.data_train = ReverbSpeechDatasetBaseline(
                 raw_audio=self.raw_train,
                 Th=self.Th_train,
                 Tt=self.Tt_train,
                 volume=self.volume_train,
+                sti=self.sti_train,
+                t60=self.t60_train,
+                c80=self.c80_train,
+                c50=self.c50_train,
+                volume_ns=self.volume_ns_train,
                 dist_src=self.dist_src_train,
-                azimuth_src=self.azimuth_src_train,
-                elevation_src=self.elevation_src_train,
             )
 
-            self.data_val = ReverbSpeechDataset(
+            self.data_val = ReverbSpeechDatasetBaseline(
                 raw_audio=self.raw_val,
                 Th=self.Th_val,
                 Tt=self.Tt_val,
                 volume=self.volume_val,
+                sti=self.sti_val,
+                t60=self.t60_val,
+                c80=self.c80_val,
+                c50=self.c50_val,
+                volume_ns=self.volume_ns_val,
                 dist_src=self.dist_src_val,
-                azimuth_src=self.azimuth_src_val,
-                elevation_src=self.elevation_src_val,
             )
 
-            self.data_test = ReverbSpeechDataset(
+            self.data_test = ReverbSpeechDatasetBaseline(
                 raw_audio=self.raw_test,
                 Th=self.Th_test,
                 Tt=self.Tt_test,
                 volume=self.volume_test,
+                sti=self.sti_test,
+                t60=self.t60_test,
+                c80=self.c80_test,
+                c50=self.c50_test,
+                volume_ns=self.volume_ns_test,
                 dist_src=self.dist_src_test,
-                azimuth_src=self.azimuth_src_test,
-                elevation_src=self.elevation_src_test,
             )
 
-            self.data_predict = ReverbSpeechDataset(
+            self.data_predict = ReverbSpeechDatasetBaseline(
                 raw_audio=self.raw_test,
                 Th=self.Th_test,
                 Tt=self.Tt_test,
                 volume=self.volume_test,
+                sti=self.sti_test,
+                t60=self.t60_test,
+                c80=self.c80_test,
+                c50=self.c50_test,
+                volume_ns=self.volume_ns_test,
                 dist_src=self.dist_src_test,
-                azimuth_src=self.azimuth_src_test,
-                elevation_src=self.elevation_src_test,
             )
 
             self.dataset = ConcatDataset(
@@ -199,7 +225,9 @@ class ReverbSpeechDataModuleBaseline(LightningDataModule):
         start = 0
         end = size - diff + start
 
-        slices = [slice(None) for _ in range(dim)]
+        slices = []
+        for _ in range(dim):
+            slices.append(slice(None))
         slices.append(slice(start, end))
 
         return t[slices]
@@ -210,9 +238,12 @@ class ReverbSpeechDataModuleBaseline(LightningDataModule):
         Ths = [sample["Th"] for sample in batch]
         Tts = [sample["Tt"] for sample in batch]
         volumes = [sample["volume"] for sample in batch]
+        stis = [sample["sti"] for sample in batch]
+        t60s = [sample["t60"] for sample in batch]
+        c80s = [sample["c80"] for sample in batch]
+        c50s = [sample["c50"] for sample in batch]
+        volume_nss = [sample["volume_ns"] for sample in batch]
         dist_srcs = [sample["dist_src"] for sample in batch]
-        azimuth_srcs = [sample["azimuth_src"] for sample in batch]
-        elevation_srcs = [sample["elevation_src"] for sample in batch]
 
         sizes = [len(s) for s in raws]
         target_size = min(max(sizes), self.max_sample_size)
@@ -232,9 +263,12 @@ class ReverbSpeechDataModuleBaseline(LightningDataModule):
         input["Th"] = torch.stack(Ths)
         input["Tt"] = torch.stack(Tts)
         input["volume"] = torch.stack(volumes)
+        input["sti"] = torch.stack(stis)
+        input["t60"] = torch.stack(t60s)
+        input["c80"] = torch.stack(c80s)
+        input["c50"] = torch.stack(c50s)
+        input["volume_ns"] = torch.stack(volume_nss)
         input["dist_src"] = torch.stack(dist_srcs)
-        input["azimuth_src"] = torch.stack(azimuth_srcs)
-        input["elevation_src"] = torch.stack(elevation_srcs)
 
         return input
 
@@ -322,18 +356,18 @@ class ReverbSpeechDataModuleBaseline(LightningDataModule):
 
     def _get_item_and_labels(self):
         if (
-            os.path.isfile(os.path.join(self._data_dir, "train_manifest.csv"))
-            and os.path.isfile(os.path.join(self._data_dir, "test_manifest.csv"))
-            and os.path.isfile(os.path.join(self._data_dir, "val_manifest.csv"))
+            os.path.isfile(os.path.join(self._data_dir, "train_manifest_alt.csv"))
+            and os.path.isfile(os.path.join(self._data_dir, "test_manifest_alt.csv"))
+            and os.path.isfile(os.path.join(self._data_dir, "val_manifest_alt.csv"))
         ):
             manifest_train_df = pd.read_csv(
-                os.path.join(self._data_dir, "train_manifest.csv")
+                os.path.join(self._data_dir, "train_manifest_alt.csv")
             )
             manifest_val_df = pd.read_csv(
-                os.path.join(self._data_dir, "val_manifest.csv")
+                os.path.join(self._data_dir, "val_manifest_alt.csv")
             )
             manifest_test_df = pd.read_csv(
-                os.path.join(self._data_dir, "test_manifest.csv")
+                os.path.join(self._data_dir, "test_manifest_alt.csv")
             )
 
             # manifest for noisy waveforms
@@ -365,60 +399,71 @@ class ReverbSpeechDataModuleBaseline(LightningDataModule):
             volume_val = manifest_val_df["volume_log10"].tolist()
             volume_test = manifest_test_df["volume_log10"].tolist()
 
+            # sti
+            sti_train = manifest_train_df["STI"].tolist()
+            sti_val = manifest_val_df["STI"].tolist()
+            sti_test = manifest_test_df["STI"].tolist()
+
+            # t60
+            t60_train = manifest_train_df["T60"].tolist()
+            t60_val = manifest_val_df["T60"].tolist()
+            t60_test = manifest_test_df["T60"].tolist()
+
+            # c80
+            c80_train = manifest_train_df["C80"].tolist()
+            c80_val = manifest_val_df["C80"].tolist()
+            c80_test = manifest_test_df["C80"].tolist()
+
+            # c50
+            c50_train = manifest_train_df["C50"].tolist()
+            c50_val = manifest_val_df["C50"].tolist()
+            c50_test = manifest_test_df["C50"].tolist()
+
+            # volume_ns
+            volume_ns_train = manifest_train_df["volume"].tolist()
+            volume_ns_val = manifest_val_df["volume"].tolist()
+            volume_ns_test = manifest_test_df["volume"].tolist()
+
             # dist_src
             dist_src_train = manifest_train_df["distRcv"].tolist()
             dist_src_val = manifest_val_df["distRcv"].tolist()
             dist_src_test = manifest_test_df["distRcv"].tolist()
-
-            # ori_src
-            ori_src_train = (
-                manifest_train_df["oriSrc"]
-                .apply(lambda x: ast.literal_eval(x))
-                .tolist()
-            )
-            ori_src_val = (
-                manifest_val_df["oriSrc"].apply(lambda x: ast.literal_eval(x)).tolist()
-            )
-            ori_src_test = (
-                manifest_test_df["oriSrc"].apply(lambda x: ast.literal_eval(x)).tolist()
-            )
-
-            # azimuth_src
-            azimuth_src_train = [x[0] for x in ori_src_train]
-            azimuth_src_val = [x[0] for x in ori_src_val]
-            azimuth_src_test = [x[0] for x in ori_src_test]
-
-            # elevation_src
-            elevation_src_train = [x[1] for x in ori_src_train]
-            elevation_src_val = [x[1] for x in ori_src_val]
-            elevation_src_test = [x[1] for x in ori_src_test]
 
             # create labels dict
             labels_train = {
                 "Th": Th_train,
                 "Tt": Tt_train,
                 "volume": volume_train,
+                "sti": sti_train,
+                "t60": t60_train,
+                "c80": c80_train,
+                "c50": c50_train,
+                "volume_ns": volume_ns_train,
                 "dist_src": dist_src_train,
-                "azimuth_src": azimuth_src_train,
-                "elevation_src": elevation_src_train,
             }
 
             labels_val = {
                 "Th": Th_val,
                 "Tt": Tt_val,
                 "volume": volume_val,
+                "sti": sti_val,
+                "t60": t60_val,
+                "c80": c80_val,
+                "c50": c50_val,
+                "volume_ns": volume_ns_val,
                 "dist_src": dist_src_val,
-                "azimuth_src": azimuth_src_val,
-                "elevation_src": elevation_src_val,
             }
 
             labels_test = {
                 "Th": Th_test,
                 "Tt": Tt_test,
                 "volume": volume_test,
+                "sti": sti_test,
+                "t60": t60_test,
+                "c80": c80_test,
+                "c50": c50_test,
+                "volume_ns": volume_ns_test,
                 "dist_src": dist_src_test,
-                "azimuth_src": azimuth_src_test,
-                "elevation_src": elevation_src_test,
             }
 
             return (

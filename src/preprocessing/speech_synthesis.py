@@ -1,14 +1,23 @@
+import os
+import random
+
+import numpy as np
+import pandas as pd
 import torch
 import torchaudio
-import pandas as pd
-import random
-import os
 
-torch.manual_seed(2036)
-random.seed(2036)
+from src.preprocessing.occu_dist_dist import occu_gmm
 
+seed = 2036
+torch.manual_seed(seed)
+random.seed(seed)
+np.random.seed(seed)
 
+# label_root_path = "/home/s2320016/workspace/acoustic/data/LibriSpeech/mask"
 label_root_path = os.path.join(os.getcwd(), "data/LibriSpeech/mask")
+
+shape = 6.1802
+scale = 18.667
 
 
 def speech_synthesis(num_occ: int, files: pd.DataFrame, max_seq_len: int):
@@ -27,9 +36,9 @@ def speech_synthesis(num_occ: int, files: pd.DataFrame, max_seq_len: int):
             label_root_path,
             base_name + ".pt",
         )
-        label = torch.load(label_path)
+        label = torch.load(label_path, weights_only=True)
         start_idx = torch.randint(0, max_seq_len - audio.shape[-1], (1,)).item()
-        start = min(start_idx, start)
+        start = start_idx if start_idx < start else start
         padded_audio = torch.cat(
             (
                 zeros_seq[:, :start_idx],
@@ -50,8 +59,9 @@ def speech_synthesis(num_occ: int, files: pd.DataFrame, max_seq_len: int):
         )
 
         end_idx = start_idx + audio.shape[-1]
-        tail = max(end_idx, tail)
-        dist_speech = torch.normal(mean=torch.tensor(2.5)).abs()
+        tail = end_idx if end_idx > tail else tail
+        dist_speech = np.random.gamma(shape, scale)
+        dist_speech = torch.tensor(dist_speech / 100).abs()  # convert to meter
         if dist_speech < 1:
             dist_speech = dist_speech + 1
         elif dist_speech > 6:
@@ -62,7 +72,7 @@ def speech_synthesis(num_occ: int, files: pd.DataFrame, max_seq_len: int):
         # padded_label = masking_generator(padded_audio, fs)
         mixed_speech_label += padded_label
 
-        file_info.append([base_name, start_idx, end_idx, dist_speech])
+        file_info.append([base_name, start_idx, end_idx, float(dist_speech)])
 
     file_info = [
         [base_name, start_idx - start, end_idx - start, dist_speech]
@@ -80,18 +90,28 @@ def mix_speech(num_occ: pd.DataFrame, files: pd.DataFrame):
     if num_occ != 0:
         if rir_volume < 400:
             max_seq_len = 10 * 16000  # 10s
-        elif rir_volume < 4000:
-            max_seq_len = 20 * 16000  # 15s
-        else:
-            max_seq_len = 25 * 16000  # 20s
-        files = files[files["length"] < max_seq_len]
-        mixed_speech, mixed_speech_label, file_info = speech_synthesis(
-            num_occ, files, max_seq_len
-        )
+            files = files[files["length"] < max_seq_len]
+            mixed_speech, mixed_speech_label, file_info = speech_synthesis(
+                num_occ, files, max_seq_len
+            )
 
+        elif rir_volume >= 400 and rir_volume < 4000:
+            max_seq_len = 20 * 16000  # 15s
+            files = files[files["length"] < max_seq_len]
+            mixed_speech, mixed_speech_label, file_info = speech_synthesis(
+                num_occ, files, max_seq_len
+            )
+
+        elif rir_volume >= 4000:
+            max_seq_len = 25 * 16000  # 20s
+            files = files[files["length"] < max_seq_len]
+            mixed_speech, mixed_speech_label, file_info = speech_synthesis(
+                num_occ, files, max_seq_len
+            )
     else:
         mixed_speech = torch.zeros(1, 10 * 16000)  # 10s
         mixed_speech_label = torch.zeros(1, 10 * 16000)
+        file_info = [0, 0, 0, 0]
 
     mixed_speech_label = mixed_speech_label.to(dtype=torch.int8)
 

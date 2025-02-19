@@ -25,8 +25,10 @@ class MixedSpeechDataset(Dataset):
 
     def post_process(self, x: torch.Tensor) -> torch.Tensor:
         if self.feature_extractor is not None:
-            if isinstance(
-                self.feature_extractor, (Gammatonegram, MelSpectrogram, STFT)
+            if (
+                isinstance(self.feature_extractor, Gammatonegram)
+                or isinstance(self.feature_extractor, MelSpectrogram)
+                or isinstance(self.feature_extractor, STFT)
             ):
                 x = 20 * (x + 1e-8).log10()
             if self.feature_extractor is None and self.normalization:

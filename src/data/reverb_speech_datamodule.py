@@ -1,16 +1,15 @@
-from math import ceil
 import os
-from typing import Any, Dict, Optional
+from math import ceil
+from typing import Any, Optional
+
 import pandas as pd
-
 import torch
-from nnAudio.features.gammatone import Gammatonegram
-from nnAudio.features.mel import MelSpectrogram, MFCC
-
 from lightning import LightningDataModule
+from nnAudio.features.gammatone import Gammatonegram
+from nnAudio.features.mel import MFCC, MelSpectrogram
 from torch.utils.data import ConcatDataset, DataLoader, Dataset
-from src.data.components.reverb_speech_dataset import ReverbSpeechDataset
 
+from data.components.reverb_speech_dataset_alt import ReverbSpeechDataset
 from src.utils.pylogger import get_pylogger
 
 log = get_pylogger(__name__)
@@ -124,22 +123,6 @@ class ReverbSpeechDataModule(LightningDataModule):
         self.dist_src_val = self.labels_val["dist_src"]
         self.dist_src_test = self.labels_test["dist_src"]
 
-        self.azimuth_src_train = self.labels_train["azimuth_src"]
-        self.azimuth_src_val = self.labels_val["azimuth_src"]  #
-        self.azimuth_src_test = self.labels_test["azimuth_src"]
-
-        self.elevation_src_train = self.labels_train["elevation_src"]
-        self.elevation_src_val = self.labels_val["elevation_src"]
-        self.elevation_src_test = self.labels_test["elevation_src"]
-
-        self.azimuth_classif_train = self.labels_train["azimuth_classif"]
-        self.azimuth_classif_val = self.labels_val["azimuth_classif"]
-        self.azimuth_classif_test = self.labels_test["azimuth_classif"]
-
-        self.elevation_classif_train = self.labels_train["elevation_classif"]
-        self.elevation_classif_val = self.labels_val["elevation_classif"]
-        self.elevation_classif_test = self.labels_test["elevation_classif"]
-
         self.data_train: Optional[Dataset] = None
         self.data_val: Optional[Dataset] = None
         self.data_test: Optional[Dataset] = None
@@ -199,10 +182,6 @@ class ReverbSpeechDataModule(LightningDataModule):
                 Tt=self.Tt_train,
                 volume=self.volume_train,
                 dist_src=self.dist_src_train,
-                azimuth_src=self.azimuth_src_train,
-                elevation_src=self.elevation_src_train,
-                azimuth_classif=self.azimuth_classif_train,
-                elevation_classif=self.elevation_classif_train,
                 feature_extractor=self.feature_extractor,
                 norm_amplitude=self.norm_amplitude,
                 normalization=True,
@@ -214,10 +193,6 @@ class ReverbSpeechDataModule(LightningDataModule):
                 Tt=self.Tt_val,
                 volume=self.volume_val,
                 dist_src=self.dist_src_val,
-                azimuth_src=self.azimuth_src_val,
-                elevation_src=self.elevation_src_val,
-                azimuth_classif=self.azimuth_classif_val,
-                elevation_classif=self.elevation_classif_val,
                 feature_extractor=self.feature_extractor,
                 norm_amplitude=self.norm_amplitude,
                 normalization=True,
@@ -229,10 +204,6 @@ class ReverbSpeechDataModule(LightningDataModule):
                 Tt=self.Tt_test,
                 volume=self.volume_test,
                 dist_src=self.dist_src_test,
-                azimuth_src=self.azimuth_src_test,
-                elevation_src=self.elevation_src_test,
-                azimuth_classif=self.azimuth_classif_test,
-                elevation_classif=self.elevation_classif_test,
                 feature_extractor=self.feature_extractor,
                 norm_amplitude=self.norm_amplitude,
                 normalization=True,
@@ -244,10 +215,6 @@ class ReverbSpeechDataModule(LightningDataModule):
                 Tt=self.Tt_test,
                 volume=self.volume_test,
                 dist_src=self.dist_src_test,
-                azimuth_src=self.azimuth_src_test,
-                elevation_src=self.elevation_src_test,
-                azimuth_classif=self.azimuth_classif_test,
-                elevation_classif=self.elevation_classif_test,
                 feature_extractor=self.feature_extractor,
                 norm_amplitude=self.norm_amplitude,
                 normalization=True,
@@ -274,7 +241,9 @@ class ReverbSpeechDataModule(LightningDataModule):
         start = 0
         end = size - diff + start
 
-        slices = [slice(None) for _ in range(dim)]
+        slices = []
+        for _ in range(dim):
+            slices.append(slice(None))
         slices.append(slice(start, end))
 
         return t[slices]
@@ -286,10 +255,6 @@ class ReverbSpeechDataModule(LightningDataModule):
         Tts = [sample["Tt"] for sample in batch]
         volumes = [sample["volume"] for sample in batch]
         dist_srcs = [sample["dist_src"] for sample in batch]
-        azimuth_srcs = [sample["azimuth_src"] for sample in batch]
-        elevation_srcs = [sample["elevation_src"] for sample in batch]
-        azimuth_classifs = [sample["azimuth_classif"] for sample in batch]
-        elevation_classifs = [sample["elevation_classif"] for sample in batch]
 
         # for spectrogram-based feature (C, T), for waveform-based feature (T)
         sizes = [s.shape[-1] for s in sources]
@@ -307,7 +272,7 @@ class ReverbSpeechDataModule(LightningDataModule):
             collated_sources.shape[0], collated_sources.shape[-1]
         ).fill_(False)
 
-        for i, (source, size) in enumerate(zip(sources, sizes)):
+        for i, (source, size) in enumerate(zip(sources, sizes, strict=False)):
             diff = size - target_size
             if diff == 0:
                 collated_sources[i, ...] = source
@@ -332,10 +297,6 @@ class ReverbSpeechDataModule(LightningDataModule):
                 "Tt": torch.stack(Tts),
                 "volume": torch.stack(volumes),
                 "dist_src": torch.stack(dist_srcs),
-                "azimuth": torch.stack(azimuth_srcs),
-                "elevation": torch.stack(elevation_srcs),
-                "azimuth_classif": torch.stack(azimuth_classifs),
-                "elevation_classif": torch.stack(elevation_classifs),
             },
             "net_input": {
                 "source": collated_sources,
@@ -410,14 +371,14 @@ class ReverbSpeechDataModule(LightningDataModule):
         """
         return super().teardown(stage=stage)
 
-    def state_dict(self) -> Dict[Any, Any]:
+    def state_dict(self) -> dict[Any, Any]:
         """Called when saving a checkpoint. Implement to generate and save the datamodule state.
 
         :return: A dictionary containing the datamodule state that you want to save.
         """
         return {}  # self.hparams
 
-    def load_state_dict(self, state_dict: Dict[str, Any]):
+    def load_state_dict(self, state_dict: dict[str, Any]):
         """Called when loading a checkpoint. Implement to reload datamodule state given datamodule
         `state_dict()`.
 
@@ -473,31 +434,12 @@ class ReverbSpeechDataModule(LightningDataModule):
             dist_src_val = manifest_val_df["distRcv"].tolist()
             dist_src_test = manifest_test_df["distRcv"].tolist()
 
-            azimuth_src_train = manifest_train_df["azimuth_ori_norm"].tolist()
-            elevation_src_train = manifest_train_df["elevation_ori_norm"].tolist()
-            azimuth_src_val = manifest_val_df["azimuth_ori_norm"].tolist()
-            elevation_src_val = manifest_val_df["elevation_ori_norm"].tolist()
-            azimuth_src_test = manifest_test_df["azimuth_ori_norm"].tolist()
-            elevation_src_test = manifest_test_df["elevation_ori_norm"].tolist()
-
-            # ori_src binary classification labels
-            azimuth_classif_train = manifest_train_df["azimuth_classifier"].tolist()
-            elevation_classif_train = manifest_train_df["elevation_classifier"].tolist()
-            azimuth_classif_val = manifest_val_df["azimuth_classifier"].tolist()
-            elevation_classif_val = manifest_val_df["elevation_classifier"].tolist()
-            azimuth_classif_test = manifest_test_df["azimuth_classifier"].tolist()
-            elevation_classif_test = manifest_test_df["elevation_classifier"].tolist()
-
             # create labels dict
             labels_train = {
                 "Th": Th_train,
                 "Tt": Tt_train,
                 "volume": volume_train,
                 "dist_src": dist_src_train,
-                "azimuth_src": azimuth_src_train,
-                "elevation_src": elevation_src_train,
-                "azimuth_classif": azimuth_classif_train,
-                "elevation_classif": elevation_classif_train,
             }
 
             labels_val = {
@@ -505,10 +447,6 @@ class ReverbSpeechDataModule(LightningDataModule):
                 "Tt": Tt_val,
                 "volume": volume_val,
                 "dist_src": dist_src_val,
-                "azimuth_src": azimuth_src_val,
-                "elevation_src": elevation_src_val,
-                "azimuth_classif": azimuth_classif_val,
-                "elevation_classif": elevation_classif_val,
             }
 
             labels_test = {
@@ -516,10 +454,6 @@ class ReverbSpeechDataModule(LightningDataModule):
                 "Tt": Tt_test,
                 "volume": volume_test,
                 "dist_src": dist_src_test,
-                "azimuth_src": azimuth_src_test,
-                "elevation_src": elevation_src_test,
-                "azimuth_classif": azimuth_classif_test,
-                "elevation_classif": elevation_classif_test,
             }
 
             return (

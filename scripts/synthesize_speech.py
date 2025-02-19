@@ -1,16 +1,17 @@
 # Data preparation for occupant level estimation
-import pandas as pd
 import os
-import torchaudio
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+
+import pandas as pd
+import rootutils
 import torch
-from src.preprocessing.speech_synthesis import mix_speech
+import torchaudio
 import torchaudio.functional as F
-from concurrent.futures import ProcessPoolExecutor
 from tqdm import tqdm
 
-import rootutils
-
 rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
+
+from src.preprocessing.speech_synthesis import mix_speech  # noqa: E402
 
 
 # read the RIR manifest
@@ -24,12 +25,13 @@ def synth_mixed_speech(
     rir, fs = torchaudio.load(rir_path)
     mixed_speech, mixed_speech_label, file_info = mix_speech(num_occ, speech_manifest)
     rir = rir / rir.max(dim=-1)[0]
+    # exclude the direct sound (initial 4.17 ms)
+    rir = rir[:, int(0.00417 * fs) :]
     reverb_mixed_speech = F.fftconvolve(mixed_speech, rir, mode="full")
     len_mixed_speech = mixed_speech.numel()
     reverb_mixed_speech = reverb_mixed_speech[:, 0:len_mixed_speech]
     return (
         reverb_mixed_speech,
-        mixed_speech,
         mixed_speech_label,
         file_info,
     )
@@ -50,7 +52,6 @@ mixed_speech_manifest = []
 def mixed_speech(i):
     (
         reverb_mixed_speech,
-        mixed_speech,
         mixed_speech_label,
         file_info,
     ) = synth_mixed_speech(
@@ -87,7 +88,7 @@ def mixed_speech(i):
         os.path.join(
             mixed_speech_savepath,
             "reverb_mixed",
-            f"reverb_mixed_speech_No{str(i)}.wav",
+            f"mixed_speech_No{str(i)}.wav",
         ),
         reverb_mixed_speech,
         sample_rate=16000,
@@ -110,31 +111,56 @@ def mixed_speech(i):
         os.makedirs(mixed_speech_label_savepath)
     mixed_speech_label = torch.save(
         mixed_speech_label,
-        os.path.join(mixed_speech_label_savepath, f"mixed_speech_No{str(i)}.pt"),
+        os.path.join(mixed_speech_label_savepath, "mixed_speech_No" + str(i) + ".pt"),
     )
 
     reverb_mixed_speech_ = [
-        f"mixed_speech_No{str(i)}.wav",
-        f"mixed_speech_No{str(i)}.pt",
+        "mixed_speech_No" + str(i) + ".wav",
+        "mixed_speech_No" + str(i) + ".pt",
         numOcc,
         rir_info,
     ]
 
     mixed_speech_ = [
-        f"mixed_speech_No{str(i)}.wav",
-        f"mixed_speech_No{str(i)}.pt",
+        "mixed_speech_No" + str(i) + ".wav",
+        "mixed_speech_No" + str(i) + ".pt",
         numOcc,
     ]
 
     return reverb_mixed_speech_, mixed_speech_
 
 
+# # single thread
+# for i in tqdm(range(len(rir_manifest_ID_resampled))):
+#     reverb_mixed_speech_manifest.append(mixed_speech(i)[0])
+#     mixed_speech_manifest.append(mixed_speech(i)[1])
+
+# reverb_mixed_speech_manifest = pd.DataFrame(
+#     reverb_mixed_speech_manifest,
+#     columns=["mixed_speech", "mixed_speech_label", "numOcc", "rir_info"],
+# )
+# mixed_speech_manifest = pd.DataFrame(
+#     mixed_speech_manifest, columns=["mixed_speech", "mixed_speech_label", "numOcc"]
+# )
+
+# reverb_mixed_speech_manifest.to_csv(
+#     "./data/mixed_speech/mixed_speech_manifest.csv",
+#     index=False,
+# )
+
+# mixed_speech_manifest.to_csv(
+#     "./data/mixed_speech/mixed_speech_manifest.csv",
+#     index=False,
+# )
+
+
 with ProcessPoolExecutor(
-    max_workers=os.cpu_count() - 12
-) as executor:  # make sure the cpu count is beyond 12
-    threads = [
-        executor.submit(mixed_speech, i) for i in range(len(rir_manifest_ID_resampled))
-    ]
+    max_workers=os.cpu_count() - 24
+) as executor:  # make sure the cpu count is beyond 24 at least
+    threads = []
+    for i in range(len(rir_manifest_ID_resampled)):
+        threads.append(executor.submit(mixed_speech, i))
+
     for t in tqdm(threads):
         reverb_mixed_speech_manifest.append(t.result()[0])
         mixed_speech_manifest.append(t.result()[1])

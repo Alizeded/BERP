@@ -1,8 +1,6 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
-from typing import List, Tuple
-
 
 # Transpose last two dimensions
 class TransposeLast(nn.Module):
@@ -64,7 +62,7 @@ conv_feature_layers = [
 class ConvFeatureExtractionModel(nn.Module):
     def __init__(
         self,
-        conv_layers: List[Tuple[int, int, int]] = conv_feature_layers,
+        conv_layers: list[tuple[int, int, int]] = conv_feature_layers,
         dropout: float = 0.0,
         mode: str = "default",
         conv_bias: bool = False,
@@ -117,7 +115,7 @@ class ConvFeatureExtractionModel(nn.Module):
         in_d = 1
         self.conv_layers = nn.ModuleList()
         for i, convlayer in enumerate(conv_layers):
-            assert len(convlayer) == 3, f"invalid conv definition: {str(convlayer)}"
+            assert len(convlayer) == 3, "invalid conv definition: " + str(convlayer)
             (dim, kernel_size, stride) = convlayer
 
             self.conv_layers.append(

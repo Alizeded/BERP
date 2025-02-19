@@ -1,7 +1,8 @@
-import torch
 import os
-from tqdm import tqdm
+
 import rootutils
+import torch
+from tqdm import tqdm
 
 rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 

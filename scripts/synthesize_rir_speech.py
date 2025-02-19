@@ -1,17 +1,15 @@
+import ast
 import os
-
-import torch
-import torchaudio
-import torchaudio.functional as F
-import torch.nn.functional as f
+import random
+from concurrent.futures import ThreadPoolExecutor
 
 import pandas as pd
-import random
-import ast
-from tqdm import tqdm
-
-from concurrent.futures import ThreadPoolExecutor
 import rootutils
+import torch
+import torch.nn.functional as f
+import torchaudio
+import torchaudio.functional as F
+from tqdm import tqdm
 
 rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 

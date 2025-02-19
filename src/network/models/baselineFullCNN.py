@@ -7,7 +7,11 @@ from nnAudio.features.gammatone import Gammatonegram
 
 
 def padding(x, n_frame_len):
-    """padding zeroes to x so that denoised audio has the same length"""
+    """padding zeroes to x so that denoised audio has the same length,
+    when transforming using Fourier Transform, it will be as the upsampling process in the frequency domain,
+    so that the output has the same length as the input without losing information
+    see: B.P. Lathi, Linear Systems and Signals, 3rd ed., Oxford University Press, 2018, Ch. 7 & 8.
+    """
 
     len_seq = x.shape[-1]
     n_frame = 1997 - 1
@@ -27,7 +31,7 @@ class FullCNN(nn.Module):
     def __init__(
         self,
         ch_in: int = 1,
-        ch_out: int = 1,
+        ch_out: int = 2,
         n_fft_gammatone: Optional[int] = 384,  # for gammatone prenet
         n_bins_gammatone: Optional[int] = 128,
         hop_length_gammatone: Optional[int] = 192,

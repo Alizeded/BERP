@@ -7,9 +7,9 @@ wandb:
   offline: False
   # id: acoustic-toolkit-rirRoomEncoder # rirModule ablation study (RoomEncoder only)
   # id: acoustic-toolkit-volumeRoomEncoder # volumeModule ablation study (RoomEncoder only)
-  # id: acoustic-toolkit-distSrcRoomEncoder # distSrcModule ablation study (RoomEncoder only)
+  # id: acoustic-toolkit-distSrcRoomEncoder-A100-sgl # distSrcModule ablation study (RoomEncoder only)
   # id: acoustic-toolkit-oriSrcRoomEncoder # oriSrcModule ablation study (RoomEncoder only)
-  id: acoustic-toolkit-jointRoomEncoder # jointModule ablation study (RoomEncoder only)
+  id: acoustic-toolkit-jointRoomEncoder-mixRealData # jointModule ablation study (RoomEncoder only)
   # id: acoustic-toolkit-numEstRoomEncoder # numEstModule ablation study (RoomEncoder only)
   # id: acoustic-toolkit-evaluation-rirRoomEncoder # evaluation on rirModule (RoomEncoder only)
   # id: acoustic-toolkit-evaluation-volumeRoomEncoder # evaluation on volumeModule (RoomEncoder only)
@@ -17,18 +17,15 @@ wandb:
   # id: acoustic-toolkit-evaluation-oriSrcRoomEncoder # evaluation on oriSrcModule (RoomEncoder only)
   # id: acoustic-toolkit-evaluation-jointRoomEncoder # evaluation on jointModule (RoomEncoder only)
   anonymous: null # enable anonymous logging
-  # project: rirRoomEncoder
   # project: volumeRoomEncoder
   # project: distSrcRoomEncoder
-  # project: oriSrcRoomEncoder
-  project: jointRoomEncoder
-  # project: numEstRoomEncoder
+  project: RAP_jointRoomEncoder
   # project: evaluation-rirRoomEncoder
   # project: evaluation-volumeRoomEncoder
   # project: evaluation-distSrcRoomEncoder
   # project: evaluation-oriSrcRoomEncoder
   # project: evaluation-jointRoomEncoder
-  entity: ${your_wandb_entity}
+  entity: lucx
   log_model: True # upload lightning ckpts
   prefix: "" # a string to put at the beginning of metric keys
   # entity: "" # set to name of your wandb team

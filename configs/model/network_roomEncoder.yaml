@@ -1,35 +1,3 @@
-rirRegressorModule:
-  _target_: src.network.regressor_module_linear.rirRegressorModule
-
-  net:
-    _target_: src.network.models.roomFeatureEncoder.RoomEncoder
-    ch_in: 128
-    ch_out: 1
-    num_layers: 8
-    num_heads: 8
-    embed_dim: 512
-    ch_scale: 4
-    dropout_prob: 0.1
-    feat_type: "mfcc"
-    decoder_type: "rir"
-
-
-  optimizer:
-    _target_: torch.optim.RAdam
-    _partial_: true
-    lr: 1e-4
-    betas : [0.9, 0.98]
-    eps: 1e-9
-    weight_decay: 1e-6
-
-  scheduler: 
-    _target_: torch.optim.lr_scheduler.CosineAnnealingLR
-    _partial_: true
-
-  optim_cfg:
-    Th_weight: 1.0
-    Tt_weight: 1.0
-    T_max: 150
 
 
 
@@ -99,38 +67,6 @@ distSrcRegressorModule:
     T_max: 220
 
 
-
-oriSrcRegressorModule:
-  _target_: src.network.oriSrcRegressor_module_woBC.OriSrcRegressorModuleWOBC
-
-  net:
-    _target_: src.network.models.roomFeatureEncoder.RoomEncoder
-    ch_out: 128
-    num_layers: 8
-    num_heads: 8
-    embed_dim: 512
-    ch_scale: 4
-    dropout_prob: 0.1
-    prenet_type: "mfcc"
-    decoder_type: "oriSrc"
-
-
-  optimizer:
-    _target_: torch.optim.RAdam
-    _partial_: true
-    lr: 1e-4
-    betas : [0.9, 0.98]
-    eps: 1e-8
-    weight_decay: 1e-6
-
-  scheduler: 
-    _target_: torch.optim.lr_scheduler.CosineAnnealingLR
-    _partial_: true
-
-  optim_cfg:
-    T_max: 200
-
-
 jointRegressorModule:
   _target_: src.network.jointRegressor_module_encoder.JointRegressorModuleEncoder
 
@@ -144,8 +80,6 @@ jointRegressorModule:
     ch_scale: 4
     dropout_prob: 0.1
     feat_type: "mfcc"
-    decoder_type: "joint"
-    # prenet_type: "cnn_prenet"
 
   optimizer:
     _target_: torch.optim.RAdam
@@ -154,16 +88,20 @@ jointRegressorModule:
     betas : [0.9, 0.98]
     eps: 1e-8
     weight_decay: 1e-6
-  
+
   scheduler:
     _target_: torch.optim.lr_scheduler.CosineAnnealingLR
     _partial_: true
 
   optim_cfg:
-    Th_weight: 1.0
-    Tt_weight: 1.0
+    sti_weight: 1.0
+    alcons_weight: 1.0
+    tr_weight: 1.0
+    edt_weight: 1.0
+    c80_weight: 1.0
+    c50_weight: 1.0
+    d50_weight: 1.0
+    ts_weight: 1.0
     volume_weight: 1.0
     dist_src_weight: 1.0
-    elevation_weight: 1.0
-    azimuth_weight: 1.0
     T_max: 300

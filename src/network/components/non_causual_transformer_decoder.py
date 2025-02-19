@@ -1,9 +1,10 @@
+from typing import Optional
+
 import torch
-import torch.nn.functional as F
 import torch.nn as nn
-from torch import Tensor
-from typing import Tuple, Optional
+import torch.nn.functional as F
 from einops import rearrange
+from torch import Tensor
 
 
 class PosWiseFeedForward(nn.Module):
@@ -12,7 +13,7 @@ class PosWiseFeedForward(nn.Module):
     def __init__(
         self, embed_dim: int, expansion_factor: int = 4, dropout_prob: float = 0.1
     ):
-        super(PosWiseFeedForward, self).__init__()
+        super().__init__()
         self.sequential = nn.Sequential(
             nn.LayerNorm(embed_dim),
             nn.Linear(embed_dim, embed_dim * expansion_factor),
@@ -36,7 +37,7 @@ class CrossMultiHeadedAttention(nn.Module):
         num_heads: int = 8,
         dropout_prob: float = 0.1,
     ):
-        super(CrossMultiHeadedAttention, self).__init__()
+        super().__init__()
         assert embed_dim % num_heads == 0, "embed_dim must be divisible by num_heads"
         assert kdim % num_heads == 0, "kdim must be divisible by num_heads"
         assert kdim == vdim, "kdim must be equal to vdim"
@@ -95,7 +96,7 @@ class NonAutoregressiveDecoder(nn.Module):
         dropout_prob: float = 0.2,
         is_gated: bool = True,
     ):
-        super(NonAutoregressiveDecoder, self).__init__()
+        super().__init__()
 
         self.embed_dim_slfattn = embed_dim_slfattn
         self.embed_dim_crossattn = embed_dim_crossattn
@@ -143,7 +144,7 @@ class NonAutoregressiveDecoder(nn.Module):
 
     def forward(
         self, src: Tensor, tgt: Tensor, mask: Optional[Tensor] = None
-    ) -> Tuple[Tensor, Tensor, Tensor]:
+    ) -> tuple[Tensor, Tensor, Tensor]:
         # target sequence self-attention
         if mask is not None:
             slf_attn, slf_attn_w = self.slf_attn_layer(
@@ -171,7 +172,6 @@ class NonAutoregressiveDecoder(nn.Module):
 
 
 class DimUpsampler(nn.Module):
-
     """Dimension Upsampler"""
 
     def __init__(
@@ -180,7 +180,7 @@ class DimUpsampler(nn.Module):
         ch_out: int = 512,
         dropout_prob: float = 0.2,
     ):
-        super(DimUpsampler, self).__init__()
+        super().__init__()
 
         self.ch_in = ch_in
         self.ch_out = ch_out

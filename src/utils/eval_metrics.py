@@ -1,5 +1,5 @@
-import torch
 import scipy.stats as stats
+import torch
 
 
 def mae_calculator(x: torch.Tensor, y: torch.Tensor) -> float:

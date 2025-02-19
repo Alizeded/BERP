@@ -1,0 +1,460 @@
+
+numEstimatorModule:
+  _target_: src.network.numEstimator_module.numEstimatorModule
+
+  optimizer:
+    _target_: torch.optim.RAdam
+    _partial_: true
+    lr: 2e-4
+    betas : [0.9, 0.98]
+    eps: 1e-8
+    weight_decay: 1e-6
+
+  scheduler:
+    _target_: src.optimize.scheduler.tri_stage_lr_scheduler.TriStageLRScheduler
+    _partial_: true
+
+  optim_cfg:
+    init_lr: 1e-6
+    peak_lr: 2e-4
+    final_lr_scale: 0.1
+
+  net:
+    _target_: src.network.models.numEstimator.NumOccEstimator
+    ch_in: 128
+    ch_out: 18
+    num_layers: 8
+    num_heads: 8
+    embed_dim: 512
+    ch_scale: 4
+    dropout_prob: 0.1
+    # feat_type: "gammatone"
+    # feat_type: "mel"
+    feat_type: "mfcc"
+    # feat_type: "spectrogram"
+
+
+
+jointRegressorModule:
+  _target_: src.network.jointRegressor_module_e2e.JointRegressorModuleE2E
+
+  net:
+    _target_: src.network.models.jointEstimatorRAP.JointEstimator
+    ch_in: 128
+    ch_out: 1
+    num_layers: 8
+    num_heads: 8
+    embed_dim: 512
+    ch_scale: 4
+    dropout_prob: 0.1
+    # feat_type: "gammatone"
+    # feat_type: "mel"
+    feat_type: "mfcc"
+    # feat_type: "spectrogram"
+    decoder_type: "parametric_predictor"
+    num_channels_decoder: 384
+    kernel_size_decoder: 3
+    num_layers_decoder: 3
+    dropout_decoder: 0.5
+
+  optimizer:
+    _target_: torch.optim.RAdam
+    _partial_: true
+    lr: 1e-4
+    betas : [0.9, 0.98]
+    eps: 1e-8
+    weight_decay: 1e-6
+
+  scheduler:
+    _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+    _partial_: true
+
+  optim_cfg:
+    sti_weight: 1.0
+    alcons_weight: 1.0
+    tr_weight: 1.0
+    edt_weight: 1.0
+    c80_weight: 1.0
+    c50_weight: 1.0
+    d50_weight: 1.0
+    ts_weight: 1.0
+    volume_weight: 1.0
+    dist_src_weight: 1.0
+    T_max: 300
+
+
+
+STIRegressorModule:
+  _target_: src.network.RPRegressor_module.RPRegressorModule
+
+  net:
+    _target_: src.network.models.RAPEstimator.RAPEstimator
+    module: "sti"
+    ch_in: 128
+    num_layers: 8
+    num_heads: 8
+    embed_dim: 512
+    ch_scale: 4
+    dropout_prob: 0.1
+    feat_type: "mfcc" # "gammatone", "mel", "mfcc"
+    decoder_type: "parametric_predictor"
+    num_channels_decoder: 384
+    kernel_size_decoder: 3
+    num_layers_decoder: 3
+    dropout_decoder: 0.5
+
+
+  optimizer:
+    _target_: torch.optim.RAdam
+    _partial_: true
+    lr: 1e-4
+    betas : [0.9, 0.98]
+    eps: 1e-9
+    weight_decay: 1e-6
+
+  scheduler:
+    _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+    _partial_: true
+
+  optim_cfg:
+    T_max: 150
+
+  criterion_config:
+    module: "sti"
+
+ALconsRegressorModule:
+  _target_: src.network.RPRegressor_module.RPRegressorModule
+
+  net:
+    _target_: src.network.models.RAPEstimator.RAPEstimator
+    module: "alcons"
+    ch_in: 128
+    num_layers: 8
+    num_heads: 8
+    embed_dim: 512
+    ch_scale: 4
+    dropout_prob: 0.1
+    feat_type: "mfcc" # "gammatone", "mel", "mfcc"
+    decoder_type: "parametric_predictor"
+    num_channels_decoder: 384
+    kernel_size_decoder: 3
+    num_layers_decoder: 3
+    dropout_decoder: 0.5
+
+
+  optimizer:
+    _target_: torch.optim.RAdam
+    _partial_: true
+    lr: 1e-4
+    betas : [0.9, 0.98]
+    eps: 1e-9
+    weight_decay: 1e-6
+
+  scheduler:
+    _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+    _partial_: true
+
+  optim_cfg:
+    T_max: 150
+
+  criterion_config:
+    module: "alcons"
+
+TRRegressorModule:
+  _target_: src.network.RPRegressor_module.RPRegressorModule
+
+  net:
+    _target_: src.network.models.RAPEstimator.RAPEstimator
+    module: "tr"
+    ch_in: 128
+    num_layers: 8
+    num_heads: 8
+    embed_dim: 512
+    ch_scale: 4
+    dropout_prob: 0.1
+    feat_type: "mfcc" # "gammatone", "mel", "mfcc"
+    decoder_type: "parametric_predictor"
+    num_channels_decoder: 384
+    kernel_size_decoder: 3
+    num_layers_decoder: 3
+    dropout_decoder: 0.5
+
+
+  optimizer:
+    _target_: torch.optim.RAdam
+    _partial_: true
+    lr: 1e-4
+    betas : [0.9, 0.98]
+    eps: 1e-9
+    weight_decay: 1e-6
+
+  scheduler:
+    _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+    _partial_: true
+
+  optim_cfg:
+    T_max: 150
+
+  criterion_config:
+    module: "tr"
+
+EDTRegressorModule:
+  _target_: src.network.RPRegressor_module.RPRegressorModule
+
+  net:
+    _target_: src.network.models.RAPEstimator.RAPEstimator
+    module: "edt"
+    ch_in: 128
+    num_layers: 8
+    num_heads: 8
+    embed_dim: 512
+    ch_scale: 4
+    dropout_prob: 0.1
+    feat_type: "mfcc" # "gammatone", "mel", "mfcc"
+    decoder_type: "parametric_predictor"
+    num_channels_decoder: 384
+    kernel_size_decoder: 3
+    num_layers_decoder: 3
+    dropout_decoder: 0.5
+
+
+  optimizer:
+    _target_: torch.optim.RAdam
+    _partial_: true
+    lr: 1e-4
+    betas : [0.9, 0.98]
+    eps: 1e-9
+    weight_decay: 1e-6
+
+  scheduler:
+    _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+    _partial_: true
+
+  optim_cfg:
+    T_max: 150
+
+  criterion_config:
+    module: "edt"
+
+C80RegressorModule:
+  _target_: src.network.RPRegressor_module.RPRegressorModule
+
+  net:
+    _target_: src.network.models.RAPEstimator.RAPEstimator
+    module: "c80"
+    ch_in: 128
+    num_layers: 8
+    num_heads: 8
+    embed_dim: 512
+    ch_scale: 4
+    dropout_prob: 0.1
+    feat_type: "mfcc" # "gammatone", "mel", "mfcc"
+    decoder_type: "parametric_predictor"
+    num_channels_decoder: 384
+    kernel_size_decoder: 3
+    num_layers_decoder: 3
+    dropout_decoder: 0.5
+
+
+  optimizer:
+    _target_: torch.optim.RAdam
+    _partial_: true
+    lr: 1e-4
+    betas : [0.9, 0.98]
+    eps: 1e-9
+    weight_decay: 1e-6
+
+  scheduler:
+    _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+    _partial_: true
+
+  optim_cfg:
+    T_max: 150
+
+  criterion_config:
+    module: "c80"
+
+C50RegressorModule:
+  _target_: src.network.RPRegressor_module.RPRegressorModule
+
+  net:
+    _target_: src.network.models.RAPEstimator.RAPEstimator
+    module: "c50"
+    ch_in: 128
+    num_layers: 8
+    num_heads: 8
+    embed_dim: 512
+    ch_scale: 4
+    dropout_prob: 0.1
+    feat_type: "mfcc" # "gammatone", "mel", "mfcc"
+    decoder_type: "parametric_predictor"
+    num_channels_decoder: 384
+    kernel_size_decoder: 3
+    num_layers_decoder: 3
+    dropout_decoder: 0.5
+
+
+  optimizer:
+    _target_: torch.optim.RAdam
+    _partial_: true
+    lr: 1e-4
+    betas : [0.9, 0.98]
+    eps: 1e-9
+    weight_decay: 1e-6
+
+  scheduler:
+    _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+    _partial_: true
+
+  optim_cfg:
+    T_max: 150
+
+  criterion_config:
+    module: "c50"
+
+D50RegressorModule:
+  _target_: src.network.RPRegressor_module.RPRegressorModule
+
+  net:
+    _target_: src.network.models.RAPEstimator.RAPEstimator
+    module: "d50"
+    ch_in: 128
+    num_layers: 8
+    num_heads: 8
+    embed_dim: 512
+    ch_scale: 4
+    dropout_prob: 0.1
+    feat_type: "mfcc" # "gammatone", "mel", "mfcc"
+    decoder_type: "parametric_predictor"
+    num_channels_decoder: 384
+    kernel_size_decoder: 3
+    num_layers_decoder: 3
+    dropout_decoder: 0.5
+
+
+  optimizer:
+    _target_: torch.optim.RAdam
+    _partial_: true
+    lr: 1e-4
+    betas : [0.9, 0.98]
+    eps: 1e-9
+    weight_decay: 1e-6
+
+  scheduler:
+    _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+    _partial_: true
+
+  optim_cfg:
+    T_max: 150
+
+  criterion_config:
+    module: "d50"
+
+TsRegressorModule:
+  _target_: src.network.RPRegressor_module.RPRegressorModule
+
+  net:
+    _target_: src.network.models.RAPEstimator.RAPEstimator
+    module: "ts"
+    ch_in: 128
+    num_layers: 8
+    num_heads: 8
+    embed_dim: 512
+    ch_scale: 4
+    dropout_prob: 0.1
+    feat_type: "mfcc" # "gammatone", "mel", "mfcc"
+    decoder_type: "parametric_predictor"
+    num_channels_decoder: 384
+    kernel_size_decoder: 3
+    num_layers_decoder: 3
+    dropout_decoder: 0.5
+
+
+  optimizer:
+    _target_: torch.optim.RAdam
+    _partial_: true
+    lr: 1e-4
+    betas : [0.9, 0.98]
+    eps: 1e-9
+    weight_decay: 1e-6
+
+  scheduler:
+    _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+    _partial_: true
+
+  optim_cfg:
+    T_max: 150
+
+  criterion_config:
+    module: "ts"
+
+volumeRegressorModule:
+  _target_: src.network.volumeRegressor_module.VolumeRegressorModule
+
+  net:
+    _target_: src.network.models.volumeEstimator.VolumeEstimator
+    ch_in: 128
+    num_layers: 8
+    num_heads: 8
+    embed_dim: 512
+    ch_scale: 4
+    dropout_prob: 0.1
+    feat_type: "mfcc" # "gammatone", "mel", "mfcc"
+    decoder_type: "parametric_predictor"
+    num_channels_decoder: 384
+    kernel_size_decoder: 3
+    num_layers_decoder: 3
+    dropout_decoder: 0.5
+
+
+  optimizer:
+    _target_: torch.optim.RAdam
+    _partial_: true
+    lr: 1e-4
+    betas : [0.9, 0.98]
+    eps: 1e-8
+    weight_decay: 1e-6
+
+  scheduler:
+    _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+    _partial_: true
+
+  optim_cfg:
+    T_max: 150
+
+
+
+distSrcRegressorModule:
+  _target_: src.network.distSrcRegressor_module.DistSrcRegressorModule
+
+  net:
+    _target_: src.network.models.distSrcEstimator.DistSrcEstimator
+    ch_in: 128
+    num_layers: 8
+    num_heads: 8
+    embed_dim: 512
+    ch_scale: 4
+    dropout_prob: 0.1
+    feat_type: "mfcc" # "gammatone", "mel", "mfcc"
+    decoder_type: "parametric_predictor"
+    num_channels_decoder: 384
+    kernel_size_decoder: 3
+    num_layers_decoder: 3
+    dropout_decoder: 0.5
+
+
+  optimizer:
+    _target_: torch.optim.RAdam
+    _partial_: true
+    lr: 1e-4
+    betas : [0.9, 0.98]
+    eps: 1e-8
+    weight_decay: 1e-6
+
+  scheduler:
+    _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+    _partial_: true
+
+  optim_cfg:
+    T_max: 220
+

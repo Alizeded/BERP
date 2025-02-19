@@ -1,13 +1,14 @@
+import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from src.network.components.positional_encoding import RelPosEncoding
-from src.network.components.room_encoder_layer import (
+
+from network.components.room_encoder_layer import (
     RelPositionMultiHeadedAttention,
+    RoomFeatureEncoderLayer,
     RotaryPositionMultiHeadedAttention,
     XposMultiHeadedAttention,
-    RoomFeatureEncoderLayer,
 )
+from src.network.components.positional_encoding import RelPosEncoding
 
 
 def init_bert_params(module):
@@ -37,13 +38,13 @@ def init_bert_params(module):
         normal_(module.weight.data)
         if module.padding_idx is not None:
             module.weight.data[module.padding_idx].zero_()
-    if isinstance(
-        module,
-        (
-            RelPositionMultiHeadedAttention,
-            XposMultiHeadedAttention,
+    if (
+        isinstance(module, RelPositionMultiHeadedAttention)
+        or isinstance(module, XposMultiHeadedAttention)
+        or isinstance(
+            module,
             RotaryPositionMultiHeadedAttention,
-        ),
+        )
     ):
         normal_(module.w_q.weight.data)
         normal_(module.w_k.weight.data)
@@ -58,9 +59,11 @@ class RoomFeatureEncoder(nn.Module):
         ch_scale: int = 2,
         dropout: int = 0.1,
         num_layers: int = 8,
-        pos_enc_type: str = "xpos",  # xpos or rel_pos or rope
+        pos_enc_type: str = "xpos",  # xpos or cope or rel_pos or rope
         encoder_layerdrop=0.0,  # probability of dropping a tarnsformer layer
         layer_norm_first=True,
+        gate_ffn: bool = False,
+        ffn_dim_to_multiple: int = 1,
         max_position_len: int = 10000,
     ):
         """Room Feature Encoder Module
@@ -93,6 +96,8 @@ class RoomFeatureEncoder(nn.Module):
                     ch_scale=ch_scale,
                     dropout_prob=dropout,
                     pos_enc_type=pos_enc_type,
+                    gate=gate_ffn,
+                    inner_dim_to_mulitple=ffn_dim_to_multiple,
                 )
                 for _ in range(num_layers)
             ]
@@ -124,7 +129,7 @@ class RoomFeatureEncoder(nn.Module):
 
         x = F.dropout(x, p=self.dropout, training=self.training)
 
-        for layer in self.layers:
+        for _, layer in enumerate(self.layers):
             dropout_probability = np.random.random()
             if not self.training or (dropout_probability > self.layerdrop):
                 x = layer(

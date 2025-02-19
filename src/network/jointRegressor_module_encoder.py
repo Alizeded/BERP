@@ -1,17 +1,17 @@
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
+import einops
 import torch
 from lightning import LightningModule
+from torch.nn import L1Loss, SmoothL1Loss
 from torchmetrics import (
-    MinMetric,
     MaxMetric,
     MeanMetric,
+    MinMetric,
     PearsonCorrCoef,
 )
-import einops
 
 from src.utils.unitary_linear_norm import unitary_norm_inv
-from torch.nn import SmoothL1Loss, L1Loss
 
 # ======================== joint regression module for room feature encoder only========================
 
@@ -37,7 +37,7 @@ class JointRegressorModuleEncoder(LightningModule):
         # also ensures init params will be stored in ckpt
         self.save_hyperparameters(logger=False, ignore="net")
 
-        self.rirRegressor = net
+        self.regressor = net
 
         # loss function
         self.joint_loss_train = SmoothL1Loss()
@@ -48,21 +48,49 @@ class JointRegressorModuleEncoder(LightningModule):
         self.joint_loss_test = L1Loss()
         self.joint_corrcoef_test = PearsonCorrCoef()
 
-        self.Th_weight = self.hparams.optim_cfg.Th_weight
-        self.Tt_weight = self.hparams.optim_cfg.Tt_weight
+        self.sti_weight = self.hparams.optim_cfg.sti_weight
+        self.alcons_weight = self.hparams.optim_cfg.alcons_weight
+        self.tr_weight = self.hparams.optim_cfg.tr_weight
+        self.edt_weight = self.hparams.optim_cfg.edt_weight
+        self.c80_weight = self.hparams.optim_cfg.c80_weight
+        self.c50_weight = self.hparams.optim_cfg.c50_weight
+        self.d50_weight = self.hparams.optim_cfg.d50_weight
+        self.ts_weight = self.hparams.optim_cfg.ts_weight
         self.volume_weight = self.hparams.optim_cfg.volume_weight
         self.dist_src_weight = self.hparams.optim_cfg.dist_src_weight
-        self.azimuth_weight = self.hparams.optim_cfg.azimuth_weight
-        self.elevation_weight = self.hparams.optim_cfg.elevation_weight
 
         # for averaging loss across batches
-        self.train_loss_Th = MeanMetric()
-        self.val_loss_Th = MeanMetric()
-        self.test_loss_Th = MeanMetric()
+        self.train_loss_sti = MeanMetric()
+        self.val_loss_sti = MeanMetric()
+        self.test_loss_sti = MeanMetric()
 
-        self.train_loss_Tt = MeanMetric()
-        self.val_loss_Tt = MeanMetric()
-        self.test_loss_Tt = MeanMetric()
+        self.train_loss_alcons = MeanMetric()
+        self.val_loss_alcons = MeanMetric()
+        self.test_loss_alcons = MeanMetric()
+
+        self.train_loss_tr = MeanMetric()
+        self.val_loss_tr = MeanMetric()
+        self.test_loss_tr = MeanMetric()
+
+        self.train_loss_edt = MeanMetric()
+        self.val_loss_edt = MeanMetric()
+        self.test_loss_edt = MeanMetric()
+
+        self.train_loss_c80 = MeanMetric()
+        self.val_loss_c80 = MeanMetric()
+        self.test_loss_c80 = MeanMetric()
+
+        self.train_loss_c50 = MeanMetric()
+        self.val_loss_c50 = MeanMetric()
+        self.test_loss_c50 = MeanMetric()
+
+        self.train_loss_d50 = MeanMetric()
+        self.val_loss_d50 = MeanMetric()
+        self.test_loss_d50 = MeanMetric()
+
+        self.train_loss_ts = MeanMetric()
+        self.val_loss_ts = MeanMetric()
+        self.test_loss_ts = MeanMetric()
 
         self.train_loss_volume = MeanMetric()
         self.val_loss_volume = MeanMetric()
@@ -72,94 +100,120 @@ class JointRegressorModuleEncoder(LightningModule):
         self.val_loss_dist_src = MeanMetric()
         self.test_loss_dist_src = MeanMetric()
 
-        # self.train_loss_azimuth = MeanMetric()
-        # self.val_loss_azimuth = MeanMetric()
-        # self.test_loss_azimuth = MeanMetric()
-
-        # self.train_loss_elevation = MeanMetric()
-        # self.val_loss_elevation = MeanMetric()
-        # self.test_loss_elevation = MeanMetric()
-
-        # for tracking validation correlation coefficient of Th, Tt, volume, distSrc, azimuthSrc, elevationSrc
-        self.val_corrcoef_Th = MeanMetric()
-        self.val_corrcoef_Tt = MeanMetric()
+        # for tracking validation correlation coefficient of RAP and RGP
+        self.val_corrcoef_sti = MeanMetric()
+        self.val_corrcoef_alcons = MeanMetric()
+        self.val_corrcoef_tr = MeanMetric()
+        self.val_corrcoef_edt = MeanMetric()
+        self.val_corrcoef_c80 = MeanMetric()
+        self.val_corrcoef_c50 = MeanMetric()
+        self.val_corrcoef_d50 = MeanMetric()
+        self.val_corrcoef_ts = MeanMetric()
         self.val_corrcoef_volume = MeanMetric()
         self.val_corrcoef_dist_src = MeanMetric()
-        # self.val_corrcoef_azimuth = MeanMetric()
-        # self.val_corrcoef_elevation = MeanMetric()
 
-        # for tracking evaluation correlation coefficient of Th, Tt, volume, distSrc, azimuthSrc, elevationSrc
-        self.test_corrcoef_Th = MeanMetric()
-        self.test_corrcoef_Tt = MeanMetric()
+        # for tracking evaluation correlation coefficient of RAP and RGP
+        self.test_corrcoef_sti = MeanMetric()
+        self.test_corrcoef_alcons = MeanMetric()
+        self.test_corrcoef_tr = MeanMetric()
+        self.test_corrcoef_edt = MeanMetric()
+        self.test_corrcoef_c80 = MeanMetric()
+        self.test_corrcoef_c50 = MeanMetric()
+        self.test_corrcoef_d50 = MeanMetric()
+        self.test_corrcoef_ts = MeanMetric()
         self.test_corrcoef_volume = MeanMetric()
         self.test_corrcoef_dist_src = MeanMetric()
-        # self.test_corrcoef_azimuth = MeanMetric()
-        # self.test_corrcoef_elevation = MeanMetric()
 
         # for tracking best so far validation best metrics
-        self.val_loss_best_Th = MinMetric()
-        self.val_loss_best_Tt = MinMetric()
+        self.val_loss_best_sti = MinMetric()
+        self.val_loss_best_alcons = MinMetric()
+        self.val_loss_best_tr = MinMetric()
+        self.val_loss_best_edt = MinMetric()
+        self.val_loss_best_c80 = MinMetric()
+        self.val_loss_best_c50 = MinMetric()
+        self.val_loss_best_d50 = MinMetric()
+        self.val_loss_best_ts = MinMetric()
         self.val_loss_best_volume = MinMetric()
         self.val_loss_best_dist_src = MinMetric()
-        # self.val_loss_best_azimuth = MinMetric()
-        # self.val_loss_best_elevation = MinMetric()
 
         # for tracking best of correlation coefficient
-        self.val_corrcoef_best_Th = MaxMetric()
-        self.val_corrcoef_best_Tt = MaxMetric()
+        self.val_corrcoef_best_sti = MaxMetric()
+        self.val_corrcoef_best_alcons = MaxMetric()
+        self.val_corrcoef_best_tr = MaxMetric()
+        self.val_corrcoef_best_edt = MaxMetric()
+        self.val_corrcoef_best_c80 = MaxMetric()
+        self.val_corrcoef_best_c50 = MaxMetric()
+        self.val_corrcoef_best_d50 = MaxMetric()
+        self.val_corrcoef_best_ts = MaxMetric()
         self.val_corrcoef_best_volume = MaxMetric()
         self.val_corrcoef_best_dist_src = MaxMetric()
-        # self.val_corrcoef_best_azimuth = MaxMetric()
-        # self.val_corrcoef_best_elevation = MaxMetric()
 
     def forward(
         self,
         source: torch.Tensor,
         padding_mask: torch.Tensor,
-    ) -> Dict[str, torch.Tensor]:
+    ) -> dict[str, torch.Tensor]:
         """Perform a forward pass through freezed denoiser and rirRegressor.
 
         :param x: A tensor of waveform
         :return: A tensor of estimated Th, Tt, volume, distSrc, azimuthSrc, elevationSrc.
         """
-        return self.rirRegressor(source, padding_mask)
+        net_output = self.regressor(source, padding_mask)
+
+        return net_output
 
     def on_train_start(self) -> None:
         """Lightning hook that is called when training begins."""
         # by default lightning executes validation step sanity checks before training starts,
         # so it's worth to make sure validation metrics don't store results from these checks
-        self.val_loss_Th.reset()
-        self.val_loss_Tt.reset()
+        self.val_loss_sti.reset()
+        self.val_loss_alcons.reset()
+        self.val_loss_tr.reset()
+        self.val_loss_edt.reset()
+        self.val_loss_c80.reset()
+        self.val_loss_c50.reset()
+        self.val_loss_d50.reset()
+        self.val_loss_ts.reset()
         self.val_loss_volume.reset()
         self.val_loss_dist_src.reset()
-        # self.val_loss_azimuth.reset()
-        # self.val_loss_elevation.reset()
 
-        self.val_corrcoef_Th.reset()
-        self.val_corrcoef_Tt.reset()
+        self.val_corrcoef_sti.reset()
+        self.val_corrcoef_alcons.reset()
+        self.val_corrcoef_tr.reset()
+        self.val_corrcoef_edt.reset()
+        self.val_corrcoef_c80.reset()
+        self.val_corrcoef_c50.reset()
+        self.val_corrcoef_d50.reset()
+        self.val_corrcoef_ts.reset()
         self.val_corrcoef_volume.reset()
         self.val_corrcoef_dist_src.reset()
-        # self.val_corrcoef_azimuth.reset()
-        # self.val_corrcoef_elevation.reset()
 
-        self.val_loss_best_Th.reset()
-        self.val_loss_best_Tt.reset()
+        self.val_loss_best_sti.reset()
+        self.val_loss_best_alcons.reset()
+        self.val_loss_best_tr.reset()
+        self.val_loss_best_edt.reset()
+        self.val_loss_best_c80.reset()
+        self.val_loss_best_c50.reset()
+        self.val_loss_best_d50.reset()
+        self.val_loss_best_ts.reset()
         self.val_loss_best_volume.reset()
         self.val_loss_best_dist_src.reset()
-        # self.val_loss_best_azimuth.reset()
-        # self.val_loss_best_elevation.reset()
 
-        self.val_corrcoef_best_Th.reset()
-        self.val_corrcoef_best_Tt.reset()
+        self.val_corrcoef_best_sti.reset()
+        self.val_corrcoef_best_alcons.reset()
+        self.val_corrcoef_best_tr.reset()
+        self.val_corrcoef_best_edt.reset()
+        self.val_corrcoef_best_c80.reset()
+        self.val_corrcoef_best_c50.reset()
+        self.val_corrcoef_best_d50.reset()
+        self.val_corrcoef_best_ts.reset()
         self.val_corrcoef_best_volume.reset()
         self.val_corrcoef_best_dist_src.reset()
-        # self.val_corrcoef_best_azimuth.reset()
-        # self.val_corrcoef_best_elevation.reset()
 
     def model_step(
         self,
-        batch: Dict[str, torch.Tensor],
-    ) -> Dict[str, torch.Tensor]:
+        batch: dict[str, torch.Tensor],
+    ) -> dict[str, torch.Tensor]:
         """Perform a single model step on a batch of data.
 
         :param batch: A batch of data (a dict) containing the input tensor
@@ -171,76 +225,110 @@ class JointRegressorModuleEncoder(LightningModule):
             - A tensor of predictions.
             - A tensor of target labels.
         """
-        Th = batch["groundtruth"]["Th"]
-        Tt = batch["groundtruth"]["Tt"]
+        # get target labels
+        sti = batch["groundtruth"]["sti"]
+        alcons = batch["groundtruth"]["alcons"]
+        tr = batch["groundtruth"]["tr"]
+        edt = batch["groundtruth"]["edt"]
+        c80 = batch["groundtruth"]["c80"]
+        c50 = batch["groundtruth"]["c50"]
+        d50 = batch["groundtruth"]["d50"]
+        ts = batch["groundtruth"]["ts"]
         volume = batch["groundtruth"]["volume"]
         dist_src = batch["groundtruth"]["dist_src"]
-        # azimuth = batch["groundtruth"]["azimuth"]
-        # elevation = batch["groundtruth"]["elevation"]
 
         # network forward pass
         net_output = self.forward(**batch["net_input"])
-        Th_hat = net_output["Th_hat"]
-        Tt_hat = net_output["Tt_hat"]
+        sti_hat = net_output["sti_hat"]
+        alcons_hat = net_output["alcons_hat"]
+        tr_hat = net_output["tr_hat"]
+        edt_hat = net_output["edt_hat"]
+        c80_hat = net_output["c80_hat"]
+        c50_hat = net_output["c50_hat"]
+        d50_hat = net_output["d50_hat"]
+        ts_hat = net_output["ts_hat"]
         volume_hat = net_output["volume_hat"]
         dist_src_hat = net_output["dist_src_hat"]
-        # azimuth_hat = net_output["azimuth_hat"]
-        # elevation_hat = net_output["elevation_hat"]
         padding_mask = net_output["padding_mask"]
 
         if padding_mask is not None and padding_mask.any():
             reverse_padding_mask = padding_mask.logical_not()
             # ---------- padding mask handling ----------
             # Repeat the target labels to match the output shape
-            Th = einops.repeat(Th, "b -> b t", t=Th_hat.shape[1])
-            Tt = einops.repeat(Tt, "b -> b t", t=Tt_hat.shape[1])
+            sti = einops.repeat(sti, "b -> b t", t=sti_hat.shape[1])
+            alcons = einops.repeat(alcons, "b -> b t", t=alcons_hat.shape[1])
+            tr = einops.repeat(tr, "b -> b t", t=tr_hat.shape[1])
+            edt = einops.repeat(edt, "b -> b t", t=edt_hat.shape[1])
+            c80 = einops.repeat(c80, "b -> b t", t=c80_hat.shape[1])
+            c50 = einops.repeat(c50, "b -> b t", t=c50_hat.shape[1])
+            d50 = einops.repeat(d50, "b -> b t", t=d50_hat.shape[1])
+            ts = einops.repeat(ts, "b -> b t", t=ts_hat.shape[1])
             volume = einops.repeat(volume, "b -> b t", t=volume_hat.shape[1])
             dist_src = einops.repeat(dist_src, "b -> b t", t=dist_src_hat.shape[1])
-            # azimuth = einops.repeat(azimuth, "b -> b t", t=azimuth_hat.shape[1])
-            # elevation = einops.repeat(elevation, "b -> b t", t=elevation_hat.shape[1])
 
-            Th_hat = Th_hat.masked_select(reverse_padding_mask)
-            Tt_hat = Tt_hat.masked_select(reverse_padding_mask)
+            # Collapse the time dimension
+            sti_hat = sti_hat.masked_select(reverse_padding_mask)
+            alcons_hat = alcons_hat.masked_select(reverse_padding_mask)
+            tr_hat = tr_hat.masked_select(reverse_padding_mask)
+            edt_hat = edt_hat.masked_select(reverse_padding_mask)
+            c80_hat = c80_hat.masked_select(reverse_padding_mask)
+            c50_hat = c50_hat.masked_select(reverse_padding_mask)
+            d50_hat = d50_hat.masked_select(reverse_padding_mask)
+            ts_hat = ts_hat.masked_select(reverse_padding_mask)
             volume_hat = volume_hat.masked_select(reverse_padding_mask)
             dist_src_hat = dist_src_hat.masked_select(reverse_padding_mask)
-            # azimuth_hat = azimuth_hat.masked_select(reverse_padding_mask)
-            # elevation_hat = elevation_hat.masked_select(reverse_padding_mask)
 
-            Th = Th.masked_select(reverse_padding_mask)
-            Tt = Tt.masked_select(reverse_padding_mask)
+            sti = sti.masked_select(reverse_padding_mask)
+            alcons = alcons.masked_select(reverse_padding_mask)
+            tr = tr.masked_select(reverse_padding_mask)
+            edt = edt.masked_select(reverse_padding_mask)
+            c80 = c80.masked_select(reverse_padding_mask)
+            c50 = c50.masked_select(reverse_padding_mask)
+            d50 = d50.masked_select(reverse_padding_mask)
+            ts = ts.masked_select(reverse_padding_mask)
             volume = volume.masked_select(reverse_padding_mask)
             dist_src = dist_src.masked_select(reverse_padding_mask)
-            # azimuth = azimuth.masked_select(reverse_padding_mask)
-            # elevation = elevation.masked_select(reverse_padding_mask)
 
         else:
             # Repeat the target labels to match the output shape
-            Th = einops.repeat(Th, "b -> b t", t=Th_hat.shape[1])
-            Tt = einops.repeat(Tt, "b -> b t", t=Tt_hat.shape[1])
+            sti = einops.repeat(sti, "b -> b t", t=sti_hat.shape[1])
+            alcons = einops.repeat(alcons, "b -> b t", t=alcons_hat.shape[1])
+            tr = einops.repeat(tr, "b -> b t", t=tr_hat.shape[1])
+            edt = einops.repeat(edt, "b -> b t", t=edt_hat.shape[1])
+            c80 = einops.repeat(c80, "b -> b t", t=c80_hat.shape[1])
+            c50 = einops.repeat(c50, "b -> b t", t=c50_hat.shape[1])
+            d50 = einops.repeat(d50, "b -> b t", t=d50_hat.shape[1])
+            ts = einops.repeat(ts, "b -> b t", t=ts_hat.shape[1])
             volume = einops.repeat(volume, "b -> b t", t=volume_hat.shape[1])
             dist_src = einops.repeat(dist_src, "b -> b t", t=dist_src_hat.shape[1])
-            # azimuth = einops.repeat(azimuth, "b -> b t", t=azimuth_hat.shape[1])
-            # elevation = einops.repeat(elevation, "b -> b t", t=elevation_hat.shape[1])
 
-        loss_Th = self.joint_loss_train(Th_hat, Th)
-        loss_Tt = self.joint_loss_train(Tt_hat, Tt)
+        loss_sti = self.joint_loss_train(sti_hat, sti)
+        loss_alcons = self.joint_loss_train(alcons_hat, alcons)
+        loss_tr = self.joint_loss_train(tr_hat, tr)
+        loss_edt = self.joint_loss_train(edt_hat, edt)
+        loss_c80 = self.joint_loss_train(c80_hat, c80)
+        loss_c50 = self.joint_loss_train(c50_hat, c50)
+        loss_d50 = self.joint_loss_train(d50_hat, d50)
+        loss_ts = self.joint_loss_train(ts_hat, ts)
         loss_volume = self.joint_loss_train(volume_hat, volume)
         loss_dist_src = self.joint_loss_train(dist_src_hat, dist_src)
-        # loss_azimuth = self.joint_loss_train(azimuth_hat, azimuth)
-        # loss_elevation = self.joint_loss_train(elevation_hat, elevation)
 
         return {
-            "loss_Th": loss_Th,
-            "loss_Tt": loss_Tt,
+            "loss_sti": loss_sti,
+            "loss_alcons": loss_alcons,
+            "loss_tr": loss_tr,
+            "loss_edt": loss_edt,
+            "loss_c80": loss_c80,
+            "loss_c50": loss_c50,
+            "loss_d50": loss_d50,
+            "loss_ts": loss_ts,
             "loss_volume": loss_volume,
             "loss_dist_src": loss_dist_src,
-            # "loss_azimuth": loss_azimuth,
-            # "loss_elevation": loss_elevation,
         }
 
     def training_step(
         self,
-        batch: Dict[str, torch.Tensor],
+        batch: dict[str, torch.Tensor],
         batch_idx: int,
     ) -> torch.Tensor:
         """Perform a single training step on a batch of data from the training set.
@@ -254,18 +342,28 @@ class JointRegressorModuleEncoder(LightningModule):
 
         output = self.model_step(batch)
 
-        loss_Th = output["loss_Th"]
-        loss_Tt = output["loss_Tt"]
+        loss_sti = output["loss_sti"]
+        loss_alcons = output["loss_alcons"]
+        loss_tr = output["loss_tr"]
+        loss_edt = output["loss_edt"]
+        loss_c80 = output["loss_c80"]
+        loss_c50 = output["loss_c50"]
+        loss_d50 = output["loss_d50"]
+        loss_ts = output["loss_ts"]
         loss_volume = output["loss_volume"]
         loss_dist_src = output["loss_dist_src"]
-        # loss_azimuth = output["loss_azimuth"]
-        # loss_elevation = output["loss_elevation"]
 
         # ------------------- other parameters -------------------
 
         # update metrics of Th, Tt, volume, distSrc, azimuthSrc, elevationSrc loss
-        self.train_loss_Th(loss_Th)
-        self.train_loss_Tt(loss_Tt)
+        self.train_loss_sti(loss_sti)
+        self.train_loss_alcons(loss_alcons)
+        self.train_loss_tr(loss_tr)
+        self.train_loss_edt(loss_edt)
+        self.train_loss_c80(loss_c80)
+        self.train_loss_c50(loss_c50)
+        self.train_loss_d50(loss_d50)
+        self.train_loss_ts(loss_ts)
         self.train_loss_volume(loss_volume)
         self.train_loss_dist_src(loss_dist_src)
         # self.train_loss_azimuth(loss_azimuth)
@@ -273,18 +371,22 @@ class JointRegressorModuleEncoder(LightningModule):
 
         # ------------------- total loss -------------------
         total_loss = (
-            self.Th_weight * loss_Th
-            + self.Tt_weight * loss_Tt
+            self.sti_weight * loss_sti
+            + self.alcons_weight * loss_alcons
+            + self.tr_weight * loss_tr
+            + self.edt_weight * loss_edt
+            + self.c80_weight * loss_c80
+            + self.c50_weight * loss_c50
+            + self.d50_weight * loss_d50
+            + self.ts_weight * loss_ts
             + self.volume_weight * loss_volume
             + self.dist_src_weight * loss_dist_src
-            # + self.azimuth_weight * loss_azimuth
-            # + self.elevation_weight * loss_elevation
         )
 
         # ------------------- log metrics -------------------
         self.log(
-            "train/loss/Th",
-            self.train_loss_Th,
+            "train/loss/sti",
+            self.train_loss_sti,
             on_step=True,
             on_epoch=True,
             prog_bar=True,
@@ -292,8 +394,62 @@ class JointRegressorModuleEncoder(LightningModule):
         )
 
         self.log(
-            "train/loss/Tt",
-            self.train_loss_Tt,
+            "train/loss/alcons",
+            self.train_loss_alcons,
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "train/loss/tr",
+            self.train_loss_tr,
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "train/loss/edt",
+            self.train_loss_edt,
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "train/loss/c80",
+            self.train_loss_c80,
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "train/loss/c50",
+            self.train_loss_c50,
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "train/loss/d50",
+            self.train_loss_d50,
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "train/loss/ts",
+            self.train_loss_ts,
             on_step=True,
             on_epoch=True,
             prog_bar=True,
@@ -318,24 +474,6 @@ class JointRegressorModuleEncoder(LightningModule):
             sync_dist=True,
         )
 
-        # self.log(
-        #     "train/loss/azimuth_src",
-        #     self.train_loss_azimuth,
-        #     on_step=True,
-        #     on_epoch=True,
-        #     prog_bar=True,
-        #     sync_dist=True,
-        # )
-
-        # self.log(
-        #     "train/loss/elevation_src",
-        #     self.train_loss_elevation,
-        #     on_step=True,
-        #     on_epoch=True,
-        #     prog_bar=True,
-        #     sync_dist=True,
-        # )
-
         self.log(
             "train/loss/total",
             total_loss,
@@ -354,7 +492,7 @@ class JointRegressorModuleEncoder(LightningModule):
 
     def validation_step(
         self,
-        batch: Dict[str, torch.Tensor],
+        batch: dict[str, torch.Tensor],
         batch_idx: int,
     ) -> None:
         """Perform a single validation step on a batch of data from the validation set.
@@ -364,31 +502,58 @@ class JointRegressorModuleEncoder(LightningModule):
             target elevationSrc.
         :param batch_idx: The index of the current batch.
         """
-        Th = batch["groundtruth"]["Th"]
-        Tt = batch["groundtruth"]["Tt"]
+        # get target labels
+        sti = batch["groundtruth"]["sti"]
+        alcons = batch["groundtruth"]["alcons"]
+        tr = batch["groundtruth"]["tr"]
+        edt = batch["groundtruth"]["edt"]
+        c80 = batch["groundtruth"]["c80"]
+        c50 = batch["groundtruth"]["c50"]
+        d50 = batch["groundtruth"]["d50"]
+        ts = batch["groundtruth"]["ts"]
         volume = batch["groundtruth"]["volume"]
         dist_src = batch["groundtruth"]["dist_src"]
-        # azimuth = batch["groundtruth"]["azimuth"]
-        # elevation = batch["groundtruth"]["elevation"]
 
         # network forward pass
         net_output = self.forward(**batch["net_input"])
-        Th_hat = net_output["Th_hat"]
-        Tt_hat = net_output["Tt_hat"]
+        sti_hat = net_output["sti_hat"]
+        alcons_hat = net_output["alcons_hat"]
+        tr_hat = net_output["tr_hat"]
+        edt_hat = net_output["edt_hat"]
+        c80_hat = net_output["c80_hat"]
+        c50_hat = net_output["c50_hat"]
+        d50_hat = net_output["d50_hat"]
+        ts_hat = net_output["ts_hat"]
         volume_hat = net_output["volume_hat"]
         dist_src_hat = net_output["dist_src_hat"]
-        # azimuth_hat = net_output["azimuth_hat"]
-        # elevation_hat = net_output["elevation_hat"]
         padding_mask = net_output["padding_mask"]
 
         if padding_mask is not None and padding_mask.any():
             reverse_padding_mask = padding_mask.logical_not()
             # ---------- padding mask handling ----------
             # Collapse the time dimension
-            Th_hat = (Th_hat * reverse_padding_mask).sum(
+            sti_hat = (sti_hat * reverse_padding_mask).sum(
                 dim=1
             ) / reverse_padding_mask.sum(dim=1)
-            Tt_hat = (Tt_hat * reverse_padding_mask).sum(
+            alcons_hat = (alcons_hat * reverse_padding_mask).sum(
+                dim=1
+            ) / reverse_padding_mask.sum(dim=1)
+            tr_hat = (tr_hat * reverse_padding_mask).sum(
+                dim=1
+            ) / reverse_padding_mask.sum(dim=1)
+            edt_hat = (edt_hat * reverse_padding_mask).sum(
+                dim=1
+            ) / reverse_padding_mask.sum(dim=1)
+            c80_hat = (c80_hat * reverse_padding_mask).sum(
+                dim=1
+            ) / reverse_padding_mask.sum(dim=1)
+            c50_hat = (c50_hat * reverse_padding_mask).sum(
+                dim=1
+            ) / reverse_padding_mask.sum(dim=1)
+            d50_hat = (d50_hat * reverse_padding_mask).sum(
+                dim=1
+            ) / reverse_padding_mask.sum(dim=1)
+            ts_hat = (ts_hat * reverse_padding_mask).sum(
                 dim=1
             ) / reverse_padding_mask.sum(dim=1)
             volume_hat = (volume_hat * reverse_padding_mask).sum(
@@ -397,66 +562,84 @@ class JointRegressorModuleEncoder(LightningModule):
             dist_src_hat = (dist_src_hat * reverse_padding_mask).sum(
                 dim=1
             ) / reverse_padding_mask.sum(dim=1)
-            # azimuth_hat = (azimuth_hat * reverse_padding_mask).sum(
-            #     dim=1
-            # ) / reverse_padding_mask.sum(dim=1)
-            # elevation_hat = (elevation_hat * reverse_padding_mask).sum(
-            #     dim=1
-            # ) / reverse_padding_mask.sum(dim=1)
 
         else:
             # Collapse the time dimension
-            Th_hat = Th_hat.mean(dim=1)
-            Tt_hat = Tt_hat.mean(dim=1)
+            sti_hat = sti_hat.mean(dim=1)
+            alcons_hat = alcons_hat.mean(dim=1)
+            tr_hat = tr_hat.mean(dim=1)
+            edt_hat = edt_hat.mean(dim=1)
+            c80_hat = c80_hat.mean(dim=1)
+            c50_hat = c50_hat.mean(dim=1)
+            d50_hat = d50_hat.mean(dim=1)
+            ts_hat = ts_hat.mean(dim=1)
             volume_hat = volume_hat.mean(dim=1)
             dist_src_hat = dist_src_hat.mean(dim=1)
-            # azimuth_hat = azimuth_hat.mean(dim=1)
-            # elevation_hat = elevation_hat.mean(dim=1)
 
         # update metrics of Th, Tt, volume, distSrc loss and correlation coefficient
-        loss_Th = self.joint_loss_val(Th_hat, Th)
-        loss_Tt = self.joint_loss_val(Tt_hat, Tt)
+        loss_sti = self.joint_loss_val(sti_hat, sti)
+        loss_alcons = self.joint_loss_val(alcons_hat, alcons)
+        loss_tr = self.joint_loss_val(tr_hat, tr)
+        loss_edt = self.joint_loss_val(edt_hat, edt)
+        loss_c80 = self.joint_loss_val(c80_hat, c80)
+        loss_c50 = self.joint_loss_val(c50_hat, c50)
+        loss_d50 = self.joint_loss_val(d50_hat, d50)
+        loss_ts = self.joint_loss_val(ts_hat, ts)
         loss_volume = self.joint_loss_val(volume_hat, volume)
         loss_dist_src = self.joint_loss_val(dist_src_hat, dist_src)
-        # loss_azimuth_src = self.joint_loss_val(azimuth_hat, azimuth)
-        # loss_elevation_src = self.joint_loss_val(elevation_hat, elevation)
 
-        corrcoef_Th = self.joint_corrcoef_val(Th_hat, Th)
-        corrcoef_Tt = self.joint_corrcoef_val(Tt_hat, Tt)
+        corrcoef_sti = self.joint_corrcoef_val(sti_hat, sti)
+        corrcoef_alcons = self.joint_corrcoef_val(alcons_hat, alcons)
+        corrcoef_tr = self.joint_corrcoef_val(tr_hat, tr)
+        corrcoef_edt = self.joint_corrcoef_val(edt_hat, edt)
+        corrcoef_c80 = self.joint_corrcoef_val(c80_hat, c80)
+        corrcoef_c50 = self.joint_corrcoef_val(c50_hat, c50)
+        corrcoef_d50 = self.joint_corrcoef_val(d50_hat, d50)
+        corrcoef_ts = self.joint_corrcoef_val(ts_hat, ts)
         corrcoef_volume = self.joint_corrcoef_val(volume_hat, volume)
         corrcoef_dist_src = self.joint_corrcoef_val(dist_src_hat, dist_src)
-        # corrcoef_azimuth_src = self.joint_corrcoef_val(azimuth_hat, azimuth)
-        # corrcoef_elevation_src = self.joint_corrcoef_val(elevation_hat, elevation)
 
-        self.val_loss_Th(loss_Th)
-        self.val_loss_Tt(loss_Tt)
+        self.val_loss_sti(loss_sti)
+        self.val_loss_alcons(loss_alcons)
+        self.val_loss_tr(loss_tr)
+        self.val_loss_edt(loss_edt)
+        self.val_loss_c80(loss_c80)
+        self.val_loss_c50(loss_c50)
+        self.val_loss_d50(loss_d50)
+        self.val_loss_ts(loss_ts)
         self.val_loss_volume(loss_volume)
         self.val_loss_dist_src(loss_dist_src)
-        # self.val_loss_azimuth(loss_azimuth_src)
-        # self.val_loss_elevation(loss_elevation_src)
 
-        self.val_corrcoef_Th(corrcoef_Th)
-        self.val_corrcoef_Tt(corrcoef_Tt)
+        self.val_corrcoef_sti(corrcoef_sti)
+        self.val_corrcoef_alcons(corrcoef_alcons)
+        self.val_corrcoef_tr(corrcoef_tr)
+        self.val_corrcoef_edt(corrcoef_edt)
+        self.val_corrcoef_c80(corrcoef_c80)
+        self.val_corrcoef_c50(corrcoef_c50)
+        self.val_corrcoef_d50(corrcoef_d50)
+        self.val_corrcoef_ts(corrcoef_ts)
         self.val_corrcoef_volume(corrcoef_volume)
         self.val_corrcoef_dist_src(corrcoef_dist_src)
-        # self.val_corrcoef_azimuth(corrcoef_azimuth_src)
-        # self.val_corrcoef_elevation(corrcoef_elevation_src)
 
         # ------------------- total loss -------------------
 
         total_loss = (
-            self.Th_weight * loss_Th
-            + self.Tt_weight * loss_Tt
+            self.sti_weight * loss_sti
+            + self.alcons_weight * loss_alcons
+            + self.tr_weight * loss_tr
+            + self.edt_weight * loss_edt
+            + self.c80_weight * loss_c80
+            + self.c50_weight * loss_c50
+            + self.d50_weight * loss_d50
+            + self.ts_weight * loss_ts
             + self.volume_weight * loss_volume
             + self.dist_src_weight * loss_dist_src
-            # + self.azimuth_weight * loss_azimuth_src
-            # + self.elevation_weight * loss_elevation_src
         )
 
         # ------------------- log metrics -------------------
         self.log(
-            "val/loss/Th",
-            self.val_loss_Th,
+            "val/loss/sti",
+            self.val_loss_sti,
             on_step=False,
             on_epoch=True,
             prog_bar=True,
@@ -464,8 +647,8 @@ class JointRegressorModuleEncoder(LightningModule):
         )
 
         self.log(
-            "val/corrcoef/Th",
-            self.val_corrcoef_Th,
+            "val/corrcoef/sti",
+            self.val_corrcoef_sti,
             on_step=False,
             on_epoch=True,
             prog_bar=True,
@@ -473,8 +656,8 @@ class JointRegressorModuleEncoder(LightningModule):
         )
 
         self.log(
-            "val/loss/Tt",
-            self.val_loss_Tt,
+            "val/loss/alcons",
+            self.val_loss_alcons,
             on_step=False,
             on_epoch=True,
             prog_bar=True,
@@ -482,8 +665,116 @@ class JointRegressorModuleEncoder(LightningModule):
         )
 
         self.log(
-            "val/corrcoef/Tt",
-            self.val_corrcoef_Tt,
+            "val/corrcoef/alcons",
+            self.val_corrcoef_alcons,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "val/loss/tr",
+            self.val_loss_tr,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "val/corrcoef/tr",
+            self.val_corrcoef_tr,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "val/loss/edt",
+            self.val_loss_edt,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "val/corrcoef/edt",
+            self.val_corrcoef_edt,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "val/loss/c80",
+            self.val_loss_c80,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "val/corrcoef/c80",
+            self.val_corrcoef_c80,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "val/loss/c50",
+            self.val_loss_c50,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "val/corrcoef/c50",
+            self.val_corrcoef_c50,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "val/loss/d50",
+            self.val_loss_d50,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "val/corrcoef/d50",
+            self.val_corrcoef_d50,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "val/loss/ts",
+            self.val_loss_ts,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "val/corrcoef/ts",
+            self.val_corrcoef_ts,
             on_step=False,
             on_epoch=True,
             prog_bar=True,
@@ -526,42 +817,6 @@ class JointRegressorModuleEncoder(LightningModule):
             sync_dist=True,
         )
 
-        # self.log(
-        #     "val/loss/azimuth_src",
-        #     self.val_loss_azimuth,
-        #     on_step=False,
-        #     on_epoch=True,
-        #     prog_bar=True,
-        #     sync_dist=True,
-        # )
-
-        # self.log(
-        #     "val/corrcoef/azimuth",
-        #     self.val_corrcoef_azimuth,
-        #     on_step=False,
-        #     on_epoch=True,
-        #     prog_bar=True,
-        #     sync_dist=True,
-        # )
-
-        # self.log(
-        #     "val/loss/elevation_src",
-        #     self.val_loss_elevation,
-        #     on_step=False,
-        #     on_epoch=True,
-        #     prog_bar=True,
-        #     sync_dist=True,
-        # )
-
-        # self.log(
-        #     "val/corrcoef/elevation",
-        #     self.val_corrcoef_elevation,
-        #     on_step=False,
-        #     on_epoch=True,
-        #     prog_bar=True,
-        #     sync_dist=True,
-        # )
-
         self.log(
             "val/loss/total",
             total_loss,
@@ -574,16 +829,26 @@ class JointRegressorModuleEncoder(LightningModule):
     def on_validation_epoch_end(self) -> None:
         "Lightning hook that is called when a validation epoch ends."
         # ------------------- best so far validation loss -------------------
-        metric_Th = self.val_loss_Th.compute()  # get current val metric
-        metric_Tt = self.val_loss_Tt.compute()  # get current val metric
+        metric_sti = self.val_loss_sti.compute()  # get current val metric
+        metric_alcons = self.val_loss_alcons.compute()  # get current val metric
+        metric_tr = self.val_loss_tr.compute()  # get current val metric
+        metric_edt = self.val_loss_edt.compute()  # get current val metric
+        metric_c80 = self.val_loss_c80.compute()  # get current val metric
+        metric_c50 = self.val_loss_c50.compute()  # get current val metric
+        metric_d50 = self.val_loss_d50.compute()  # get current val metric
+        metric_ts = self.val_loss_ts.compute()  # get current val metric
         metric_volume = self.val_loss_volume.compute()  # get current val metric
         metric_dist_src = self.val_loss_dist_src.compute()  # get current val metric
-        # metric_azimuth = self.val_loss_azimuth.compute()  # get current val metric
-        # metric_elevation = self.val_loss_elevation.compute()  # get current val metric
 
         # ------------- best so far validation correlation coefficient ------------
-        metric_Th_corrcoef = self.val_corrcoef_Th.compute()
-        metric_Tt_corrcoef = self.val_corrcoef_Tt.compute()
+        metric_sti_corrcoef = self.val_corrcoef_sti.compute()
+        metric_alcons_corrcoef = self.val_corrcoef_alcons.compute()
+        metric_tr_corrcoef = self.val_corrcoef_tr.compute()
+        metric_edt_corrcoef = self.val_corrcoef_edt.compute()
+        metric_c80_corrcoef = self.val_corrcoef_c80.compute()
+        metric_c50_corrcoef = self.val_corrcoef_c50.compute()
+        metric_d50_corrcoef = self.val_corrcoef_d50.compute()
+        metric_ts_corrcoef = self.val_corrcoef_ts.compute()
         metric_volume_corrcoef = self.val_corrcoef_volume.compute()
         metric_dist_src_corrcoef = self.val_corrcoef_dist_src.compute()
         # metric_azimuth_corrcoef = self.val_corrcoef_azimuth.compute()
@@ -591,30 +856,42 @@ class JointRegressorModuleEncoder(LightningModule):
 
         # update best so far val metric of Th, Tt, volume, distSrc, azimuthSrc, elevationSrc
         # update best so far val metric of loss
-        self.val_loss_best_Th(metric_Th)  # update best so far val metric
-        self.val_loss_best_Tt(metric_Tt)  # update best so far val metric
+        self.val_loss_best_sti(metric_sti)  # update best so far val metric
+        self.val_loss_best_alcons(metric_alcons)  # update best so far val metric
+        self.val_loss_best_tr(metric_tr)  # update best so far val metric
+        self.val_loss_best_edt(metric_edt)  # update best so far val metric
+        self.val_loss_best_c80(metric_c80)  # update best so far val metric
+        self.val_loss_best_c50(metric_c50)  # update best so far val metric
+        self.val_loss_best_d50(metric_d50)  # update best so far val metric
+        self.val_loss_best_ts(metric_ts)  # update best so far val metric
         self.val_loss_best_volume(metric_volume)  # update best so far val metric
         self.val_loss_best_dist_src(metric_dist_src)  # update best so far val metric
-        # self.val_loss_best_azimuth(metric_azimuth)  # update best so far val metric
-        # self.val_loss_best_elevation(metric_elevation)  # update best so far val metric
 
         # update best so far val metric of correlation coefficient
-        self.val_corrcoef_best_Th(metric_Th_corrcoef)
-        self.val_corrcoef_best_Tt(metric_Tt_corrcoef)
+        self.val_corrcoef_best_sti(metric_sti_corrcoef)
+        self.val_corrcoef_best_alcons(metric_alcons_corrcoef)
+        self.val_corrcoef_best_tr(metric_tr_corrcoef)
+        self.val_corrcoef_best_edt(metric_edt_corrcoef)
+        self.val_corrcoef_best_c80(metric_c80_corrcoef)
+        self.val_corrcoef_best_c50(metric_c50_corrcoef)
+        self.val_corrcoef_best_d50(metric_d50_corrcoef)
+        self.val_corrcoef_best_ts(metric_ts_corrcoef)
         self.val_corrcoef_best_volume(metric_volume_corrcoef)
         self.val_corrcoef_best_dist_src(metric_dist_src_corrcoef)
-        # self.val_corrcoef_best_azimuth(metric_azimuth_corrcoef)
-        # self.val_corrcoef_best_elevation(metric_elevation_corrcoef)
 
         # ------------------- total best so far validation loss -------------------
 
         total_loss_best = (
-            self.Th_weight * self.val_loss_best_Th
-            + self.Tt_weight * self.val_loss_best_Tt
+            self.sti_weight * self.val_loss_best_sti
+            + self.alcons_weight * self.val_loss_best_alcons
+            + self.tr_weight * self.val_loss_best_tr
+            + self.edt_weight * self.val_loss_best_edt
+            + self.c80_weight * self.val_loss_best_c80
+            + self.c50_weight * self.val_loss_best_c50
+            + self.d50_weight * self.val_loss_best_d50
+            + self.ts_weight * self.val_loss_best_ts
             + self.volume_weight * self.val_loss_best_volume
             + self.dist_src_weight * self.val_loss_best_dist_src
-            # + self.azimuth_weight * self.val_loss_best_azimuth
-            # + self.elevation_weight * self.val_loss_best_elevation
         )
 
         # log `val_loss_best` as a value through `.compute()` method, instead of as a metric object
@@ -623,15 +900,57 @@ class JointRegressorModuleEncoder(LightningModule):
         # ------------------- log best so far validation loss -------------------
 
         self.log(
-            "val/loss_best/Th",
-            self.val_loss_best_Th.compute(),
+            "val/loss_best/sti",
+            self.val_loss_best_sti.compute(),
             sync_dist=True,
             prog_bar=True,
         )
 
         self.log(
-            "val/loss_best/Tt",
-            self.val_loss_best_Tt.compute(),
+            "val/loss_best/alcons",
+            self.val_loss_best_alcons.compute(),
+            sync_dist=True,
+            prog_bar=True,
+        )
+
+        self.log(
+            "val/loss_best/tr",
+            self.val_loss_best_tr.compute(),
+            sync_dist=True,
+            prog_bar=True,
+        )
+
+        self.log(
+            "val/loss_best/edt",
+            self.val_loss_best_edt.compute(),
+            sync_dist=True,
+            prog_bar=True,
+        )
+
+        self.log(
+            "val/loss_best/c80",
+            self.val_loss_best_c80.compute(),
+            sync_dist=True,
+            prog_bar=True,
+        )
+
+        self.log(
+            "val/loss_best/c50",
+            self.val_loss_best_c50.compute(),
+            sync_dist=True,
+            prog_bar=True,
+        )
+
+        self.log(
+            "val/loss_best/d50",
+            self.val_loss_best_d50.compute(),
+            sync_dist=True,
+            prog_bar=True,
+        )
+
+        self.log(
+            "val/loss_best/ts",
+            self.val_loss_best_ts.compute(),
             sync_dist=True,
             prog_bar=True,
         )
@@ -650,20 +969,6 @@ class JointRegressorModuleEncoder(LightningModule):
             prog_bar=True,
         )
 
-        # self.log(
-        #     "val/loss_best/azimuth_src",
-        #     self.val_loss_best_azimuth.compute(),
-        #     sync_dist=True,
-        #     prog_bar=True,
-        # )
-
-        # self.log(
-        #     "val/loss_best/elevation_src",
-        #     self.val_loss_best_elevation.compute(),
-        #     sync_dist=True,
-        #     prog_bar=True,
-        # )
-
         self.log(
             "val/loss_best/total",
             total_loss_best.compute(),
@@ -674,15 +979,57 @@ class JointRegressorModuleEncoder(LightningModule):
         # ------------------- log best so far validation correlation coefficient -------------------
         # log `val_loss_best` as a value through `.compute()` method, instead of as a metric object
         self.log(
-            "val/corrcoef_best/Th",
-            self.val_corrcoef_best_Th.compute(),
+            "val/corrcoef_best/sti",
+            self.val_corrcoef_best_sti.compute(),
             sync_dist=True,
             prog_bar=True,
         )
 
         self.log(
-            "val/corrcoef_best/Tt",
-            self.val_corrcoef_best_Tt.compute(),
+            "val/corrcoef_best/alcons",
+            self.val_corrcoef_best_alcons.compute(),
+            sync_dist=True,
+            prog_bar=True,
+        )
+
+        self.log(
+            "val/corrcoef_best/tr",
+            self.val_corrcoef_best_tr.compute(),
+            sync_dist=True,
+            prog_bar=True,
+        )
+
+        self.log(
+            "val/corrcoef_best/edt",
+            self.val_corrcoef_best_edt.compute(),
+            sync_dist=True,
+            prog_bar=True,
+        )
+
+        self.log(
+            "val/corrcoef_best/c80",
+            self.val_corrcoef_best_c80.compute(),
+            sync_dist=True,
+            prog_bar=True,
+        )
+
+        self.log(
+            "val/corrcoef_best/c50",
+            self.val_corrcoef_best_c50.compute(),
+            sync_dist=True,
+            prog_bar=True,
+        )
+
+        self.log(
+            "val/corrcoef_best/d50",
+            self.val_corrcoef_best_d50.compute(),
+            sync_dist=True,
+            prog_bar=True,
+        )
+
+        self.log(
+            "val/corrcoef_best/ts",
+            self.val_corrcoef_best_ts.compute(),
             sync_dist=True,
             prog_bar=True,
         )
@@ -701,23 +1048,9 @@ class JointRegressorModuleEncoder(LightningModule):
             prog_bar=True,
         )
 
-        # self.log(
-        #     "val/corrcoef_best/azimuth_src",
-        #     self.val_corrcoef_best_azimuth.compute(),
-        #     sync_dist=True,
-        #     prog_bar=True,
-        # )
-
-        # self.log(
-        #     "val/corrcoef_best/elevation_src",
-        #     self.val_corrcoef_best_elevation.compute(),
-        #     sync_dist=True,
-        #     prog_bar=True,
-        # )
-
     def test_step(
         self,
-        batch: Dict[str, torch.Tensor],
+        batch: dict[str, torch.Tensor],
         batch_idx: int,
     ) -> None:
         """Perform a single test step on a batch of data from the test set.
@@ -726,30 +1059,56 @@ class JointRegressorModuleEncoder(LightningModule):
             labels.
         :param batch_idx: The index of the current batch.
         """
-        Th = batch["groundtruth"]["Th"]
-        Tt = batch["groundtruth"]["Tt"]
+        sti = batch["groundtruth"]["sti"]
+        alcons = batch["groundtruth"]["alcons"]
+        tr = batch["groundtruth"]["tr"]
+        edt = batch["groundtruth"]["edt"]
+        c80 = batch["groundtruth"]["c80"]
+        c50 = batch["groundtruth"]["c50"]
+        d50 = batch["groundtruth"]["d50"]
+        ts = batch["groundtruth"]["ts"]
         volume = batch["groundtruth"]["volume"]
         dist_src = batch["groundtruth"]["dist_src"]
-        # azimuth = batch["groundtruth"]["azimuth"]
-        # elevation = batch["groundtruth"]["elevation"]
 
         net_output = self.forward(**batch["net_input"])
-        Th_hat = net_output["Th_hat"]
-        Tt_hat = net_output["Tt_hat"]
+        sti_hat = net_output["sti_hat"]
+        alcons_hat = net_output["alcons_hat"]
+        tr_hat = net_output["tr_hat"]
+        edt_hat = net_output["edt_hat"]
+        c80_hat = net_output["c80_hat"]
+        c50_hat = net_output["c50_hat"]
+        d50_hat = net_output["d50_hat"]
+        ts_hat = net_output["ts_hat"]
         volume_hat = net_output["volume_hat"]
         dist_src_hat = net_output["dist_src_hat"]
-        # azimuth_hat = net_output["azimuth_hat"]
-        # elevation_hat = net_output["elevation_hat"]
         padding_mask = net_output["padding_mask"]
 
         if padding_mask is not None and padding_mask.any():
             reverse_padding_mask = padding_mask.logical_not()
             # ---------- padding mask handling ----------
             # Collapse the time dimension
-            Th_hat = (Th_hat * reverse_padding_mask).sum(
+            sti_hat = (sti_hat * reverse_padding_mask).sum(
                 dim=1
             ) / reverse_padding_mask.sum(dim=1)
-            Tt_hat = (Tt_hat * reverse_padding_mask).sum(
+            alcons_hat = (alcons_hat * reverse_padding_mask).sum(
+                dim=1
+            ) / reverse_padding_mask.sum(dim=1)
+            tr_hat = (tr_hat * reverse_padding_mask).sum(
+                dim=1
+            ) / reverse_padding_mask.sum(dim=1)
+            edt_hat = (edt_hat * reverse_padding_mask).sum(
+                dim=1
+            ) / reverse_padding_mask.sum(dim=1)
+            c80_hat = (c80_hat * reverse_padding_mask).sum(
+                dim=1
+            ) / reverse_padding_mask.sum(dim=1)
+            c50_hat = (c50_hat * reverse_padding_mask).sum(
+                dim=1
+            ) / reverse_padding_mask.sum(dim=1)
+            d50_hat = (d50_hat * reverse_padding_mask).sum(
+                dim=1
+            ) / reverse_padding_mask.sum(dim=1)
+            ts_hat = (ts_hat * reverse_padding_mask).sum(
                 dim=1
             ) / reverse_padding_mask.sum(dim=1)
             volume_hat = (volume_hat * reverse_padding_mask).sum(
@@ -758,71 +1117,70 @@ class JointRegressorModuleEncoder(LightningModule):
             dist_src_hat = (dist_src_hat * reverse_padding_mask).sum(
                 dim=1
             ) / reverse_padding_mask.sum(dim=1)
-            # azimuth_hat = (azimuth_hat * reverse_padding_mask).sum(
-            #     dim=1
-            # ) / reverse_padding_mask.sum(dim=1)
-            # elevation_hat = (elevation_hat * reverse_padding_mask).sum(
-            #     dim=1
-            # ) / reverse_padding_mask.sum(dim=1)
 
         else:
             # Collapse the time dimension
-            Th_hat = Th_hat.mean(dim=1)
-            Tt_hat = Tt_hat.mean(dim=1)
+            sti_hat = sti_hat.mean(dim=1)
+            alcons_hat = alcons_hat.mean(dim=1)
+            tr_hat = tr_hat.mean(dim=1)
+            edt_hat = edt_hat.mean(dim=1)
+            c80_hat = c80_hat.mean(dim=1)
+            c50_hat = c50_hat.mean(dim=1)
+            d50_hat = d50_hat.mean(dim=1)
+            ts_hat = ts_hat.mean(dim=1)
             volume_hat = volume_hat.mean(dim=1)
             dist_src_hat = dist_src_hat.mean(dim=1)
-            # azimuth_hat = azimuth_hat.mean(dim=1)
-            # elevation_hat = elevation_hat.mean(dim=1)
-
-        # ------------------- inverse unitary normalization -------------------
-        Th_hat = unitary_norm_inv(Th_hat, lb=0.005, ub=0.276)
-        Th = unitary_norm_inv(Th, lb=0.005, ub=0.276)
-        volume_hat = unitary_norm_inv(volume_hat, lb=1.5051, ub=3.9542)
-        volume = unitary_norm_inv(volume, lb=1.5051, ub=3.9542)
-        dist_src_hat = unitary_norm_inv(dist_src_hat, lb=0.191, ub=28.350)
-        dist_src = unitary_norm_inv(dist_src, lb=0.191, ub=28.350)
-        # azimuth_hat = unitary_norm_inv(azimuth_hat, lb=-1.000, ub=1.000)
-        # azimuth = unitary_norm_inv(azimuth, lb=-1.000, ub=1.000)
-        # elevation_hat = unitary_norm_inv(elevation_hat, lb=-0.733, ub=0.486)
-        # elevation = unitary_norm_inv(elevation, lb=-0.733, ub=0.486)
 
         # MAE loss
-        loss_Th = self.joint_loss_test(Th_hat, Th)
-        loss_Tt = self.joint_loss_test(Tt_hat, Tt)
+        loss_sti = self.joint_loss_test(sti_hat, sti)
+        loss_alcons = self.joint_loss_test(alcons_hat, alcons)
+        loss_tr = self.joint_loss_test(tr_hat, tr)
+        loss_edt = self.joint_loss_test(edt_hat, edt)
+        loss_c80 = self.joint_loss_test(c80_hat, c80)
+        loss_c50 = self.joint_loss_test(c50_hat, c50)
+        loss_d50 = self.joint_loss_test(d50_hat, d50)
+        loss_ts = self.joint_loss_test(ts_hat, ts)
         loss_volume = self.joint_loss_test(volume_hat, volume)
         loss_dist_src = self.joint_loss_test(dist_src_hat, dist_src)
-        # loss_azimuth = self.joint_loss_test(azimuth_hat, azimuth)
-        # loss_elevation = self.joint_loss_test(elevation_hat, elevation)
 
         # correlation coefficient loss
-        loss_Th_corrcoef = self.joint_corrcoef_test(Th_hat, Th)
-        loss_Tt_corrcoef = self.joint_corrcoef_test(Tt_hat, Tt)
+        loss_sti_corrcoef = self.joint_corrcoef_test(sti_hat, sti)
+        loss_alcons_corrcoef = self.joint_corrcoef_test(alcons_hat, alcons)
+        loss_tr_corrcoef = self.joint_corrcoef_test(tr_hat, tr)
+        loss_edt_corrcoef = self.joint_corrcoef_test(edt_hat, edt)
+        loss_c80_corrcoef = self.joint_corrcoef_test(c80_hat, c80)
+        loss_c50_corrcoef = self.joint_corrcoef_test(c50_hat, c50)
+        loss_d50_corrcoef = self.joint_corrcoef_test(d50_hat, d50)
+        loss_ts_corrcoef = self.joint_corrcoef_test(ts_hat, ts)
         loss_volume_corrcoef = self.joint_corrcoef_test(volume_hat, volume)
         loss_dist_src_corrcoef = self.joint_corrcoef_test(dist_src_hat, dist_src)
-        # loss_azimuth_src_corrcoef = self.joint_corrcoef_test(azimuth_hat, azimuth)
-        # loss_elevation_src_corrcoef = self.joint_corrcoef_test(
-        #     elevation_hat,
-        #     elevation,
-        # )
 
         # update and log metrics
-        self.test_loss_Th(loss_Th)
-        self.test_loss_Tt(loss_Tt)
+        self.test_loss_sti(loss_sti)
+        self.test_loss_alcons(loss_alcons)
+        self.test_loss_tr(loss_tr)
+        self.test_loss_edt(loss_edt)
+        self.test_loss_c80(loss_c80)
+        self.test_loss_c50(loss_c50)
+        self.test_loss_d50(loss_d50)
+        self.test_loss_ts(loss_ts)
         self.test_loss_volume(loss_volume)
         self.test_loss_dist_src(loss_dist_src)
-        # self.test_loss_azimuth(loss_azimuth)
-        # self.test_loss_elevation(loss_elevation)
 
-        self.test_corrcoef_Th(loss_Th_corrcoef)
-        self.test_corrcoef_Tt(loss_Tt_corrcoef)
+        self.test_corrcoef_sti(loss_sti_corrcoef)
+        self.test_corrcoef_alcons(loss_alcons_corrcoef)
+        self.test_corrcoef_tr(loss_tr_corrcoef)
+        self.test_corrcoef_edt(loss_edt_corrcoef)
+        self.test_corrcoef_c80(loss_c80_corrcoef)
+        self.test_corrcoef_c50(loss_c50_corrcoef)
+        self.test_corrcoef_d50(loss_d50_corrcoef)
+        self.test_corrcoef_ts(loss_ts_corrcoef)
         self.test_corrcoef_volume(loss_volume_corrcoef)
         self.test_corrcoef_dist_src(loss_dist_src_corrcoef)
-        # self.test_corrcoef_azimuth(loss_azimuth_src_corrcoef)
-        # self.test_corrcoef_elevation(loss_elevation_src_corrcoef)
 
         self.log(
-            "test/loss/Th",
-            self.test_loss_Th,
+            "test/loss/sti",
+            self.test_loss_sti,
             on_step=False,
             on_epoch=True,
             prog_bar=True,
@@ -830,8 +1188,8 @@ class JointRegressorModuleEncoder(LightningModule):
         )
 
         self.log(
-            "test/corrcoef/Th",
-            self.test_corrcoef_Th,
+            "test/corrcoef/sti",
+            self.test_corrcoef_sti,
             on_step=False,
             on_epoch=True,
             prog_bar=True,
@@ -839,8 +1197,8 @@ class JointRegressorModuleEncoder(LightningModule):
         )
 
         self.log(
-            "test/loss/Tt",
-            self.test_loss_Tt,
+            "test/loss/alcons",
+            self.test_loss_alcons,
             on_step=False,
             on_epoch=True,
             prog_bar=True,
@@ -848,8 +1206,116 @@ class JointRegressorModuleEncoder(LightningModule):
         )
 
         self.log(
-            "test/corrcoef/Tt",
-            self.test_corrcoef_Tt,
+            "test/corrcoef/alcons",
+            self.test_corrcoef_alcons,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "test/loss/tr",
+            self.test_loss_tr,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "test/corrcoef/tr",
+            self.test_corrcoef_tr,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "test/loss/edt",
+            self.test_loss_edt,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "test/corrcoef/edt",
+            self.test_corrcoef_edt,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "test/loss/c80",
+            self.test_loss_c80,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "test/corrcoef/c80",
+            self.test_corrcoef_c80,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "test/loss/c50",
+            self.test_loss_c50,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "test/corrcoef/c50",
+            self.test_corrcoef_c50,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "test/loss/d50",
+            self.test_loss_d50,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "test/corrcoef/d50",
+            self.test_corrcoef_d50,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "test/loss/ts",
+            self.test_loss_ts,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True,
+        )
+
+        self.log(
+            "test/corrcoef/ts",
+            self.test_corrcoef_ts,
             on_step=False,
             on_epoch=True,
             prog_bar=True,
@@ -892,66 +1358,12 @@ class JointRegressorModuleEncoder(LightningModule):
             sync_dist=True,
         )
 
-        # self.log(
-        #     "test/loss/azimuth",
-        #     self.test_loss_azimuth,
-        #     on_step=False,
-        #     on_epoch=True,
-        #     prog_bar=True,
-        #     sync_dist=True,
-        # )
-
-        # self.log(
-        #     "test/corrcoef/azimuth",
-        #     self.test_corrcoef_azimuth,
-        #     on_step=False,
-        #     on_epoch=True,
-        #     prog_bar=True,
-        #     sync_dist=True,
-        # )
-
-        # self.log(
-        #     "test/loss/elevation",
-        #     self.test_loss_elevation,
-        #     on_step=False,
-        #     on_epoch=True,
-        #     prog_bar=True,
-        #     sync_dist=True,
-        # )
-
-        # self.log(
-        #     "test/corrcoef/elevation",
-        #     self.test_corrcoef_elevation,
-        #     on_step=False,
-        #     on_epoch=True,
-        #     prog_bar=True,
-        #     sync_dist=True,
-        # )
-
-        total_loss = (
-            loss_Th
-            + loss_Tt
-            + loss_volume
-            + loss_dist_src
-            # + loss_azimuth
-            # + loss_elevation
-        )
-
-        self.log(
-            "test/loss/total",
-            total_loss,
-            on_step=False,
-            on_epoch=True,
-            prog_bar=True,
-            sync_dist=True,
-        )
-
     def on_test_epoch_end(self) -> None:
         """Lightning hook that is called when a test epoch ends."""
         # Th_pred = self.model_step(batch)
         pass
 
-    def configure_optimizers(self) -> Dict[str, Any]:
+    def configure_optimizers(self) -> dict[str, Any]:
         """Configures optimizers and learning-rate schedulers to be used for training.
 
         Normally you'd need one, but in the case of GANs or similar you might need multiple.
@@ -961,7 +1373,7 @@ class JointRegressorModuleEncoder(LightningModule):
 
         :return: A dict containing the configured optimizers and learning-rate schedulers to be used for training.
         """
-        optimizer = self.hparams.optimizer(self.rirRegressor.parameters())
+        optimizer = self.hparams.optimizer(self.regressor.parameters())
 
         if self.hparams.scheduler is not None:
             T_max = self.hparams.optim_cfg.T_max

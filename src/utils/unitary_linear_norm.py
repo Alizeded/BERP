@@ -1,6 +1,7 @@
 # --------------------------- unitary linear normalization ---------------------------
-import torch
 from typing import Any
+
+import torch
 
 
 def unitary_norm(x: torch.Tensor) -> torch.Tensor:

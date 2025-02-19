@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 
-
 # ---------------------------- Convolutional layer norm --------------------
 
 
@@ -11,7 +10,7 @@ class ConvLayerNorm(nn.Module):
     """
 
     def __init__(self, ch_out: int):
-        super(ConvLayerNorm, self).__init__()
+        super().__init__()
         self.layer_norm = nn.LayerNorm(ch_out, eps=1e-8)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -41,6 +40,7 @@ class ParametricPredictor(nn.Module):
     def __init__(
         self,
         in_dim: int,
+        out_dim: int = 1,
         num_layers: int = 2,
         num_channels: int = 384,
         kernel_size: int = 3,
@@ -50,7 +50,7 @@ class ParametricPredictor(nn.Module):
         self.conv = nn.ModuleList()
         for layer in range(num_layers):
             in_channels = in_dim if layer == 0 else num_channels
-            if layer not in [0, num_layers - 1]:
+            if layer != 0 and layer != num_layers - 1:
                 self.conv.append(
                     nn.Sequential(
                         nn.Conv1d(
@@ -88,7 +88,7 @@ class ParametricPredictor(nn.Module):
                     )
                 )
 
-        self.linear = nn.Linear(num_channels, 1)
+        self.linear = nn.Linear(num_channels, out_dim)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -103,4 +103,4 @@ class ParametricPredictor(nn.Module):
 
         x = self.linear(x.permute(0, 2, 1))  # [batch, ch, len] -> [batch, len, 1]
 
-        return x.squeeze(-1)  # [batch, len]
+        return x.squeeze(-1)  # [batch, len] or [batch, len, 2]

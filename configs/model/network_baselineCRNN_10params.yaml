@@ -1,0 +1,19 @@
+
+jointRegressorModule:
+  _target_: src.network.RpRegressor_baselineCRNN_10params.JointRegressorModuleBaselineCRNN
+
+  net:
+    _target_: src.network.models.baselineCRNN.CRNN
+    ch_in: 1
+    ch_out: 10
+    n_mfcc: 128
+    n_fft_mel: 384
+    n_mels: 128
+    hop_length_mel: 192
+    dropout_prob: 0.5
+    dist_src_est: False
+
+  optimizer:
+    _target_: torch.optim.Adam
+    _partial_: true
+    lr: 1e-3

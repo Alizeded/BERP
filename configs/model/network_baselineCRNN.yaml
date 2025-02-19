@@ -1,108 +1,18 @@
-
-rirRegressorModule:
-  _target_: src.network.regressor_baselineCRNN.rirRegressorModuleBaselineCRNN
-
-  net:
-    _target_: src.network.models.baselineCRNN.CRNN
-    ch_in: 1
-    ch_out: 2
-    n_mfcc: 128
-    n_fft_mel: 384
-    n_mels: 128
-    hop_length_mel: 192
-    dropout_prob: 0.5
-
-  optimizer:
-    _target_: torch.optim.Adam
-    _partial_: true
-    lr: 1e-3
-
-  optim_cfg:
-    Th_weight: 1.0
-    Tt_weight: 1.0
-
-
-volumeRegressorModule:
-  _target_: src.network.volumeRegressor_baselineCRNN.volumeRegressorModuleBaselineCRNN
-
-  net:
-    _target_: src.network.models.baselineCRNN.CRNN
-    ch_in: 1
-    ch_out: 1
-    n_mfcc: 128
-    n_fft_mel: 384
-    n_mels: 128
-    hop_length_mel: 192
-    dropout_prob: 0.5
-
-  optimizer:
-    _target_: torch.optim.Adam
-    _partial_: true
-    lr: 1e-3
-
-  
-distSrcRegressorModule:
-  _target_: src.network.distSrcRegressor_baselineCRNN.DistSrcRegressorModuleBaselineCRNN
-
-  net:
-    _target_: src.network.models.baselineCRNN.CRNN
-    ch_in: 1
-    ch_out: 1
-    n_mfcc: 128
-    n_fft_mel: 384
-    n_mels: 128
-    hop_length_mel: 192
-    dropout_prob: 0.5
-    dist_src_est: true
-
-  optimizer:
-    _target_: torch.optim.Adam
-    _partial_: true
-    lr: 1e-3
-
-
-oriSrcRegressorModule:
-  _target_: src.network.oriSrcRegressor_baselineCRNN.OriSrcRegressorModuleBaselineCRNN
-
-  net:
-    _target_: src.network.models.baselineCRNN.CRNN
-    ch_in: 1
-    ch_out: 2
-    n_mfcc: 128
-    n_fft_mel: 384
-    n_mels: 128
-    hop_length_mel: 192
-    dropout_prob: 0.5
-
-  optimizer:
-    _target_: torch.optim.Adam
-    _partial_: true
-    lr: 1e-3
-
-
 jointRegressorModule:
-  _target_: src.network.jointRegressor_baselineCRNN.JointRegressorModuleBaselineCRNN
+  _target_: src.network.RpRegressor_baselineCRNN.JointRegressorModuleBaselineCRNN
 
   net:
     _target_: src.network.models.baselineCRNN.CRNN
     ch_in: 1
-    ch_out: 6
+    ch_out: 4
     n_mfcc: 128
     n_fft_mel: 384
     n_mels: 128
     hop_length_mel: 192
     dropout_prob: 0.5
-    dist_src_est: true
+    dist_src_est: False
 
   optimizer:
     _target_: torch.optim.Adam
     _partial_: true
     lr: 1e-3
-
-  optim_cfg:
-    Th_weight: 1.0
-    Tt_weight: 1.0
-    volume_weight: 1.0
-    distSrc_weight: 1.0
-    azimuthSrc_weight: 1.0
-    elevationSrc_weight: 1.0

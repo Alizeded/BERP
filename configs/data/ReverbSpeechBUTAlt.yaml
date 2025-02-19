@@ -1,0 +1,18 @@
+
+reverbSpeechModule:
+  _target_: src.data.reverb_speech_datamodule_but.ReverbSpeechDataModuleBUT
+
+  path_raw: retrans_audio.data
+  data_dir: ${paths.data_dir}BUT_retrans
+  max_sample_len: 320000 # 20 seconds
+  sample_rate: 16000
+  batch_size: 64
+  shuffle: False
+  # feat_type: "gammatone"
+  # feat_type: "mel"
+  feat_type: "mfcc"
+  # feat_type: "spectrogram"
+  n_fft: 1024
+  n_bins: 128
+  hop_length: 256
+  pin_memory: True

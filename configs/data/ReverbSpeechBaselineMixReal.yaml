@@ -1,0 +1,13 @@
+
+reverbSpeechModule:
+  _target_: src.data.reverbSpeech_datamodule_baseline_mixReal.ReverbSpeechDataModuleBaseline
+
+  path_raw: speech.data
+  path_real: real_audio.data
+  data_dir: ${paths.data_dir}noiseReverbSpeech
+  data_dir_real: ${paths.data_dir}BUT_real_recording_11160samples
+  max_sample_sec: 20 # 20 seconds
+  sample_rate: 16000
+  batch_size: 64
+  shuffle: True
+  pin_memory: False

@@ -1,0 +1,17 @@
+
+jointRegressorModule:
+  _target_: src.network.RpRegressor_baselineCNNMLP_10params.JointRegressorModuleBaselineCNNMLP
+
+  net:
+    _target_: src.network.models.baselineCNNMLP.EnsembleCNNMLP
+    n_fft_spectrogram: 1024
+    hop_length_spectrogram: 512
+    freq_bins: 769
+    ch_out: 20
+
+  optimizer:
+    _target_: torch.optim.Adam
+    _partial_: true
+    lr: 1e-3
+
+

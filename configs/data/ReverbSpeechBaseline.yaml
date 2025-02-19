@@ -7,6 +7,6 @@ reverbSpeechModule:
   data_dir: ${paths.data_dir}noiseReverbSpeech
   max_sample_sec: 20 # 20 seconds
   sample_rate: 16000
-  batch_size: 16
+  batch_size: 64
   shuffle: True
   pin_memory: False
