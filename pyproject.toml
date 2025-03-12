@@ -8,7 +8,7 @@ authors = [
 ]
 dependencies = [
     "packaging",
-    "torch==2.4.1",
+    "torch==2.5.1",
     "torchaudio",
     "lightning>=2.2.0,<3.0.0",
     "torchmetrics>=1.4.0",
@@ -24,9 +24,6 @@ dependencies = [
     "pandas",
     "einops>=0.8.0",
     "rootutils>=1.0.7",
-    "evaluate>=0.4.1",
-    "rich",
-    "xformers>=0.0.28.post1",
 ]
 requires-python = ">=3.11,<3.12"
 readme = "README.md"
@@ -39,7 +36,7 @@ build-backend = "pdm.backend"
 [project.optional-dependencies]
 integration = ["deepspeed", "rootutils", "autoroot", "sh"]
 no_isolation = [
-    "xformers==0.0.28post1",
+    "xformers",
 ]
 toolbox = [
     "pre-commit",
@@ -53,8 +50,6 @@ toolbox = [
 
 logging = [
     "wandb",
-    "clearml",
-    "comet",
 ]
 
 [tool.mypy]
