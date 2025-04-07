@@ -61,61 +61,33 @@ pdm sync # install dependencies with locking dependencies versions
 The data is also avaliable, you can download from the cloud storage
 
 ```bash
-# noisy reverberant speech data
-https://jstorage.app.box.com/v/berp-datasets/file/1496315212687
-
-# crowded reverberant speech data
-https://jstorage.app.box.com/v/berp-datasets/file/1496441527052
+https://jstorage.app.box.com/v/berp-datasets
 ```
 
 Then, unzip the data and put it in the `data` directory.
 
-```bash
-# unzip the data
-unzip noiseReverbSpeech.zip -d data
-unzip mixed_speech.zip -d data
-```
-
-Juypiter notebook `data_preprocessing.ipynb` in `notebook` folder details the data preprocessing pipeline.
+Juypiter notebook `data_preprocessing.ipynb` and `preprocess_real_recordings.ipynb` in `notebook` folder and `synthesize_rir_speech` and `synthesize_speech_noise` in `script` folder detail the data preprocessing pipeline.
 
 ## How to run
 
-Train model with the default configurations
+Train model with the default configurations in `configs` folder.
 
 ```bash
-# train on single GPU
+# train on single GPU (H100 as an example)
 # for unified module
-python src/train_jointRegressor.py trainer=gpu data=ReverbSpeechJointEst logger=wandb_jointRegressor callbacks=default_jointRegressor
+python src/train_jointRegressor.py trainer=gpu logger=wandb_jointRegressor callbacks=default_jointRegressor
 
 # for occupancy module
-python src/train_numEstimator.py trainer=gpu logger=wandb_numEstimator callbacks=default_numEstimator
+python src/train_numEstimator.py trainer=gpu trainer.precision=bf16-mixed logger=wandb_numEstimator callbacks=default_numEstimator
 ```
 
 ```bash
-# train on dual GPUs
+# train on one node with multiple GPUs (2 GPUs as an example)
 # for unified module
-python src/train_jointRegressor.py trainer=ddp data=ReverbSpeechJointEst logger=wandb_jointRegressor callbacks=default_jointRegressor
+python src/train_jointRegressor.py trainer=ddp logger=wandb_jointRegressor callbacks=default_jointRegressor
 
 # for occupancy module
-python src/train_numEstimator.py trainer=ddp logger=wandb_numEstimator callbacks=default_numEstimator
-```
-
-```bash
-# train on quad GPUs
-# for unified module
-python src/train_jointRegressor.py trainer=ddp trainer.devices=4 data=ReverbSpeechJointEst logger=wandb_jointRegressor callbacks=default_jointRegressor
-
-# for occupancy module
-python src/train.py trainer=ddp trainer.devices=4 logger=wandb_numEstimator callbacks=default_numEstimator
-```
-
-```bash
-# train on multiple GPUs with multiple nodes (2 nodes, 4 GPUs as an example)
-# for unified module
-python src/train_jointRegressor.py trainer=ddp trainer.nodes=2 trainer.devices=4 data=ReverbSpeechJointEst logger=wandb_jointRegressor callbacks=default_jointRegressor
-
-# for occupancy module
-python src/train_numEstimator.py trainer=ddp trainer.nodes=2 trainer.devices=4 logger=wandb_numEstimator callbacks=default_numEstimator
+python src/train_numEstimator.py trainer=ddp trainer.precision=bf16-mixed logger=wandb_numEstimator callbacks=default_numEstimator
 ```
 
 ## Configuration of training
@@ -125,75 +97,29 @@ Please refer to `model`, `callback` and `logger` folder and `train.yaml` in `con
 ## Inference with the trained model
 
 ```bash
-python src/inference_jointRegressor.py data=ReverbSpeechJointEst
+# default inference with MFCC featurization
+python src/inference_jointRegressor.py
 ```
 
 ```bash
+# default inference with MFCC featurization
 python src/inference_numEstimator.py
 ```
 
 More details about the inference can be found in `inference.yaml` in `configs` directory.
 
-After inferencing from the trained model, you can use the following command to inference the room acoustic parameters using SSIR model.
+## Weights are also available, you can download the weights from the following link:
 
 ```bash
-python src/inference_rap_joint.py
+# you can copy & paste the following cloud storage link to your browser
+# unified module with four types of featurizers
+https://jstorage.box.com/s/3164ikshkfml1apsb1diva4h3s7bhmww
+
+# occupancy module with four types of featurizers
+https://jstorage.box.com/s/x6ac1z6n982jftb6jsnrqqazxn3iscx
 ```
 
-More details about the inference of room acoustic parameters can be found in `inference_rap.yaml` in `configs` directory.
-
-## Configuration of inference output from the trained model
-
-Please refer to `inference.yaml` in `configs` directory for more details.
-
-
-## Weights are also available, please check the `weights` directory for more information
-
-In the `weights` directory, you can download the corresponding weights of each module for the BERP framework,
-including the unified module and the occupancy module with three featurization methods and the separate module with MFCC featurization.
-
-you can download the weights from the following link:
-
-```bash
-# download the weights for the unified module
-sh weights/unified_module/unified_module_Gammatone.sh
-sh weights/unified_module/unified_module_MFCC.sh
-sh weights/unified_module/unified_module_Mel.sh
-# or you can copy & paste the following cloud storage link to your browser
-https://jstorage.box.com/v/BERP-unified-module-gammatone
-https://jstorage.box.com/v/BERP-unified-module-mfcc
-https://jstorage.box.com/v/BERP-unified-module-mel
-https://jstorage.box.com/v/BERP-unified-module-spectro
-```
-
-```bash
-# download the weights for the occupancy module
-sh weights/occupancy_module/occupancy_module_Gammatone.sh
-sh weights/occupancy_module/occupancy_module_MFCC.sh
-sh weights/occupancy_module/occupancy_module_Mel.sh
-# or you can copy & paste the following cloud storage link to your browser
-https://jstorage.box.com/v/BERP-occupancy-module-gamma
-https://jstorage.box.com/v/BERP-occupancy-module-mfcc
-https://jstorage.box.com/v/BERP-occupancy-module-mel
-https://jstorage.box.com/v/BERP-occupancy-module-spectro
-```
-
-```bash
-# download the weights for the separate module
-sh weights/rir_module/rir_module_MFCC.sh
-sh weights/volume_module/volume_module_MFCC.sh
-sh weights/distance_module/distance_module_MFCC.sh
-sh weights/orientation_module/orientation_module_MFCC.sh
-# or you can copy & paste the following cloud storage link to your browser
-https://jstorage.box.com/v/BERP-rir-module-mfcc
-https://jstorage.box.com/v/BERP-volume-module-mfcc
-https://jstorage.box.com/v/BERP-distance-module-mfcc
-https://jstorage.box.com/v/BERP-ori-module-mfcc
-```
-
-After obtaining the weights, please check the "eval.yaml" or "inference.yaml" in the "configs" directory to put the weights in the correct path for the evaluation or inference.
-
-PS1: These shell scripts will pop out the default browser and you can download the weights from the cloud storage.
+After obtaining the weights, please check the `eval.yaml` or `inference.yaml` in the `configs` directory to put the weights in the correct path for the evaluation or inference.
 
 PS2: We have checked the validity of the download link, there should be no problem with the download link. We are working on migrating the dataset to the hugginggface dataset hub. Please stay tuned.
 
@@ -211,7 +137,7 @@ If you find this repository useful in your research, or if you want to refer to 
 
 ```bibtex
 @misc{wang2024berp,
-      title={BERP: A Blind Estimator of Room Acoustic and Physical Parameters for Single-Channel Noisy Speech Signals}, 
+      title={BERP: A Blind Estimator of Room Parameters for Single-Channel Noisy Speech Signals}, 
       author={Lijun Wang and Yixian Lu and Ziyan Gao and Kai Li and Jianqiang Huang and Yuntao Kong and Shogo Okada},
       year={2024},
       eprint={2405.04476},

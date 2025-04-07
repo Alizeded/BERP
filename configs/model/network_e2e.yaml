@@ -18,6 +18,7 @@ numEstimatorModule:
     init_lr: 1e-6
     peak_lr: 2e-4
     final_lr_scale: 0.1
+    smooth_window: 64
 
   net:
     _target_: src.network.models.numEstimator.NumOccEstimator

@@ -4,8 +4,9 @@ import torch
 from lightning import LightningModule
 from torchmetrics import MaxMetric, MeanMetric, MinMetric
 
-from criterions.label_smoothed_cross_entropy import (
+from src.criterions.label_smoothed_cross_entropy import (
     LabelSmoothedCrossEntropyCriterion,
+    smooth,
 )
 
 # ========================= numEstimator Module =========================
@@ -108,6 +109,7 @@ class numEstimatorModule(LightningModule):
     def model_step(
         self,
         batch: dict[str, torch.Tensor],
+        smooth: bool = False,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Perform a single model step on a batch of data.
 
@@ -129,6 +131,7 @@ class numEstimatorModule(LightningModule):
             net_output["padding_mask"],
             batch["groundtruth"]["target_padding_mask"],
             reduce=True,
+            smooth=smooth,
         )
 
         return log_prob, loss, l1, accu, f1
@@ -315,7 +318,7 @@ class numEstimatorModule(LightningModule):
         """
 
         # forward pass and calculate loss
-        _, loss, l1, f1, accu = self.model_step(batch)
+        _, loss, l1, f1, accu = self.model_step(batch, smooth=True)
 
         # update and log metrics
         self.test_loss(loss)
@@ -381,6 +384,24 @@ class numEstimatorModule(LightningModule):
         log_prob, _, _, _, _ = self.model_step(batch)
 
         pred_label = torch.argmax(log_prob, dim=-1)  # B T C -> B T
+
+        # smooth the predictions
+        pred_label = smooth(
+            pred_label,
+            window=(
+                self.hparams.optim_cofig.smooth_window
+                if self.hparams.optim_cfg.smooth_window
+                else 64
+            ),
+        )
+        groundtruth = smooth(
+            groundtruth,
+            window=(
+                self.hparams.optim_config.smooth_window
+                if self.hparams.optim_cfg.smooth_window
+                else 64
+            ),
+        )
 
         return {
             "pred_label": pred_label,

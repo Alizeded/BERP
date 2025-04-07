@@ -1,3 +1,4 @@
+# adapted from fairseq
 # Copyright (c) Facebook, Inc. and its affiliates.
 #
 # This source code is licensed under the MIT license found in the
@@ -7,6 +8,13 @@ import torch
 from sklearn.metrics import accuracy_score, f1_score
 from torch.nn import L1Loss
 from torch.nn.modules.loss import _Loss
+
+
+def smooth(lst, window):
+    return [
+        round(sum(lst[i : i + window]) / window)
+        for i in range(0, len(lst) - len(lst) % window, window)
+    ]
 
 
 def label_smoothed_nll_loss(lprob, target, epsilon, reduce=True):
@@ -38,6 +46,8 @@ class LabelSmoothedCrossEntropyCriterion(_Loss):
         padding_mask: torch.Tensor = None,
         target_padding_mask: torch.Tensor = None,
         reduce=True,
+        smooth=False,
+        smooth_window=64,  # 1 second
     ):
         """Compute the loss for the given sample.
 
@@ -98,6 +108,10 @@ class LabelSmoothedCrossEntropyCriterion(_Loss):
         )
 
         pred = lprob.argmax(dim=1)
+
+        if smooth:
+            pred = smooth(pred, smooth_window)
+            target = smooth(target, smooth_window)
 
         accu = f1_score(target.cpu(), pred.cpu(), average="weighted")
 

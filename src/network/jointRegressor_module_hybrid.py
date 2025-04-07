@@ -8,8 +8,8 @@ from torchmetrics import (
     MinMetric,
 )
 
-from criterions.hybrid_joint_eval_metric import JointEstimationEvaluation
-from criterions.hybrid_joint_loss import MultiTaskLoss
+from src.criterions.hybrid_joint_eval_metric import JointEstimationEvaluation
+from src.criterions.hybrid_joint_loss import MultiTaskLoss
 from src.utils.unitary_linear_norm import unitary_norm_inv
 
 # ======================== joint regression module ========================

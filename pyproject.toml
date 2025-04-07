@@ -36,7 +36,7 @@ build-backend = "pdm.backend"
 [project.optional-dependencies]
 integration = ["deepspeed", "rootutils", "autoroot", "sh"]
 no_isolation = [
-    "xformers",
+    "xformers==0.0.29.post1",
 ]
 toolbox = [
     "pre-commit",
