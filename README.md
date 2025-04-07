@@ -139,7 +139,7 @@ If you find this repository useful in your research, or if you want to refer to 
 @misc{wang2024berp,
       title={BERP: A Blind Estimator of Room Parameters for Single-Channel Noisy Speech Signals}, 
       author={Lijun Wang and Yixian Lu and Ziyan Gao and Kai Li and Jianqiang Huang and Yuntao Kong and Shogo Okada},
-      year={2024},
+      year={2025},
       eprint={2405.04476},
       archivePrefix={arXiv},
       primaryClass={eess.AS}
