@@ -76,7 +76,6 @@ def main():
         c50 = manifest["C50"].to_numpy()
         d50 = manifest["D50"].to_numpy().round(decimals=4)
         ts = manifest["TS"].to_numpy()
-
         volume_log10 = manifest["volume_log10"].to_numpy()
         dist_src = manifest["distRcv"].to_numpy()
 
@@ -211,16 +210,17 @@ def main():
         )
 
         # Insert 'real_recording' column with 1 for real data
+        last_index = train_real_manifest.columns.get_loc("distRcv") + 1
         if "real_recording" not in train_real_manifest.columns:
-            train_real_manifest.insert("real_recording", 1)
+            train_real_manifest.insert(last_index, "real_recording", 1)
         else:
             train_real_manifest["real_recording"] = 1
         if "real_recording" not in val_real_manifest.columns:
-            val_real_manifest.insert("real_recording", 1)
+            val_real_manifest.insert(last_index, "real_recording", 1)
         else:
             val_real_manifest["real_recording"] = 1
         if "real_recording" not in test_real_manifest.columns:
-            test_real_manifest.insert("real_recording", 1)
+            test_real_manifest.insert(last_index, "real_recording", 1)
         else:
             test_real_manifest["real_recording"] = 1
 
@@ -273,13 +273,13 @@ def main():
             train_manifest_.to_csv(train_manifest_alt_path, index=False)
             test_manifest_.to_csv(test_manifest_alt_path, index=False)
             val_manifest_.to_csv(val_manifest_alt_path, index=False)
-            print("Re-split and saved synthetic manifests.")
+            print("Re-split and saved synthetic manifests with normalized columns.")
         else:
             print(
                 "Skipping re-splitting of synthetic manifest as original files were not loaded or empty."
             )
 
-    # Iteration through retransmission data
+    # Iteration through retransmission data (exploratory part from notebook)
     print("\nStarting retransmission data iteration (exploratory)...")
     path_retrans_base = (
         "/home/lucianius/Data/Datasets/Librispeech_test_clean_retransmission"
@@ -290,13 +290,11 @@ def main():
         num_files_retrans = 10
         file_batch_counter = 0
         folderNos_retrans = [4, 6, 7, 8, 9]
-        # ThTtDistRcvOriSrc_label_list = [] # Renamed, was ThTtDistRcvOriSrc_label in notebook
         random.seed(3407)
 
         for folderNo_item in folderNos_retrans:
             print(f"Processing retrans folder number {folderNo_item}...")
-            # checkfolder_BUT might return a path segment like "/D105_binaural"
-            # This assumes checkfolder_BUT is available and works as expected
+            # checkfolder_BUT might return a path segment
             try:
                 path_retrans_current_folder_segment = checkfolder_BUT(folderNo_item)
             except Exception as e:
@@ -346,6 +344,7 @@ def main():
                         if not retrans_matching_files:
                             continue
 
+                        # Slicing logic from notebook
                         selected_audio_paths = retrans_matching_files[
                             file_batch_counter
                             * num_files_retrans : (file_batch_counter + 1)
