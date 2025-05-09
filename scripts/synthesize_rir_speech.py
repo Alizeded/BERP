@@ -100,108 +100,118 @@ def rir_synthesis_noise(
     )
 
 
-j = 0
-reverbSpeech = []
-with ThreadPoolExecutor(max_workers=os.cpu_count() - 12) as executor:
-    thread = []
-    for i in range(len(rir_manifest)):
-        thread.append(
-            executor.submit(
-                rir_synthesis_noise,
-                rir_manifest.iloc[i],
-                speech_long_manifest.iloc[i],
-                noise_database,
+def synthesize_reverb_speech(
+    rir_manifest: pd.DataFrame = rir_manifest,
+    speech_long_manifest: pd.DataFrame = speech_long_manifest,
+    noise_database: list = noise_database,
+) -> None:
+    """
+    Synthesize reverb speech with noise
+    Args:
+        rir_manifest (pd.DataFrame): RIR manifest
+        speech_long_manifest (pd.DataFrame): Speech manifest
+        noise_database (list): Noise database
+    """
+    j = 0
+    reverbSpeech = []
+    with ThreadPoolExecutor(max_workers=os.cpu_count() - 12) as executor:
+        thread = []
+        for i in range(len(rir_manifest)):
+            thread.append(
+                executor.submit(
+                    rir_synthesis_noise,
+                    rir_manifest.iloc[i],
+                    speech_long_manifest.iloc[i],
+                    noise_database,
+                )
             )
-        )
-    for t in tqdm(thread):
-        noise_reverb_speech = t.result()[0]
-        reverb_speech = t.result()[1]
-        Th_unitary = t.result()[2]
-        Tt_unitary = t.result()[3]
-        volume_log10_unitary = t.result()[4]
-        Th = t.result()[5]
-        Tt = t.result()[6]
-        volume = t.result()[7]
-        volume_log10 = t.result()[8]
-        distRcv = t.result()[9]
-        oriSrc = t.result()[10]
-        snr_dB = t.result()[11]
+        for t in tqdm(thread):
+            noise_reverb_speech = t.result()[0]
+            reverb_speech = t.result()[1]
+            Th_unitary = t.result()[2]
+            Tt_unitary = t.result()[3]
+            volume_log10_unitary = t.result()[4]
+            Th = t.result()[5]
+            Tt = t.result()[6]
+            volume = t.result()[7]
+            volume_log10 = t.result()[8]
+            distRcv = t.result()[9]
+            oriSrc = t.result()[10]
+            snr_dB = t.result()[11]
 
-        # print(volume_log10)
+            # print(volume_log10)
 
-        # save the data
-        save_path = os.path.join(
-            "./data/noiseReverbSpeech",
-            "speech.data",
-        )
-        save_path_clean = os.path.join(
-            "./data/noiseReverbSpeech",
-            "speech_clean.data",
-        )
-        save_path_label = os.path.join(
-            "./data/noiseReverbSpeech",
-        )
+            # save the data
+            save_path = os.path.join(
+                "./data/noiseReverbSpeech",
+                "speech.data",
+            )
+            save_path_clean = os.path.join(
+                "./data/noiseReverbSpeech",
+                "speech_clean.data",
+            )
+            save_path_label = os.path.join(
+                "./data/noiseReverbSpeech",
+            )
 
-        if not os.path.exists(save_path):
-            os.makedirs(save_path)
-        if not os.path.exists(save_path_clean):
-            os.makedirs(save_path_clean)
+            if not os.path.exists(save_path):
+                os.makedirs(save_path)
+            if not os.path.exists(save_path_clean):
+                os.makedirs(save_path_clean)
 
-        torchaudio.save(
-            os.path.join(save_path, "reverbSpeech_No" + str(j) + ".wav"),
-            noise_reverb_speech,
-            sample_rate=16000,
-            bits_per_sample=16,
-            encoding="PCM_S",
-        )
-        torchaudio.save(
-            os.path.join(save_path_clean, "clean_No" + str(j) + ".wav"),
-            reverb_speech,
-            sample_rate=16000,
-            bits_per_sample=16,
-            encoding="PCM_S",
-        )
+            torchaudio.save(
+                os.path.join(save_path, "reverbSpeech_No" + str(j) + ".wav"),
+                noise_reverb_speech,
+                sample_rate=16000,
+                bits_per_sample=16,
+                encoding="PCM_S",
+            )
+            torchaudio.save(
+                os.path.join(save_path_clean, "clean_No" + str(j) + ".wav"),
+                reverb_speech,
+                sample_rate=16000,
+                bits_per_sample=16,
+                encoding="PCM_S",
+            )
 
-        # save the metadata
-        reverbSpeech.append(
-            [
-                "reverbSpeech_No" + str(j) + ".wav",
-                "clean_No" + str(j) + ".wav",
-                Th_unitary,
-                Tt_unitary,
-                volume_log10_unitary,
-                Th,
-                Tt,
-                volume,
-                volume_log10,
-                distRcv,
-                oriSrc,
-                snr_dB,
-            ]
-        )
+            # save the metadata
+            reverbSpeech.append(
+                [
+                    "reverbSpeech_No" + str(j) + ".wav",
+                    "clean_No" + str(j) + ".wav",
+                    Th_unitary,
+                    Tt_unitary,
+                    volume_log10_unitary,
+                    Th,
+                    Tt,
+                    volume,
+                    volume_log10,
+                    distRcv,
+                    oriSrc,
+                    snr_dB,
+                ]
+            )
 
-        j += 1
+            j += 1
 
+    reverbSpeech = pd.DataFrame(
+        reverbSpeech,
+        columns=[
+            "reverbSpeech",
+            "cleanSpeech",
+            "Th_unitary",
+            "Tt_unitary",
+            "volume_log10_unitary",
+            "Th",
+            "Tt",
+            "volume",
+            "volume_log10",
+            "distRcv",
+            "oriSrc",
+            "snr_dB",
+        ],
+    )
 
-reverbSpeech = pd.DataFrame(
-    reverbSpeech,
-    columns=[
-        "reverbSpeech",
-        "cleanSpeech",
-        "Th_unitary",
-        "Tt_unitary",
-        "volume_log10_unitary",
-        "Th",
-        "Tt",
-        "volume",
-        "volume_log10",
-        "distRcv",
-        "oriSrc",
-        "snr_dB",
-    ],
-)
-
-
-reverbSpeech.to_csv(
-    os.path.join(save_path_label, "reverbSpeech.metadata.csv"), index=False
-)
+    reverbSpeech.to_csv(
+        os.path.join(save_path_label, "reverbSpeech.metadata.csv"), index=False
+    )

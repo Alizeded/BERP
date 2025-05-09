@@ -1,10 +1,10 @@
 # Data preparation for occupant level estimation
 import os
 import random
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 
 import pandas as pd
-import rootutils
+import rootutils  # type: ignore
 import torch
 import torch.nn.functional as func
 import torchaudio
@@ -77,11 +77,6 @@ rir_manifest_ID_resampled = pd.read_csv(
 )
 librispeech_info = pd.read_csv("./data/LibriSpeech/LibriSpeech_label.csv")
 num_occ = pd.read_csv("./data/RIR_aggregated/RIR.metadata/num_occu.csv")
-
-
-reverb_mixed_speech_manifest = []
-mixed_speech_label_manifest = []
-mixed_speech_manifest = []
 
 
 def mixed_speech(i):
@@ -166,50 +161,35 @@ def mixed_speech(i):
     return reverb_mixed_speech_, mixed_speech_
 
 
-# for i in tqdm(range(len(rir_manifest_ID_resampled))):
-#     results = mixed_speech(i)
-#     reverb_mixed_speech_manifest.append(results[0])
-#     mixed_speech_manifest.append(results[1])
+def synthesize_mixed_speech() -> None:
+    """
+    Synthesize mixed speech using RIR and noise data.
+    """
+    reverb_mixed_speech_manifest = []
+    mixed_speech_manifest = []
+    with ProcessPoolExecutor(max_workers=16) as executor:
+        threads = []
+        for i in range(len(rir_manifest_ID_resampled)):
+            threads.append(executor.submit(mixed_speech, i))
 
-# reverb_mixed_speech_manifest = pd.DataFrame(
-#     reverb_mixed_speech_manifest,
-#     columns=["mixed_speech", "mixed_speech_label", "numOcc", "rir_info"],
-# )
-# mixed_speech_manifest = pd.DataFrame(
-#     mixed_speech_manifest, columns=["mixed_speech", "mixed_speech_label", "numOcc"]
-# )
+        for t in tqdm(threads):
+            reverb_mixed_speech_manifest.append(t.result()[0])
+            mixed_speech_manifest.append(t.result()[1])
 
-# reverb_mixed_speech_manifest.to_csv(
-#     "./data/mixed_speech_noise/reverb_mixed_speech_manifest.csv",
-#     index=False,
-# )
-# mixed_speech_manifest.to_csv(
-#     "./data/mixed_speech_noise/mixed_speech_manifest.csv",
-#     index=False,
-# )
+        reverb_mixed_speech_manifest = pd.DataFrame(
+            reverb_mixed_speech_manifest,
+            columns=["mixed_speech", "mixed_speech_label", "numOcc", "rir_info"],
+        )
+        mixed_speech_manifest = pd.DataFrame(
+            mixed_speech_manifest,
+            columns=["mixed_speech", "mixed_speech_label", "numOcc"],
+        )
 
-with ProcessPoolExecutor(max_workers=16) as executor:
-    threads = []
-    for i in range(len(rir_manifest_ID_resampled)):
-        threads.append(executor.submit(mixed_speech, i))
-
-    for t in tqdm(threads):
-        reverb_mixed_speech_manifest.append(t.result()[0])
-        mixed_speech_manifest.append(t.result()[1])
-
-    reverb_mixed_speech_manifest = pd.DataFrame(
-        reverb_mixed_speech_manifest,
-        columns=["mixed_speech", "mixed_speech_label", "numOcc", "rir_info"],
-    )
-    mixed_speech_manifest = pd.DataFrame(
-        mixed_speech_manifest, columns=["mixed_speech", "mixed_speech_label", "numOcc"]
-    )
-
-    reverb_mixed_speech_manifest.to_csv(
-        "./data/mixed_speech_noise/reverb_mixed_speech_manifest.csv",
-        index=False,
-    )
-    mixed_speech_manifest.to_csv(
-        "./data/mixed_speech_noise/mixed_speech_manifest.csv",
-        index=False,
-    )
+        reverb_mixed_speech_manifest.to_csv(
+            "./data/mixed_speech_noise/reverb_mixed_speech_manifest.csv",
+            index=False,
+        )
+        mixed_speech_manifest.to_csv(
+            "./data/mixed_speech_noise/mixed_speech_manifest.csv",
+            index=False,
+        )
