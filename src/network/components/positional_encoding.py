@@ -110,7 +110,7 @@ class RelPosEncoding(nn.Module):
         pe_positive = torch.flip(pe_positive, [0]).unsqueeze(0)
         pe_negative = pe_negative[1:].unsqueeze(0)
         pe = torch.cat([pe_positive, pe_negative], dim=1)
-        self.pe = pe.to(device=x.device, dtype=x.dtype)
+        self.pe = pe.to(device=x.device, dtype=x.dtype) # type: ignore[assignment]
 
     def forward(self, x: Tensor) -> Tensor:
         """
@@ -122,7 +122,7 @@ class RelPosEncoding(nn.Module):
         self.extend_pe(x)
         pos_emb = self.pe[
             :,
-            self.pe.size(1) // 2 - x.size(1) + 1 : self.pe.size(1) // 2 + x.size(1),
+            self.pe.size(1) // 2 - x.size(1) + 1 : self.pe.size(1) // 2 + x.size(1), # type: ignore
         ]
         return pos_emb
 
@@ -149,7 +149,7 @@ class RotaryPositionEncoding(nn.Module):
         self.cosine_pos_cache = torch.empty(1, self.len_seq_cache, 1, dim)
         self.sine_pos_cache = torch.empty(1, self.len_seq_cache, 1, dim)
 
-    def forward(self, x: Tensor, len_seq: int = 0) -> Tensor:
+    def forward(self, x: Tensor, len_seq: int = 0) -> tuple[Tensor, Tensor]:
         """Forward pass.
 
         Args:

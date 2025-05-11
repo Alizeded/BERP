@@ -4,7 +4,7 @@ from typing import Optional
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import xformers.ops as xops
+import xformers.ops as xops  # type: ignore[import]
 from einops import rearrange
 from torch import Tensor
 
@@ -43,7 +43,7 @@ def rotate_half(x: Tensor) -> Tensor:
 
 def rotary_pos_enc(
     q: Tensor, k: Tensor, cos_pos: Tensor, sin_pos: Tensor, offset: int = 0
-) -> Tensor:
+) -> tuple[Tensor, Tensor]:
     """Rotary position encoding.
 
     Args:
@@ -193,7 +193,7 @@ class XposMultiHeadedAttention(nn.Module):
         embed_dim: int = 512,
         xpos_scale_base: int = 512,
         num_heads: int = 8,
-        dropout_prob: int = 0.1,
+        dropout_prob: float = 0.1,
         self_attention: bool = True,
         subln: bool = False,
     ):
@@ -359,8 +359,8 @@ class RelPositionMultiHeadedAttention(nn.Module):
         self,
         embed_dim: int,
         nums_heads: int,
-        kv_dim: int = None,
-        num_key_value_heads: int = None,
+        kv_dim: Optional[int] = None,
+        num_key_value_heads: Optional[int] = None,
         dropout_prob: float = 0.1,
         group_query_attn: bool = False,
     ):
@@ -455,7 +455,7 @@ class RelPositionMultiHeadedAttention(nn.Module):
         pos_embed: Tensor,
         key_padding_mask: Optional[Tensor],
         attn_mask: Optional[Tensor] = None,
-    ) -> tuple[Tensor, Tensor]:
+    ) -> Tensor:
         """Forward pass.
 
         Args:
@@ -537,7 +537,7 @@ class RelPositionMultiHeadedAttention(nn.Module):
         value: Tensor,
         key_padding_mask: Optional[Tensor],
         attn_mask: Optional[Tensor] = None,
-        softmax_scale: float = None,
+        softmax_scale: Optional[float] = None,
     ) -> Tensor:
         if key_padding_mask is not None:
             # [btz, kv_seq_len] -> [btz, 1, 1, kv_seq_len]
@@ -591,9 +591,9 @@ class RelPositionMultiHeadedAttention(nn.Module):
             )
 
             attn_output = xops.memory_efficient_attention(
-                query=q,
-                key=k,
-                value=v,
+                query=query,
+                key=key,
+                value=value,
                 attn_bias=mask_,
                 p=self.dropout_prob,
                 scale=softmax_scale,
@@ -601,32 +601,6 @@ class RelPositionMultiHeadedAttention(nn.Module):
 
         return attn_output
 
-
-@torch.no_grad()
-def alibi_slope(num_heads: int):
-    """Alibi slope for FLASH attention.
-
-    Args:
-        num_heads (int): number of heads
-    """
-    n = torch.floor(torch.log2(num_heads))
-
-    m_0 = 2.0 ** (-8.0 / n)
-    m = torch.pow(m_0, torch.arange(1, 1 + n))
-
-    if n < num_heads:
-        m_hat_0 = 2.0 ** (-4.0 / n)
-        m_hat = torch.pow(m_hat_0, torch.arange(1, 1 + 2 * (num_heads - n), 2))
-        m = torch.cat([m, m_hat])
-
-    return m.unsqueeze(-1).unsqueeze(-1).to(torch.float32)  # [num_heads, 1, 1]
-
-
-@torch.no_grad()
-def get_relative_positions(q_seq_len: int, kv_seq_len) -> torch.tensor:
-    x = torch.arange(kv_seq_len)[None, :]
-    y = torch.arange(q_seq_len)[:, None]
-    return x - y  # [q_seq_len, kv_seq_len]
 
 
 class ConditionalMultiHeadedAttention(nn.Module):
@@ -650,8 +624,8 @@ class ConditionalMultiHeadedAttention(nn.Module):
         self,
         embed_dim: int,
         nums_heads: int,
-        kv_dim: int = None,
-        num_key_value_heads: int = None,
+        kv_dim: Optional[int] = None,
+        num_key_value_heads: Optional[int] = None,
         dropout_prob: float = 0.1,
         cope_max_enc_len: int = 10000,
         group_query_attn: bool = False,
@@ -805,17 +779,11 @@ class ConditionalMultiHeadedAttention(nn.Module):
         k = rearrange(key, "b t (h d) -> b h d t", h=self.num_key_value_heads)
         v = rearrange(value, "b t (h d) -> b h d t", h=self.num_key_value_heads)
 
-        m = alibi_slope(self.nums_heads).to(torch.float32)
-
-        # [1, H, T_q, T_k]
-        bias = (m * get_relative_positions(q_seq_len, kv_seq_len)).unsqueeze(0)
-
         if self.group_query_attn:
             attn_output = self._sdp_group_query_attn(
                 query=q,
                 key=k,
                 value=v,
-                bias=bias,
                 key_padding_mask=key_padding_mask,
                 attn_mask=attn_mask,
             )
@@ -824,7 +792,6 @@ class ConditionalMultiHeadedAttention(nn.Module):
                 query=q,
                 key=k,
                 value=v,
-                bias=bias,
                 key_padding_mask=key_padding_mask,
                 attn_mask=attn_mask,
             )
@@ -836,7 +803,6 @@ class ConditionalMultiHeadedAttention(nn.Module):
         query: Tensor,
         key: Tensor,
         value: Tensor,
-        bias: Tensor,
         key_padding_mask: Optional[Tensor],
         attn_mask: Optional[Tensor] = None,
     ) -> Tensor:
@@ -845,7 +811,7 @@ class ConditionalMultiHeadedAttention(nn.Module):
         _, _, _, kv_seq_len = k.size()
 
         score = (
-            torch.einsum("b h i d, b h d j -> b h i j", q, k) / self.temperature + bias
+            torch.einsum("b h i d, b h d j -> b h i j", q, k) / self.temperature
         )
 
         if attn_mask is not None and key_padding_mask is not None:
@@ -887,7 +853,6 @@ class ConditionalMultiHeadedAttention(nn.Module):
         query: Tensor,
         key: Tensor,
         value: Tensor,
-        bias: Tensor,
         key_padding_mask: Optional[Tensor],
         attn_mask: Optional[Tensor] = None,
     ) -> Tensor:
@@ -922,14 +887,14 @@ class ConditionalMultiHeadedAttention(nn.Module):
         # calculate the similarity score with broadcasted bias for group query attention
         similarity = torch.einsum(
             "b g h i d, b h d j -> b g h i j", q, key
-        ) / self.temperature + bias.unsqueeze(1)
+        ) / self.temperature
 
         if attn_mask is not None and key_padding_mask is not None:
             mask = rearrange(
                 key_padding_mask, "b t -> b () () () t"
             )  # [btz, 1, 1, 1, k_seq_len]
 
-            attn_mask = rearrange("b t1 t2 -> b () () t1 t2", attn_mask)
+            attn_mask = rearrange(attn_mask, "b t1 t2 -> b () () t1 t2")
             mask += attn_mask  # [btz, 1, 1, q_seq_len, k_seq_len]
 
             similarity = similarity.masked_fill(

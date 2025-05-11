@@ -262,7 +262,9 @@ class RoomFeatureEncoderLayer(nn.Module):
         dropout_prob: float = 0.1,
         pos_enc_type: str = "xpos",  # cope or cope_gpa or xpos or rel_pos or rope
         half_step_residual: bool = True,
-    ):  # sourcery skip: assign-if-exp
+        gate: bool = False,
+        inner_dim_to_mulitple: int = 1,
+    ):
         """Room Feature Encoder Layer
 
         Args:
@@ -281,18 +283,53 @@ class RoomFeatureEncoderLayer(nn.Module):
 
         self.pos_enc_type = pos_enc_type
 
-        self.ffn1 = residual_connection(
-            module=PosWiseFeedForwardModule(
-                encoder_dim=embed_dim,
-                expansion_factor=ch_scale,
-                dropout_prob=dropout_prob,
-            ),
-            module_factor=feedforward_residual_factor,
-        )
+        self.gate = gate
+
+        if gate:
+            self.ffn1 = residual_connection(
+                module=GLUPosWiseFeedForwardModule(
+                    encoder_dim=embed_dim,
+                    expansion_factor=float(ch_scale),
+                    inner_dim_to_mulitple=inner_dim_to_mulitple,
+                    dropout_prob=dropout_prob,
+                ),
+                module_factor=feedforward_residual_factor,
+            )
+
+        else:
+            self.ffn1 = residual_connection(
+                module=PosWiseFeedForwardModule(
+                    encoder_dim=embed_dim,
+                    expansion_factor=ch_scale,
+                    dropout_prob=dropout_prob,
+                ),
+                module_factor=feedforward_residual_factor,
+            )
 
         self.layer_norm = nn.LayerNorm(embed_dim)
 
-        if self.pos_enc_type == "xpos":
+        if self.pos_enc_type == "cope_gpa":
+            self.self_attn = residual_connection(
+                module=ConditionalMultiHeadedAttention(
+                    nums_heads=num_heads,
+                    num_key_value_heads=num_heads // 2,
+                    embed_dim=embed_dim,
+                    dropout_prob=dropout_prob,
+                    group_query_attn=True,
+                ),
+            )
+
+        elif self.pos_enc_type == "cope":
+            self.self_attn = residual_connection(
+                module=ConditionalMultiHeadedAttention(
+                    nums_heads=num_heads,
+                    embed_dim=embed_dim,
+                    dropout_prob=dropout_prob,
+                    group_query_attn=False,
+                ),
+            )
+
+        elif self.pos_enc_type == "xpos":
             self.self_attn = residual_connection(
                 module=XposMultiHeadedAttention(
                     num_heads=num_heads,
@@ -305,7 +342,6 @@ class RoomFeatureEncoderLayer(nn.Module):
             self.self_attn = residual_connection(
                 module=RelPositionMultiHeadedAttention(
                     nums_heads=num_heads,
-                    xpos_scale_base=embed_dim,
                     embed_dim=embed_dim,
                     dropout_prob=dropout_prob,
                 ),
@@ -315,7 +351,7 @@ class RoomFeatureEncoderLayer(nn.Module):
             self.self_attn = residual_connection(
                 module=RotaryPositionMultiHeadedAttention(
                     embed_dim=embed_dim,
-                    num_heads=num_heads,
+                    nums_heads=num_heads,
                     dropout_prob=dropout_prob,
                 ),
             )
@@ -333,14 +369,26 @@ class RoomFeatureEncoderLayer(nn.Module):
             ),
         )
 
-        self.ffn2 = residual_connection(
-            module=PosWiseFeedForwardModule(
-                encoder_dim=embed_dim,
-                expansion_factor=ch_scale,
-                dropout_prob=dropout_prob,
-            ),
-            module_factor=feedforward_residual_factor,
-        )
+        if self.gate:
+            self.ffn2 = residual_connection(
+                module=GLUPosWiseFeedForwardModule(
+                    encoder_dim=embed_dim,
+                    expansion_factor=float(ch_scale),
+                    inner_dim_to_mulitple=inner_dim_to_mulitple,
+                    dropout_prob=dropout_prob,
+                ),
+                module_factor=feedforward_residual_factor,
+            )
+
+        else:
+            self.ffn2 = residual_connection(
+                module=PosWiseFeedForwardModule(
+                    encoder_dim=embed_dim,
+                    expansion_factor=ch_scale,
+                    dropout_prob=dropout_prob,
+                ),
+                module_factor=feedforward_residual_factor,
+            )
 
         self.final_layer_norm = nn.LayerNorm(embed_dim)
 
