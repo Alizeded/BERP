@@ -33,19 +33,19 @@ build-backend = "pdm.backend"
 # PyTorch/CUDA specific groups
 cpu = [
     "torch==2.7.0+cpu",
-    "torchaudio",
+    "torchaudio==2.7.0+cpu",
 ]
-cu121 = [
-    "torch==2.5.1+cu121",
-    "torchaudio",
-    "xformers", 
-    "deepspeed",
+cu118 = [
+    "torch==2.7.0+cu118",
+    "torchaudio==2.7.0+cu118",
+    "xformers==0.0.30", 
+    "deepspeed==0.16.7",
 ]
 cu126 = [
     "torch==2.7.0+cu126",
-    "torchaudio",
-    "xformers",
-    "deepspeed",
+    "torchaudio==2.7.0+cu126",
+    "xformers==0.0.30",
+    "deepspeed==0.16.7",
 ]
 
 integration = ["rootutils", "autoroot", "sh"]
@@ -123,8 +123,8 @@ include_packages = ["torch", "torchaudio"]
 exclude_packages = ["*"]
 
 [[tool.pdm.source]]
-name = "pytorch-cu121"
-url = "https://download.pytorch.org/whl/cu121"
+name = "pytorch-cu118"
+url = "https://download.pytorch.org/whl/cu118"
 verify_ssl = true
 include_packages = ["torch", "torchaudio", "xformers"]
 exclude_packages = ["*"]

@@ -5,7 +5,7 @@
 groups = ["default", "cu126", "doc", "integration", "lint", "logging", "notebook", "plot", "test", "toolbox", "type"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:1d0a4d14d3d89b55117efacfe32aecbbea64e34afff53bfcfb209a60910875cd"
+content_hash = "sha256:ce0ba7406b1a3e48daba5c38d65170bd8876b1c97eba87cf096df0fd13110e9d"
 
 [[metadata.targets]]
 requires_python = ">=3.11,<3.12"
@@ -3578,6 +3578,8 @@ dependencies = [
 files = [
     {file = "torchaudio-2.7.0+cpu-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:b9cb87cea7fca9ad3886a637282cf7eec3aeed632d26998f6f58c950494a4324"},
     {file = "torchaudio-2.7.0+cpu-cp311-cp311-win_amd64.whl", hash = "sha256:d100459bcb2fe1273f5deb4faf1f23411b3e0d096aa947a5230f8cad8d4a2e7e"},
+    {file = "torchaudio-2.7.0+cu118-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:0b9d643745004246523de2d12c9433fbeab55c88c1c17940779d31493646edcb"},
+    {file = "torchaudio-2.7.0+cu118-cp311-cp311-win_amd64.whl", hash = "sha256:89f98555740dc35be8d57a6ac5a948e8eca7f693cf987299beae9baa315b3204"},
     {file = "torchaudio-2.7.0+cu126-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:eb39b716d905ef23c0c3199d1266d7d711197c1d6275bd2cd034584169d20cd0"},
     {file = "torchaudio-2.7.0+cu126-cp311-cp311-win_amd64.whl", hash = "sha256:7a6833ad9fdf78c04f84c6f260b677511a044b40326ff3a708e44f8add72e492"},
     {file = "torchaudio-2.7.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:862d9c5cfe15688a7846962b5d3c9f959beffe82b1e5441935c7a37504c5c5e7"},
@@ -3891,6 +3893,7 @@ dependencies = [
 ]
 files = [
     {file = "xformers-0.0.30-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:60396dff69a04071249809885962b7365afe650a7910f094d67b045b47a60388"},
+    {file = "xformers-0.0.30-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:6416c7d6463f201e1ec1c57ab2b94797c357e16894bfca61204157dc923ed24e"},
     {file = "xformers-0.0.30-cp311-cp311-win_amd64.whl", hash = "sha256:7b2e2aa615bce02ac20d58232b0e17304c62ec533ac0db2040a948df0155858d"},
 ]
 

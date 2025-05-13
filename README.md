@@ -52,8 +52,10 @@ git clone https://github.com/Alizeded/BERP
 cd BERP
 
 # create conda environment and install dependencies
-pdm config venv.backend conda # choose the backend as conda
+pdm config venv.backend conda # choose the backend as conda, current we support torch==2.7.0
 pdm sync -G cu126 -G toolbox -G logging -G integration # default cuda is 12.6, you can change it to your, e.g. -G cu121
+# if you use the older cuda, use this to update pdm.lock
+pdm lock -G cu118 -G toolbox -G logging -G integration && pdm sync -G cu118 -G toolbox -G logging -G integration
 ```
 
 ## Data download and preprocessing
@@ -66,7 +68,7 @@ https://jstorage.app.box.com/v/berp-datasets
 
 Then, unzip the data and put it in the `data` directory.
 
-Juypiter notebook `data_preprocessing.ipynb` and `preprocess_real_recordings.ipynb` in `notebook` folder and `synthesize_rir_speech` and `synthesize_speech_noise` in `script` folder detail the data preprocessing pipeline.
+Jupyter notebook `data_preprocessing.ipynb` and `mix_real_record_preprocess.py` in `notebook` folder and `synthesize_rir_speech` and `synthesize_speech_noise` in `script` folder detail the data preprocessing pipeline.
 
 ## How to run
 
