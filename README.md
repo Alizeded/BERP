@@ -34,7 +34,7 @@ source ~/.zshrc
 conda init zsh
 
 # create conda environment
-conda create -n acoustic-toolkit python=3.11.8
+conda create -n acoustic-toolkit python=3.11.12
 conda activate acoustic-toolkit
 ```
 
@@ -53,7 +53,7 @@ cd BERP
 
 # create conda environment and install dependencies
 pdm config venv.backend conda # choose the backend as conda
-pdm sync # install dependencies with locking dependencies versions
+pdm sync -G cu126 -G toolbox -G logging -G integration # default cuda is 12.6, you can change it to your, e.g. -G cu121
 ```
 
 ## Data download and preprocessing
