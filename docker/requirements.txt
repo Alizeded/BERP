@@ -22,7 +22,7 @@ git+https://github.com/detly/gammatone.git
 # --------- hydra --------- #
 hydra-core==1.3.2
 hydra-colorlog==1.2.0
-hydra-optuna-sweeper==1.2.0
+hydra-optuna-sweeper==1.3.0
 
 # --------- loggers --------- #
 wandb
